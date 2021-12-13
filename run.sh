@@ -77,6 +77,7 @@ kubectl apply $(ls pipeline/config/config-* | awk ' { print " -f " $1 } ')
 
 kubectl create serviceaccount default
 kubectl create -f pipeline/examples/v1beta1/taskruns/custom-env.yaml
+kubectl create -f pipeline/examples/v1beta1/pipelineruns/using_context_variables.yaml
 
 METRICS_DOMAIN=knative.dev/some-repository SYSTEM_NAMESPACE=tekton-pipelines KO_DATA_PATH=./pipeline/pkg/pod/testdata ./pipeline/bin/controller \
   -kubeconfig-writer-image quay.io/openshift-pipeline/openshift-pipelines-pipelines-kubeconfigwriter-rhel8@sha256:f26b87908d90d9b4476a0a0c48e39b5aedb8b9d642f32b2b2c5c9d3649d3b251 \
@@ -92,7 +93,7 @@ CONTROLLER_PID=$!
 
 sleep 120
 
-kubectl get pods,taskruns
+kubectl get pods,taskruns,pipelineruns
 
 kill $CONTROLLER_PID
 kill $KCP_PID
