@@ -60,7 +60,6 @@ kubectl api-resources
 
 echo "KCP is ready. You can use it with :"
 echo "KUBECONFIG=./work/.kcp/admin.kubeconfig kubectl api-resources"
-# Wait a bit
 
 # Test 1 - start a webserver
 
@@ -74,6 +73,8 @@ kubectl label deploy nginx kcp.dev/cluster=local
 #kubectl apply -f pipeline/config/300-taskrun.yaml
 kubectl apply $(ls pipeline/config/300-* | awk ' { print " -f " $1 } ')
 kubectl apply $(ls pipeline/config/config-* | awk ' { print " -f " $1 } ')
+
+# Test 3 - create taskrun and pipelinerun
 
 kubectl create serviceaccount default
 kubectl create -f pipeline/examples/v1beta1/taskruns/custom-env.yaml
