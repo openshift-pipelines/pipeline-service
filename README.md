@@ -24,3 +24,10 @@ This annotation is added by the controller once all init containers have run.
 This annotation is not propagated by the KCP syncer, maybe something to change. A quick fix is to disable this feature.
 
 Future: KCP syncer will handle this and propagate new annotations.
+
+4. KCP version needs to be set
+
+Tekton pipeline controller checks the version of the apiserver. It needs to satisfy a particular regexp.
+The default value doesn't work.
+
+Future: KCP will have a proper version set.
