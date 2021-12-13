@@ -1,0 +1,12 @@
+diff --git a/pkg/reconciler/taskrun/taskrun.go b/pkg/reconciler/taskrun/taskrun.go
+index 32ab9153a..ac51ef1b5 100644
+--- a/pkg/reconciler/taskrun/taskrun.go
++++ b/pkg/reconciler/taskrun/taskrun.go
+@@ -697,6 +697,7 @@ func (c *Reconciler) createPod(ctx context.Context, tr *v1beta1.TaskRun, rtr *re
+ 		return nil, fmt.Errorf("translating TaskSpec to Pod: %w", err)
+ 	}
+ 
++	pod.Labels["kcp.dev/cluster"] = "local"
+ 	pod, err = c.KubeClientSet.CoreV1().Pods(tr.Namespace).Create(ctx, pod, metav1.CreateOptions{})
+ 	if err == nil && willOverwritePodSetAffinity(tr) {
+ 		if recorder := controller.GetEventRecorder(ctx); recorder != nil {
