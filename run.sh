@@ -15,14 +15,38 @@ cd $WORKING_DIR
 if [[ ! -d ./kcp ]]
 then
   git clone git@github.com:kcp-dev/kcp.git
-  (cd ./kcp && git checkout 871852b75e2f363ec7b21d87b39805f17a34a872)
+  (cd ./kcp && git checkout 8ac8619370f61d2212d611b87df92b7b0486220b)
 fi
 if [[ ! -d ./pipeline ]]
 then
   git clone git@github.com:tektoncd/pipeline.git
   (cd ./pipeline && git checkout b47e0797bb549cac465cbedb2783c1ac5234d69b)
+
+  # Pods need to be placed on a physical cluster
+  # Adding the label manually for that purpose.
   (cd pipeline && git apply ../../label.patch)
+
+  # This feature unblocks Tekton pods. The READY annotation is not correctly propagated to the physical cluster.
   (cd pipeline && git apply ../../pipeline-ff.patch)
+
+  # Conversion is not working yet on KCP
+  (cd pipeline && git apply ../../remove-conversion.patch)
+fi
+if [[ ! -d ./triggers ]]
+then
+  git clone git@github.com:tektoncd/triggers.git
+
+  # Deployments and services need to be placed on a physical cluster
+  # Adding the label manually for that purpose.
+  (cd triggers && git apply ../../triggers-label.patch)
+
+  # EventListeners are running on the physical cluster and need access to the KCP API.
+  # A special secret is manually created in the physical cluster for that purpose.
+  # The deployment is changed to use this secret instead of a service account.
+  (cd triggers && git apply ../../triggers-deploy.patch)
+
+  # Interceptors are not working yet - removing it from the example for the moment.
+  (cd triggers && git apply ../../remove-interceptor.patch)
 fi
 
 if [[ ! -f ./kcp/bin/kcp ]]
@@ -32,6 +56,10 @@ fi
 if [[ ! -f ./pipeline/bin/controller ]]
 then
   (cd ./pipeline && make bin/controller)
+fi
+if [[ ! -f ./triggers/bin/controller ]]
+then
+  (cd ./triggers && mkdir -p bin/ && go build -o bin/controller ./cmd/controller)
 fi
 
 # Start KCP
@@ -43,7 +71,7 @@ rm -rf .kcp/
   --install_cluster_controller \
   --install_workspace_controller \
   --auto_publish_apis \
-   --resources_to_sync="deployments.apps,pods" &
+   --resources_to_sync="deployments.apps,pods,services" &
 KCP_PID=$!
 
 export KUBECONFIG=.kcp/admin.kubeconfig
@@ -98,5 +126,52 @@ sleep 120
 
 kubectl get pods,taskruns,pipelineruns
 
+# Test 4 - install triggers
+
+kubectl apply $(ls triggers/config/300-* | awk ' { print " -f " $1 } ')
+kubectl apply $(ls triggers/config/config-* | awk ' { print " -f " $1 } ')
+
+kubectl apply -f triggers/examples/v1beta1/github/
+
+# Add a secret in the physical cluster so that the event listener can query KCP API
+cp ./.kcp/admin.kubeconfig ./.kcp/remote.kubeconfig
+gsed -i "s/\[::1\]/host.docker.internal/" ./.kcp/remote.kubeconfig
+KUBECONFIG=kind1 kubectl create secret generic kcp-kubeconfig --from-file=kubeconfig=./.kcp/remote.kubeconfig
+
+METRICS_PROMETHEUS_PORT=8010 PROFILING_PORT=8009 METRICS_DOMAIN=knative.dev/some-repository SYSTEM_NAMESPACE=tekton-pipelines ./triggers/bin/controller -logtostderr \
+  -stderrthreshold 2 \
+  -el-image quay.io/gurose/eventlistenersink-7ad1faa98cddbcb0c24990303b220bb8:latest \
+  -el-port 8080 \
+  -el-security-context=false \
+  -el-readtimeout 5 \
+  -el-writetimeout 40 \
+  -el-idletimeout 120 \
+  -el-timeouthandler 30 \
+  -period-seconds 10 \
+  -failure-threshold 1 &
+TRIGGERS_PID=$!
+
+sleep 30
+
+# Simulate the behaviour of the webhook. GitHub sends some payload and trigger a TaskRun.
+KUBECONFIG=kind1 kubectl port-forward service/el-github-listener 8089:8080 &
+FORWARD_PID=$!
+
+sleep 30
+
+curl -v \
+   -H 'X-GitHub-Event: pull_request' \
+   -H 'X-Hub-Signature: sha1=ba0cdc263b3492a74b601d240c27efe81c4720cb' \
+   -H 'Content-Type: application/json' \
+   -d '{"action": "opened", "pull_request":{"head":{"sha": "28911bbb5a3e2ea034daf1f6be0a822d50e31e73"}},"repository":{"clone_url": "https://github.com/tektoncd/triggers.git"}}' \
+   http://localhost:8089
+kill $FORWARD_PID
+
+sleep 30
+
+kubectl get taskruns,pipelineruns
+KUBECONFIG=kind1 kubectl get pods
+
 kill $CONTROLLER_PID
+kill $TRIGGERS_PID
 kill $KCP_PID
