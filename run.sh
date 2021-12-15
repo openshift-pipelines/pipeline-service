@@ -15,10 +15,12 @@ cd $WORKING_DIR
 if [[ ! -d ./kcp ]]
 then
   git clone git@github.com:kcp-dev/kcp.git
+  (cd ./kcp && git checkout 871852b75e2f363ec7b21d87b39805f17a34a872)
 fi
 if [[ ! -d ./pipeline ]]
 then
   git clone git@github.com:tektoncd/pipeline.git
+  (cd ./pipeline && git checkout b47e0797bb549cac465cbedb2783c1ac5234d69b)
   (cd pipeline && git apply ../../label.patch)
   (cd pipeline && git apply ../../pipeline-ff.patch)
 fi
