@@ -15,17 +15,19 @@ cd $WORKING_DIR
 if [[ ! -d ./kcp ]]
 then
   git clone git@github.com:kcp-dev/kcp.git
+  (cd ./kcp && git checkout 871852b75e2f363ec7b21d87b39805f17a34a872)
 fi
 if [[ ! -d ./pipeline ]]
 then
   git clone git@github.com:tektoncd/pipeline.git
+  (cd ./pipeline && git checkout b47e0797bb549cac465cbedb2783c1ac5234d69b)
   (cd pipeline && git apply ../../label.patch)
   (cd pipeline && git apply ../../pipeline-ff.patch)
 fi
 
 if [[ ! -f ./kcp/bin/kcp ]]
 then
-  (cd ./kcp && mkdir -p bin/ && go build -ldflags "-X k8s.io/client-go/pkg/version.gitVersion=v1.22.2 -X k8s.io/client-go/pkg/version.gitCommit=5e58841cce77d4bc13713ad2b91fa0d961e69192" -o bin/kcp ./cmd/kcp)
+  (cd ./kcp && mkdir -p bin/ && go build -ldflags "-X k8s.io/component-base/version.gitVersion=v1.22.2 -X k8s.io/component-base/version.gitCommit=5e58841cce77d4bc13713ad2b91fa0d961e69192" -o bin/kcp ./cmd/kcp)
 fi
 if [[ ! -f ./pipeline/bin/controller ]]
 then
