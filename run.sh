@@ -25,7 +25,7 @@ fi
 
 if [[ ! -f ./kcp/bin/kcp ]]
 then
-  (cd ./kcp && mkdir -p bin/ && go build -ldflags "-X k8s.io/client-go/pkg/version.gitVersion=v1.22.2 -X k8s.io/client-go/pkg/version.gitCommit=5e58841cce77d4bc13713ad2b91fa0d961e69192" -o bin/kcp ./cmd/kcp)
+  (cd ./kcp && mkdir -p bin/ && go build -ldflags "-X k8s.io/component-base/version.gitVersion=v1.22.2 -X k8s.io/component-base/version.gitCommit=5e58841cce77d4bc13713ad2b91fa0d961e69192" -o bin/kcp ./cmd/kcp)
 fi
 if [[ ! -f ./pipeline/bin/controller ]]
 then
