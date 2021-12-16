@@ -1,0 +1,64 @@
+diff --git a/config/300-pipeline.yaml b/config/300-pipeline.yaml
+index 52ba2066a..c2fbda79f 100644
+--- a/config/300-pipeline.yaml
++++ b/config/300-pipeline.yaml
+@@ -68,11 +68,3 @@ spec:
+     - tekton
+     - tekton-pipelines
+   scope: Namespaced
+-  conversion:
+-    strategy: Webhook
+-    webhook:
+-      conversionReviewVersions: ["v1beta1"]
+-      clientConfig:
+-        service:
+-          name: tekton-pipelines-webhook
+-          namespace: tekton-pipelines
+diff --git a/config/300-pipelinerun.yaml b/config/300-pipelinerun.yaml
+index 06ab5e760..c6f99b19e 100644
+--- a/config/300-pipelinerun.yaml
++++ b/config/300-pipelinerun.yaml
+@@ -97,11 +97,3 @@ spec:
+     - pr
+     - prs
+   scope: Namespaced
+-  conversion:
+-    strategy: Webhook
+-    webhook:
+-      conversionReviewVersions: ["v1beta1"]
+-      clientConfig:
+-        service:
+-          name: tekton-pipelines-webhook
+-          namespace: tekton-pipelines
+diff --git a/config/300-task.yaml b/config/300-task.yaml
+index a853a2d2d..064da91d9 100644
+--- a/config/300-task.yaml
++++ b/config/300-task.yaml
+@@ -68,11 +68,3 @@ spec:
+     - tekton
+     - tekton-pipelines
+   scope: Namespaced
+-  conversion:
+-    strategy: Webhook
+-    webhook:
+-      conversionReviewVersions: ["v1beta1"]
+-      clientConfig:
+-        service:
+-          name: tekton-pipelines-webhook
+-          namespace: tekton-pipelines
+diff --git a/config/300-taskrun.yaml b/config/300-taskrun.yaml
+index 60bfc70e3..558282d36 100644
+--- a/config/300-taskrun.yaml
++++ b/config/300-taskrun.yaml
+@@ -97,11 +97,3 @@ spec:
+     - tr
+     - trs
+   scope: Namespaced
+-  conversion:
+-    strategy: Webhook
+-    webhook:
+-      conversionReviewVersions: ["v1beta1"]
+-      clientConfig:
+-        service:
+-          name: tekton-pipelines-webhook
+-          namespace: tekton-pipelines
