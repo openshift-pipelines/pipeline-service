@@ -15,7 +15,7 @@ cd $WORKING_DIR
 if [[ ! -d ./kcp ]]
 then
   git clone git@github.com:kcp-dev/kcp.git
-  (cd ./kcp && git checkout 8ac8619370f61d2212d611b87df92b7b0486220b)
+  (cd ./kcp && git checkout ae4e07fcd4399264dccab47509ef17f2851050ee)
 fi
 if [[ ! -d ./pipeline ]]
 then
@@ -66,12 +66,12 @@ fi
 rm -rf .kcp/
 
 ./kcp/bin/kcp start \
-  --push_mode=true \
-  --pull_mode=false \
-  --install_cluster_controller \
-  --install_workspace_controller \
-  --auto_publish_apis \
-   --resources_to_sync="deployments.apps,pods,services" &
+  --push-mode=true \
+  --pull-mode=false \
+  --install-cluster-controller \
+  --install-workspace-controller \
+  --auto-publish-apis \
+  --resources-to-sync="deployments.apps,pods,services" &
 KCP_PID=$!
 
 export KUBECONFIG=.kcp/admin.kubeconfig
