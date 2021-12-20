@@ -40,13 +40,11 @@ then
   # Adding the label manually for that purpose.
   (cd triggers && git apply ../../triggers-label.patch)
 
-  # EventListeners are running on the physical cluster and need access to the KCP API.
+  # EventListeners and interceptors are running on the physical cluster and need access to the KCP API.
   # A special secret is manually created in the physical cluster for that purpose.
   # The deployment is changed to use this secret instead of a service account.
   (cd triggers && git apply ../../triggers-deploy.patch)
-
-  # Interceptors are not working yet - removing it from the example for the moment.
-  (cd triggers && git apply ../../remove-interceptor.patch)
+  (cd triggers && git apply ../../fix-interceptors.patch)
 fi
 
 if [[ ! -f ./kcp/bin/kcp ]]
@@ -74,7 +72,7 @@ rm -rf .kcp/
   --resources-to-sync="deployments.apps,pods,services" &
 KCP_PID=$!
 
-export KUBECONFIG=.kcp/admin.kubeconfig
+export KUBECONFIG="$(pwd)/.kcp/admin.kubeconfig"
 
 # Add one kind cluster
 
@@ -128,15 +126,20 @@ kubectl get pods,taskruns,pipelineruns
 
 # Test 4 - install triggers
 
-kubectl apply $(ls triggers/config/300-* | awk ' { print " -f " $1 } ')
-kubectl apply $(ls triggers/config/config-* | awk ' { print " -f " $1 } ')
-
-kubectl apply -f triggers/examples/v1beta1/github/
-
-# Add a secret in the physical cluster so that the event listener can query KCP API
+# Add a secret in the physical cluster so that the event listener and interceptors can query KCP API
 cp ./.kcp/admin.kubeconfig ./.kcp/remote.kubeconfig
 gsed -i "s/\[::1\]/host.docker.internal/" ./.kcp/remote.kubeconfig
 KUBECONFIG=kind1 kubectl create secret generic kcp-kubeconfig --from-file=kubeconfig=./.kcp/remote.kubeconfig
+
+KUBECONFIG=kind1 kubectl create ns tekton-pipelines
+KUBECONFIG=kind1 kubectl create secret generic kcp-kubeconfig --from-file=kubeconfig=./.kcp/remote.kubeconfig -n tekton-pipelines
+
+kubectl create ns tekton-pipelines
+kubectl apply $(ls triggers/config/300-* | awk ' { print " -f " $1 } ')
+kubectl apply $(ls triggers/config/config-* | awk ' { print " -f " $1 } ')
+(cd triggers/ && ko apply -f config/interceptors)
+
+kubectl apply -f triggers/examples/v1beta1/github/
 
 METRICS_PROMETHEUS_PORT=8010 PROFILING_PORT=8009 METRICS_DOMAIN=knative.dev/some-repository SYSTEM_NAMESPACE=tekton-pipelines ./triggers/bin/controller -logtostderr \
   -stderrthreshold 2 \
