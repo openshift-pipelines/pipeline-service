@@ -19,8 +19,8 @@ then
 fi
 if [[ ! -d ./pipeline ]]
 then
-  git clone git@github.com:tektoncd/pipeline.git
-  (cd ./pipeline && git checkout b47e0797bb549cac465cbedb2783c1ac5234d69b)
+  git clone git@github.com:bnallapeta/pipeline.git
+  (cd ./pipeline && git checkout d2456ab9aa2e0bc81d712b4bb2a2beb81de9a69a)
 
   # Pods need to be placed on a physical cluster
   # Adding the label manually for that purpose.
