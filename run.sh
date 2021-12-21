@@ -97,9 +97,11 @@ kubectl label deploy nginx kcp.dev/cluster=local
 
 # Test 2 - install Tekton CRDs
 
-#kubectl apply -f pipeline/config/300-pipelinerun.yaml
-#kubectl apply -f pipeline/config/300-taskrun.yaml
-kubectl apply $(ls pipeline/config/300-* | awk ' { print " -f " $1 } ')
+kubectl apply -f pipeline/config/300-pipelinerun.yaml
+kubectl apply -f pipeline/config/300-taskrun.yaml
+kubectl apply -f pipeline/config/300-run.yaml
+kubectl apply -f pipeline/config/300-resource.yaml
+#kubectl apply $(ls pipeline/config/300-* | awk ' { print " -f " $1 } ')
 kubectl apply $(ls pipeline/config/config-* | awk ' { print " -f " $1 } ')
 
 # Test 3 - create taskrun and pipelinerun
