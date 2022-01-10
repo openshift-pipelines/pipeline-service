@@ -19,8 +19,8 @@ then
 fi
 if [[ ! -d ./pipeline ]]
 then
-  git clone git@github.com:tektoncd/pipeline.git
-  (cd ./pipeline && git checkout b47e0797bb549cac465cbedb2783c1ac5234d69b)
+  git clone git@github.com:bnallapeta/pipeline.git -b kcp-pipelines
+  (cd ./pipeline && git checkout 2e43f1d5eee426480ddac09ce9803a19faa19cc7)
 
   # Pods need to be placed on a physical cluster
   # Adding the label manually for that purpose.
@@ -97,9 +97,11 @@ kubectl label deploy nginx kcp.dev/cluster=local
 
 # Test 2 - install Tekton CRDs
 
-#kubectl apply -f pipeline/config/300-pipelinerun.yaml
-#kubectl apply -f pipeline/config/300-taskrun.yaml
-kubectl apply $(ls pipeline/config/300-* | awk ' { print " -f " $1 } ')
+kubectl apply -f pipeline/config/300-pipelinerun.yaml
+kubectl apply -f pipeline/config/300-taskrun.yaml
+kubectl apply -f pipeline/config/300-run.yaml
+kubectl apply -f pipeline/config/300-resource.yaml
+#kubectl apply $(ls pipeline/config/300-* | awk ' { print " -f " $1 } ')
 kubectl apply $(ls pipeline/config/config-* | awk ' { print " -f " $1 } ')
 
 # Test 3 - create taskrun and pipelinerun
