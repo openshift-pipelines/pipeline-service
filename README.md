@@ -2,6 +2,16 @@
 
 Running Tekton and friends on top of KCP!
 
+## Design
+
+Tekton CRDs are added only in KCP. 
+Physical clusters know nothing about Tekton. They only run Deployments, Pods and Services.
+
+![Vanilla Tekton](./images/vanilla.png)
+
+
+![Tekton Triggers](./images/triggers.png)
+
 ## Run
 
 The script `run.sh` is tailored for macOS with Docker Desktop.
@@ -11,11 +21,11 @@ Please update the script to the correct DNS name on your system.
 
 ## Hacks for vanilla Tekton
 
-1. All Tekton CRDs are installed on KCP
+1. All Tekton v1alpha1 CRDs are installed on KCP
 
 Tekton controller requires all of them to be installed to work.
 
-Future: only TaskRun and PipelineRun will be available
+Future: when graduating to v1, Tekton will drop these APIs
 
 2. TaskRun controller adds itself the `kcp.dev/cluster` annotation to the Pod.
 
@@ -52,11 +62,7 @@ KCP panics if it receives this.
 
 Future: Webhooks will be supported by KCP.
 
-2. Interceptors are not supported yet.
-
-Future: To be fixed by us.
-
-3. Service Account for Event Listener is handled manually
+3. Service Account for Event Listener and Interceptor is handled manually
 
 Triggers controller manages EL deployments. It uses service accounts for EL to call back apiserver. 
 This doesn't work currently with KCP. 
