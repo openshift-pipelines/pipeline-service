@@ -35,6 +35,7 @@ fi
 if [[ ! -d ./triggers ]]
 then
   git clone git@github.com:tektoncd/triggers.git
+  (cd ./triggers && git checkout 7fbff3b122fcb77d44e1b39bb45c8a935e61f5ed)
 
   # Deployments and services need to be placed on a physical cluster
   # Adding the label manually for that purpose.
