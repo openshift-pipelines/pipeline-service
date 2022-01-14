@@ -19,8 +19,8 @@ then
 fi
 if [[ ! -d ./pipeline ]]
 then
-  git clone git@github.com:bnallapeta/pipeline.git -b kcp-pipelines
-  (cd ./pipeline && git checkout 2e43f1d5eee426480ddac09ce9803a19faa19cc7)
+  git clone git@github.com:tektoncd/pipeline.git
+  (cd ./pipeline && git checkout v0.32.0)
 
   # Pods need to be placed on a physical cluster
   # Adding the label manually for that purpose.
@@ -100,9 +100,12 @@ kubectl label deploy nginx kcp.dev/cluster=local
 
 kubectl apply -f pipeline/config/300-pipelinerun.yaml
 kubectl apply -f pipeline/config/300-taskrun.yaml
+
+# will go away with v1 graduation
 kubectl apply -f pipeline/config/300-run.yaml
 kubectl apply -f pipeline/config/300-resource.yaml
-#kubectl apply $(ls pipeline/config/300-* | awk ' { print " -f " $1 } ')
+kubectl apply -f pipeline/config/300-condition.yaml
+
 kubectl apply $(ls pipeline/config/config-* | awk ' { print " -f " $1 } ')
 
 # Test 3 - create taskrun and pipelinerun
@@ -112,12 +115,12 @@ kubectl create -f pipeline/examples/v1beta1/taskruns/custom-env.yaml
 kubectl create -f pipeline/examples/v1beta1/pipelineruns/using_context_variables.yaml
 
 METRICS_DOMAIN=knative.dev/some-repository SYSTEM_NAMESPACE=tekton-pipelines KO_DATA_PATH=./pipeline/pkg/pod/testdata ./pipeline/bin/controller \
-  -kubeconfig-writer-image quay.io/openshift-pipeline/openshift-pipelines-pipelines-kubeconfigwriter-rhel8@sha256:f26b87908d90d9b4476a0a0c48e39b5aedb8b9d642f32b2b2c5c9d3649d3b251 \
-  -git-image quay.io/openshift-pipeline/openshift-pipelines-pipelines-git-init-rhel8@sha256:c0f011b24f4e659714cae0bdec6286e72aa6a0d36eca2227f0c1074dd791b3ce \
-  -entrypoint-image quay.io/openshift-pipeline/openshift-pipelines-pipelines-entrypoint-rhel8@sha256:b6758f84914dd1fa86282d71364a90bc6ec4e2039f261cc73215bb69f35c7e1b \
-  -nop-image quay.io/openshift-pipeline/openshift-pipelines-pipelines-nop-rhel8@sha256:3465b61ae753a4090488521ef57df070d34e4c147c73d007927cde8b6ae3a7e6 \
-  -imagedigest-exporter-image quay.io/openshift-pipeline/openshift-pipelines-pipelines-imagedigestexporter-rhel8@sha256:3ea6691fdc1fe8d8f778d6f4ed97e8e182bfb7716fa09cf515994a8f11518dec \
-  -pr-image quay.io/openshift-pipeline/openshift-pipelines-pipelines-pullrequest-init-rhel8@sha256:f4e56fee435532d21d11901021480f5df66bc751eee260dc40a0003ec1505203 \
+  -kubeconfig-writer-image gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/kubeconfigwriter:v0.32.0 \
+  -git-image gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/git-init:v0.32.0 \
+  -entrypoint-image gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/entrypoint:v0.32.0 \
+  -nop-image gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/nop:v0.32.0 \
+  -imagedigest-exporter-image gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/imagedigestexporter:v0.32.0 \
+  -pr-image gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/pullrequest-init:v0.32.0 \
   -gsutil-image gcr.io/google.com/cloudsdktool/cloud-sdk@sha256:27b2c22bf259d9bc1a291e99c63791ba0c27a04d2db0a43241ba0f1f20f4067f \
   -shell-image registry.access.redhat.com/ubi8/ubi-minimal@sha256:54ef2173bba7384dc7609e8affbae1c36f8a3ec137cacc0866116d65dd4b9afe \
   -shell-image-win mcr.microsoft.com/powershell:nanoserver@sha256:b6d5ff841b78bdf2dfed7550000fd4f3437385b8fa686ec0f010be24777654d6 &
