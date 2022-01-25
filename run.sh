@@ -15,7 +15,6 @@ cd $WORKING_DIR
 if [[ ! -d ./kcp ]]
 then
   git clone git@github.com:kcp-dev/kcp.git
-  (cd ./kcp && git checkout ae4e07fcd4399264dccab47509ef17f2851050ee)
 fi
 if [[ ! -d ./pipeline ]]
 then
@@ -48,6 +47,12 @@ then
   (cd triggers && git apply ../../fix-interceptors.patch)
 fi
 
+if [[ ! -d ./kcp-ingress ]]
+then
+  git clone --depth=1 https://github.com/jmprusi/kcp-ingress
+  (cd kcp-ingress && go build -o kcp-ingress cmd/ingress-controller/main.go)
+fi
+
 if [[ ! -f ./kcp/bin/kcp ]]
 then
   (cd ./kcp && mkdir -p bin/ && go build -ldflags "-X k8s.io/component-base/version.gitVersion=v1.22.2 -X k8s.io/component-base/version.gitCommit=5e58841cce77d4bc13713ad2b91fa0d961e69192" -o bin/kcp ./cmd/kcp)
@@ -70,19 +75,30 @@ rm -rf .kcp/
   --install-cluster-controller \
   --install-workspace-controller \
   --auto-publish-apis \
-  --resources-to-sync="deployments.apps,pods,services" &
+  --resources-to-sync="ingresses.networking.k8s.io,deployments.apps,pods,services" &
 KCP_PID=$!
+
+sleep 20
 
 export KUBECONFIG="$(pwd)/.kcp/admin.kubeconfig"
 
+echo "Running the kcp-ingress controller"
+./kcp-ingress/kcp-ingress -kubeconfig="${KUBECONFIG}" -envoyxds -envoy-listener-port=8181 &
+KCP_INGRESS_PID=$!
+
+echo "Starting Envoy"
+envoy -c ./kcp-ingress/utils/envoy/bootstrap.yaml &>envoy.log &
+ENVOY_PID=$!
+
 # Add one kind cluster
 
-KUBECONFIG=kind1 kind delete cluster
-KUBECONFIG=kind1 kind create cluster
+#KUBECONFIG=kind1 kind delete cluster
+#KUBECONFIG=kind1 kind create cluster
 
-sed -e 's/^/    /' kind1 | cat ./kcp/contrib/examples/cluster.yaml - | kubectl apply -f -
+sed -e 's/^/    /' ~/.kube/config.os4 | cat ./kcp/contrib/examples/cluster.yaml - | kubectl apply -f -
 sleep 5
 
+sleep 120
 # Cluster is added and deployments API is added to KCP automatically
 kubectl describe cluster
 kubectl api-resources
@@ -135,10 +151,10 @@ kubectl get pods,taskruns,pipelineruns
 # Add a secret in the physical cluster so that the event listener and interceptors can query KCP API
 cp ./.kcp/admin.kubeconfig ./.kcp/remote.kubeconfig
 gsed -i "s/\[::1\]/host.docker.internal/" ./.kcp/remote.kubeconfig
-KUBECONFIG=kind1 kubectl create secret generic kcp-kubeconfig --from-file=kubeconfig=./.kcp/remote.kubeconfig
+KUBECONFIG=~/.kube/config.os4 kubectl create secret generic kcp-kubeconfig --from-file=kubeconfig=./.kcp/remote.kubeconfig
 
-KUBECONFIG=kind1 kubectl create ns tekton-pipelines
-KUBECONFIG=kind1 kubectl create secret generic kcp-kubeconfig --from-file=kubeconfig=./.kcp/remote.kubeconfig -n tekton-pipelines
+KUBECONFIG=~/.kube/config.os4 kubectl create ns tekton-pipelines
+KUBECONFIG=~/.kube/config.os4 kubectl create secret generic kcp-kubeconfig --from-file=kubeconfig=./.kcp/remote.kubeconfig -n tekton-pipelines
 
 kubectl create ns tekton-pipelines
 kubectl apply $(ls triggers/config/300-* | awk ' { print " -f " $1 } ')
@@ -163,7 +179,7 @@ TRIGGERS_PID=$!
 sleep 30
 
 # Simulate the behaviour of the webhook. GitHub sends some payload and trigger a TaskRun.
-KUBECONFIG=kind1 kubectl port-forward service/el-github-listener 8089:8080 &
+KUBECONFIG=~/.kube/config.os4 kubectl port-forward service/el-github-listener 8089:8080 &
 FORWARD_PID=$!
 
 sleep 30
@@ -179,7 +195,9 @@ kill $FORWARD_PID
 sleep 30
 
 kubectl get taskruns,pipelineruns
-KUBECONFIG=kind1 kubectl get pods
+KUBECONFIG=~/.kube/config.os4 kubectl get pods
+
+sleep 3600
 
 kill $CONTROLLER_PID
 kill $TRIGGERS_PID
