@@ -1,10 +1,10 @@
 
 
-#KCP in kubernetes!
-##and we call it _ckcp_ : containerized-kcp
+# KCP in kubernetes!
+## and we call it _ckcp_ : containerized-kcp
 
 ###
-###Description
+### Description
 
 This script essentially does this :  
 
@@ -20,7 +20,7 @@ Long Version:
 5. Copy a physical cluster's kubeconfig inside a pod.
 6. Add a physical cluster to kcp running inside the pod.
 
-###Pre-requisites
+### Pre-requisites
 Before you execute the script, 
 
 1. You need to have a kubernetes/openshift cluster.
