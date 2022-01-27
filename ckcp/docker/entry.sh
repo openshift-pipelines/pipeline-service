@@ -7,4 +7,4 @@ rm -rf .kcp/
   --install-cluster-controller \
   --install-workspace-controller \
   --auto-publish-apis \
-  --resources-to-sync="deployments.apps,pods,services" >> kcp.log 2>&1
+  --resources-to-sync="deployments.apps,pods,services"

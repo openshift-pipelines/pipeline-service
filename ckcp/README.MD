@@ -24,7 +24,7 @@ Long Version:
 Before you execute the script, 
 
 1. You need to have a kubernetes/openshift cluster.
-2. You need to build the docker image and upload it to quay.io  
+2. You need to build the docker image and upload it to quay.io and make it Public.  
 Note: KO_DOCKER_REPO has to point to your own _quay.io_ repo.
 ```
 $ echo $KO_DOCKER_REPO
