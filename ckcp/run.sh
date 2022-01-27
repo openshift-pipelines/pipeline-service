@@ -30,7 +30,7 @@ kubectl apply -f config/kcp-service.yaml
 podname=$(kubectl get pods -n ckcp -l=app='kcp-in-a-pod' -o jsonpath='{.items[0].metadata.name}')
 
 #check if kcp inside pod is running or not
-kubectl wait --for=condition=Ready pod/$podname -n ckcp
+kubectl wait --for=condition=Ready pod/$podname -n ckcp --timeout=120s
 
 #copy the kubeconfig of kcp from inside the pod onto local filesystem
 kubectl cp ckcp/$podname:/workspace/.kcp/admin.kubeconfig kubeconfig/admin.kubeconfig
@@ -48,12 +48,7 @@ sleep 10
 #make sure access to kcp-in-a-pod is good
 KUBECONFIG=kubeconfig/admin.kubeconfig kubectl api-resources
 
-#copy the physical cluster's config inside the pod
-#kubectl cp $HOME/.kube/config ckcp/$podname:/workspace/cluster1.yaml
-
-#export KUBECONFIG inside the pod & test the registration of a Physical Cluster
-#kubectl -n ckcp exec $podname -- bash -c "export KUBECONFIG=/workspace/.kcp/admin.kubeconfig && sed -e 's/^/    /' /workspace/cluster1.yaml | cat ./kcp/contrib/examples/cluster.yaml - | kubectl apply -f -"
-
 #test the registration of a Physical Cluster
 export KUBECONFIG=kubeconfig/admin.kubeconfig
-sed -e 's/^/    /' $HOME/.kube/config | cat ./kcp/contrib/examples/cluster.yaml - | kubectl apply -f -
+curl https://raw.githubusercontent.com/kcp-dev/kcp/main/contrib/examples/cluster.yaml > cluster.yaml
+sed -e 's/^/    /' $HOME/.kube/config | cat cluster.yaml - | kubectl apply -f -
