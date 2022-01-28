@@ -3,6 +3,9 @@
 #quit if exit status of any cmd is a non-zero value
 set -exuo pipefail
 
+KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
+export KUBECONFIG=$KUBECONFIG
+
 #create ns, sa, deployment and service resources
 #check if namespace and serviceaccount exists; if not, create them
 NS=$(kubectl get namespace ckcp --ignore-not-found);
@@ -30,17 +33,21 @@ kubectl apply -f config/kcp-service.yaml
 podname=$(kubectl get pods -n ckcp -l=app='kcp-in-a-pod' -o jsonpath='{.items[0].metadata.name}')
 
 #check if kcp inside pod is running or not
-kubectl wait --for=condition=Ready pod/$podname -n ckcp --timeout=120s
+kubectl wait --for=condition=Ready pod/$podname -n ckcp --timeout=300s
 
 #copy the kubeconfig of kcp from inside the pod onto local filesystem
 kubectl cp ckcp/$podname:/workspace/.kcp/admin.kubeconfig kubeconfig/admin.kubeconfig
 
 #check if external ip is assigned and replace kcp's external IP in the kubeconfig file
-while [ "$(kubectl get service ckcp-service -n ckcp -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" == "" ]; do
+while [ "$(kubectl get service ckcp-service -n ckcp -o jsonpath='{.status.loadBalancer.ingress[0]}')" == "" ]; do
   sleep 3
-  echo "Waiting for external ip to be assigned"
+  echo "Waiting for external ip or hostname to be assigned"
 done
-external_ip=$(kubectl get service ckcp-service -n ckcp -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+sleep 60
+
+external_ip=$(kubectl get service ckcp-service -n ckcp -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+external_ip+=$(kubectl get service ckcp-service -n ckcp -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 sed -i "s/\[::1]/$external_ip/g" kubeconfig/admin.kubeconfig
 
 sleep 10
@@ -49,6 +56,5 @@ sleep 10
 KUBECONFIG=kubeconfig/admin.kubeconfig kubectl api-resources
 
 #test the registration of a Physical Cluster
-export KUBECONFIG=kubeconfig/admin.kubeconfig
 curl https://raw.githubusercontent.com/kcp-dev/kcp/main/contrib/examples/cluster.yaml > cluster.yaml
-sed -e 's/^/    /' $HOME/.kube/config | cat cluster.yaml - | kubectl apply -f -
+sed -e 's/^/    /' $KUBECONFIG | cat cluster.yaml - | KUBECONFIG=kubeconfig/admin.kubeconfig kubectl apply -f -
