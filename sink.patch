@@ -1,0 +1,21 @@
+diff --git a/pkg/sink/sink.go b/pkg/sink/sink.go
+index c6d63bfb..633b75a2 100644
+--- a/pkg/sink/sink.go
++++ b/pkg/sink/sink.go
+@@ -24,6 +24,7 @@ import (
+ 	"fmt"
+ 	"io/ioutil"
+ 	"net/http"
++	"strings"
+ 	"sync"
+ 
+ 	"github.com/tektoncd/triggers/pkg/apis/triggers"
+@@ -419,7 +420,7 @@ func (r Sink) ExecuteInterceptors(trInt []*triggersv1.TriggerInterceptor, in *ht
+ 		}
+ 
+ 		// TODO: Plumb through context from EL
+-		interceptorResponse, err := interceptors.Execute(context.Background(), r.HTTPClient, &request, url.String())
++		interceptorResponse, err := interceptors.Execute(context.Background(), r.HTTPClient, &request, strings.ReplaceAll(url.String(), ".tekton-pipelines.", ".kcp--admin--tekton-pipelines."))
+ 		if err != nil {
+ 			return nil, nil, nil, err
+ 		}

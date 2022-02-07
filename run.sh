@@ -15,16 +15,12 @@ cd $WORKING_DIR
 if [[ ! -d ./kcp ]]
 then
   git clone git@github.com:kcp-dev/kcp.git
-  (cd ./kcp && git checkout ae4e07fcd4399264dccab47509ef17f2851050ee)
+  (cd ./kcp && git checkout 5788c38716ef6decab815f1f7a47c9decf1b605c)
 fi
 if [[ ! -d ./pipeline ]]
 then
   git clone git@github.com:tektoncd/pipeline.git
   (cd ./pipeline && git checkout v0.32.0)
-
-  # Pods need to be placed on a physical cluster
-  # Adding the label manually for that purpose.
-  (cd pipeline && git apply ../../label.patch)
 
   # This feature unblocks Tekton pods. The READY annotation is not correctly propagated to the physical cluster.
   (cd pipeline && git apply ../../pipeline-ff.patch)
@@ -37,9 +33,9 @@ then
   git clone git@github.com:tektoncd/triggers.git
   (cd ./triggers && git checkout 7fbff3b122fcb77d44e1b39bb45c8a935e61f5ed)
 
-  # Deployments and services need to be placed on a physical cluster
-  # Adding the label manually for that purpose.
-  (cd triggers && git apply ../../triggers-label.patch)
+  # Deployments need to talk to core interceptors. KCP rewrites namespace in physical cluster,
+  # so we have to patch it until we get proper communication
+  (cd triggers && git apply ../../sink.patch)
 
   # EventListeners and interceptors are running on the physical cluster and need access to the KCP API.
   # A special secret is manually created in the physical cluster for that purpose.
@@ -68,9 +64,10 @@ rm -rf .kcp/
   --push-mode=true \
   --pull-mode=false \
   --install-cluster-controller \
-  --install-workspace-controller \
+  --install-workspace-scheduler \
+  --install-namespace-scheduler \
   --auto-publish-apis \
-  --resources-to-sync="deployments.apps,pods,services" &
+  --resources-to-sync="deployments.apps,pods,services,secrets" &
 KCP_PID=$!
 
 export KUBECONFIG="$(pwd)/.kcp/admin.kubeconfig"
@@ -90,13 +87,16 @@ kubectl api-resources
 echo "KCP is ready. You can use it with :"
 echo "KUBECONFIG=./work/.kcp/admin.kubeconfig kubectl api-resources"
 
+sleep 60
+
 # Test 1 - start a webserver
 
 kubectl create namespace default
 kubectl create deployment nginx --image=nginx
-kubectl label deploy nginx kcp.dev/cluster=local
 
 # Test 2 - install Tekton CRDs
+
+kubectl create namespace tekton-pipelines
 
 kubectl apply -f pipeline/config/300-pipelinerun.yaml
 kubectl apply -f pipeline/config/300-taskrun.yaml
@@ -135,12 +135,10 @@ kubectl get pods,taskruns,pipelineruns
 # Add a secret in the physical cluster so that the event listener and interceptors can query KCP API
 cp ./.kcp/admin.kubeconfig ./.kcp/remote.kubeconfig
 gsed -i "s/\[::1\]/host.docker.internal/" ./.kcp/remote.kubeconfig
-KUBECONFIG=kind1 kubectl create secret generic kcp-kubeconfig --from-file=kubeconfig=./.kcp/remote.kubeconfig
 
-KUBECONFIG=kind1 kubectl create ns tekton-pipelines
-KUBECONFIG=kind1 kubectl create secret generic kcp-kubeconfig --from-file=kubeconfig=./.kcp/remote.kubeconfig -n tekton-pipelines
+kubectl create secret generic kcp-kubeconfig --from-file=kubeconfig=./.kcp/remote.kubeconfig
+kubectl create secret generic kcp-kubeconfig --from-file=kubeconfig=./.kcp/remote.kubeconfig -n tekton-pipelines
 
-kubectl create ns tekton-pipelines
 kubectl apply $(ls triggers/config/300-* | awk ' { print " -f " $1 } ')
 kubectl apply $(ls triggers/config/config-* | awk ' { print " -f " $1 } ')
 (cd triggers/ && ko apply -f config/interceptors)
@@ -160,13 +158,13 @@ METRICS_PROMETHEUS_PORT=8010 PROFILING_PORT=8009 METRICS_DOMAIN=knative.dev/some
   -failure-threshold 1 &
 TRIGGERS_PID=$!
 
-sleep 30
+sleep 120
 
 # Simulate the behaviour of the webhook. GitHub sends some payload and trigger a TaskRun.
-KUBECONFIG=kind1 kubectl port-forward service/el-github-listener 8089:8080 &
+KUBECONFIG=kind1 kubectl -n kcp--admin--default port-forward service/el-github-listener 8089:8080 &
 FORWARD_PID=$!
 
-sleep 30
+sleep 60
 
 curl -v \
    -H 'X-GitHub-Event: pull_request' \
