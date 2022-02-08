@@ -27,13 +27,7 @@ Tekton controller requires all of them to be installed to work.
 
 Future: when graduating to v1, Tekton will drop these APIs
 
-2. TaskRun controller adds itself the `kcp.dev/cluster` annotation to the Pod.
-
-There is no component in KCP that place Pods on the correct cluster
-
-Future: there will be a controller like the deployment splitter but for pods
-
-3. Disable injected sidecar feature in Tekton
+2. Disable injected sidecar feature in Tekton
 
 By default, Tekton TaskRun controller creates pods that wait for a particular annotation before starting.
 This annotation is added by the controller once all init containers have run. 
@@ -42,14 +36,14 @@ This annotation is not propagated by the KCP syncer, maybe something to change. 
 
 Future: KCP syncer will handle this and propagate new annotations.
 
-4. KCP version needs to be set
+3. KCP version needs to be set
 
 Tekton pipeline controller checks the version of the apiserver. It needs to satisfy a particular regexp.
 The default value doesn't work.
 
 Future: KCP will have a proper version set.
 
-5. TaskRun logs are not available
+4. TaskRun logs are not available
 
 Future: Pod will be a first-class citizen of KCP?
 
@@ -60,15 +54,16 @@ Future: Pod will be a first-class citizen of KCP?
 EventListener, when it calls KCP API, triggers a ConversionReview if this field is present.
 KCP panics if it receives this.
 
-Future: Webhooks will be supported by KCP.
+Future: A solution is provided to avoid to bring them to KCP.
+It is probably a bug in knative. The conversion should not be required if the good type version is used.
 
-3. Service Account for Event Listener and Interceptor is handled manually
+2. Service Account for Event Listener and Interceptor is handled manually
 
 Triggers controller manages EL deployments. It uses service accounts for EL to call back apiserver. 
 This doesn't work currently with KCP. 
 
 Future: Service accounts will be copied to physical cluster somehow. This is needed for operators anyway.
 
-4. Port forwarding only works on the physical cluster (only needed for testing)
+3. Port forwarding only works on the physical cluster (only needed for testing)
 
 Future: Pod will be a first-class citizen of KCP?
