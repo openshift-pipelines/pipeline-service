@@ -134,7 +134,12 @@ kubectl get pods,taskruns,pipelineruns
 
 # Add a secret in the physical cluster so that the event listener and interceptors can query KCP API
 cp ./.kcp/admin.kubeconfig ./.kcp/remote.kubeconfig
-sed -i "s/\[::1\]/host.docker.internal/" ./.kcp/remote.kubeconfig
+
+HOST_ACCESS="host.docker.internal"
+if which podman &>/dev/null; then
+    HOST_ACCESS=$(hostname -I | cut -d' ' -f1)
+fi
+sed -i "s/\[::1\]/${HOST_ACCESS}/" ./.kcp/remote.kubeconfig
 
 kubectl create secret generic kcp-kubeconfig --from-file=kubeconfig=./.kcp/remote.kubeconfig
 kubectl create secret generic kcp-kubeconfig --from-file=kubeconfig=./.kcp/remote.kubeconfig -n tekton-pipelines

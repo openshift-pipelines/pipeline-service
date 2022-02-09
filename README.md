@@ -13,11 +13,19 @@ Physical clusters know nothing about Tekton. They only run Deployments, Pods and
 ![Tekton Triggers](./images/triggers.png)
 
 ## Run
+Requires to install [kind](https://github.com/kubernetes-sigs/kind) and [ko](https://github.com/google/ko).
+`KO_DOCKER_REPO` environment variable has to be set and system has to be logged in the registry.
 
 The script `run.sh` is tailored for macOS with Docker Desktop.
 
 The Tekton Triggers part works because Docker Desktop allows containers to call services on the host with `host.docker.internal`.
 Please update the script to the correct DNS name on your system.
+
+### Fedora 35 Notes
+Running with podman using, requires configure environment for kind - https://kind.sigs.k8s.io/docs/user/rootless/
+
+`short-names-mode` should be set to `permissive` in /etc/containers/registries.conf
+
 
 ## Hacks for vanilla Tekton
 
