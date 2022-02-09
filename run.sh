@@ -15,7 +15,7 @@ cd $WORKING_DIR
 if [[ ! -d ./kcp ]]
 then
   git clone git@github.com:kcp-dev/kcp.git
-  (cd ./kcp && git checkout 5788c38716ef6decab815f1f7a47c9decf1b605c)
+  (cd ./kcp && git checkout dfc490d656822da51234c9c18678c3a0c7952c0d)
 fi
 if [[ ! -d ./pipeline ]]
 then
@@ -72,11 +72,12 @@ KCP_PID=$!
 
 export KUBECONFIG="$(pwd)/.kcp/admin.kubeconfig"
 
-# Add one kind cluster
+# Create a workspace and add one kind cluster
 
 KUBECONFIG=kind1 kind delete cluster
 KUBECONFIG=kind1 kind create cluster
 
+kubectl create -f ../workspace.yaml
 sed -e 's/^/    /' kind1 | cat ./kcp/contrib/examples/cluster.yaml - | kubectl apply -f -
 sleep 5
 
@@ -161,7 +162,7 @@ TRIGGERS_PID=$!
 sleep 120
 
 # Simulate the behaviour of the webhook. GitHub sends some payload and trigger a TaskRun.
-KUBECONFIG=kind1 kubectl -n kcp--admin--default port-forward service/el-github-listener 8089:8080 &
+KUBECONFIG=kind1 kubectl -n kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad port-forward service/el-github-listener 8089:8080 &
 FORWARD_PID=$!
 
 sleep 60
