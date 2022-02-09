@@ -50,7 +50,11 @@ external_ip+=$(kubectl get service ckcp-service -n ckcp -o jsonpath='{.status.lo
 sed -i "s/\[::1]/$external_ip/g" kubeconfig/admin.kubeconfig
 
 #make sure access to kcp-in-a-pod is good
-KUBECONFIG=kubeconfig/admin.kubeconfig kubectl api-resources
+until KUBECONFIG=kubeconfig/admin.kubeconfig kubectl api-resources
+do
+  sleep 5
+  echo "Try again"
+done
 
 #test the registration of a Physical Cluster
 curl https://raw.githubusercontent.com/kcp-dev/kcp/main/contrib/examples/cluster.yaml > cluster.yaml
