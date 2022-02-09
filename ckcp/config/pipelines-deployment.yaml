@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: pipelines-in-a-pod
+  name: cpipelines
+  namespace: cpipelines
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pipelines-in-a-pod
+  template:
+    metadata:
+      labels:
+        app: pipelines-in-a-pod
+    spec:
+      containers:
+        - image: quay.io/bnr/cpipelines:latest
+          name: cpipelines
+          volumeMounts:
+            - mountPath: /workspace/kubeconfig/admin.kubeconfig
+              name: kubeconfig
+              subPath: admin.kubeconfig
+      volumes:
+        - name: kubeconfig
+          configMap:
+            name: ckcp-kubeconfig
