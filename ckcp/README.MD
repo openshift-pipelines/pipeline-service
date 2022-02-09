@@ -28,7 +28,8 @@ Long Version:
 Before you execute the script, 
 
 1. You need to have a kubernetes/openshift cluster.
-2. You need to build the docker image and upload it to *quay.io* and make it *Public*.  
+2. You need to build the docker image for ckcp and upload it to *quay.io* and make it *Public*.  
+3. You need to build the docker image for cpipelines and upload it to *quay.io* and make it *Public*.  
 Note: KO_DOCKER_REPO has to point to your own *quay.io* repo.
 ```
 $ echo $KO_DOCKER_REPO
@@ -36,9 +37,14 @@ quay.io/bnr
 ```
 
 ```
-$ cd ckcp/docker
+$ cd ckcp/docker/ckcp
 $ docker build -t $KO_DOCKER_REPO/ckcp:latest .
 $ docker push $KO_DOCKER_REPO/ckcp:latest
+```
+```
+$ cd ckcp/docker/cpipelines
+$ docker build -t $KO_DOCKER_REPO/cpipelines:latest .
+$ docker push $KO_DOCKER_REPO/cpipelines:latest
 ```
 
 Yup that's it! Just run the script, and you're ready with a pod running kcp inside it!  

@@ -5,6 +5,7 @@ rm -rf .kcp/
   --push-mode=true \
   --pull-mode=false \
   --install-cluster-controller \
-  --install-workspace-controller \
+  --install-workspace-scheduler \
+  --install-namespace-scheduler \
   --auto-publish-apis \
-  --resources-to-sync="deployments.apps,pods,services"
+  --resources-to-sync="deployments.apps,pods,services,secrets"

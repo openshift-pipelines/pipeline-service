@@ -1,4 +1,5 @@
 .idea/
 .kcp/
-/work/
+/pipeline/
+/kubeconfig/
 cluster.yaml
