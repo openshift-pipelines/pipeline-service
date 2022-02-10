@@ -15,7 +15,7 @@ index c6d63bfb..633b75a2 100644
  
  		// TODO: Plumb through context from EL
 -		interceptorResponse, err := interceptors.Execute(context.Background(), r.HTTPClient, &request, url.String())
-+		interceptorResponse, err := interceptors.Execute(context.Background(), r.HTTPClient, &request, strings.ReplaceAll(url.String(), ".tekton-pipelines.", ".kcp--admin--tekton-pipelines."))
++		interceptorResponse, err := interceptors.Execute(context.Background(), r.HTTPClient, &request, strings.ReplaceAll(url.String(), ".tekton-pipelines.", ".kcpa9f18e6516b976c21e45eb38fd4291927a3c9dd86fda1b7b7c03ead1."))
  		if err != nil {
  			return nil, nil, nil, err
  		}
