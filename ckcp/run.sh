@@ -55,6 +55,8 @@ done
 
 kubectl create secret generic ckcp-kubeconfig -n ckcp --from-file kubeconfig/admin.kubeconfig
 
+KUBECONFIG=kubeconfig/admin.kubeconfig kubectl create -f ../workspace.yaml
+
 #test the registration of a Physical Cluster
 curl https://raw.githubusercontent.com/kcp-dev/kcp/main/contrib/examples/cluster.yaml > cluster.yaml
 sed -e 's/^/    /' $KUBECONFIG | cat cluster.yaml - | KUBECONFIG=kubeconfig/admin.kubeconfig kubectl apply -f -
@@ -82,10 +84,10 @@ else
       fi
 
       #clean up old pods if any in kcp--admin--default ns
-      KCPNS=$(kubectl get namespace kcp--admin--default --ignore-not-found);
+      KCPNS=$(kubectl get namespace kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad --ignore-not-found);
       if [[ "$KCPNS" ]]; then
         echo "namespace kcp--admin--default exists";
-        kubectl delete pods -l kcp.dev/cluster=local --field-selector=status.phase==Succeeded -n kcp--admin--default;
+        kubectl delete pods -l kcp.dev/cluster=local --field-selector=status.phase==Succeeded -n kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad;
       fi;
 
       #install namespaces in ckcp
@@ -126,7 +128,7 @@ else
       echo "Print kube resources inside kcp"
       KUBECONFIG=kubeconfig/admin.kubeconfig kubectl get pods,taskruns,pipelineruns
       echo "Print kube resources in the physical cluster (Note: physical cluster will not know what taskruns or pipelinesruns are)"
-      KUBECONFIG=$KUBECONFIG kubectl get pods -n kcp--admin--default
+      KUBECONFIG=$KUBECONFIG kubectl get pods -n kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad
 
       #removing pipelines folder created at the start of the script
       rm -rf pipeline
