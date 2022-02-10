@@ -8,14 +8,11 @@ export KUBECONFIG=$KUBECONFIG
 
 #create ns, sa, deployment and service resources
 #check if namespace and serviceaccount exists; if not, create them
-NS=$(kubectl get namespace ckcp --ignore-not-found);
-if [[ "$NS" ]]; then
-  echo "namespace ckcp exists";
-  kubectl delete all --all -n ckcp;
-else
-  echo "creating namespace ckcp";
-  kubectl create namespace ckcp;
-fi;
+
+kubectl delete namespace ckcp || true;
+echo "creating namespace ckcp";
+kubectl create namespace ckcp;
+
 SA=$(kubectl get sa anyuid -n ckcp --ignore-not-found);
 if [[ "$SA" ]]; then
   echo "service account anyuid already exists in ckcp namespace";
@@ -106,14 +103,10 @@ else
 
       KUBECONFIG=kubeconfig/admin.kubeconfig kubectl apply $(ls pipeline/config/config-* | awk ' { print " -f " $1 } ')
 
-      CPNS=$(kubectl get namespace cpipelines --ignore-not-found);
-      if [[ "$CPNS" ]]; then
-        echo "namespace cpipelines exists";
-        kubectl delete all --all -n cpipelines;
-      else
-        echo "creating namespace cpipelines";
-        kubectl create namespace cpipelines;
-      fi;
+      kubectl delete namespace cpipelines || true;
+
+      echo "creating namespace cpipelines";
+      kubectl create namespace cpipelines;
 
       kubectl create secret generic ckcp-kubeconfig -n cpipelines --from-file kubeconfig/admin.kubeconfig -o yaml
       kubectl apply -f config/pipelines-deployment.yaml
