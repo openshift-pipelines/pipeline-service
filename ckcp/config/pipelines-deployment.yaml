@@ -50,5 +50,5 @@ spec:
               subPath: admin.kubeconfig
       volumes:
         - name: kubeconfig
-          configMap:
-            name: ckcp-kubeconfig
+          secret:
+            secretName: ckcp-kubeconfig

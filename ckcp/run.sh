@@ -56,6 +56,8 @@ do
   echo "Try again"
 done
 
+kubectl create secret generic ckcp-kubeconfig -n ckcp --from-file kubeconfig/admin.kubeconfig
+
 #test the registration of a Physical Cluster
 curl https://raw.githubusercontent.com/kcp-dev/kcp/main/contrib/examples/cluster.yaml > cluster.yaml
 sed -e 's/^/    /' $KUBECONFIG | cat cluster.yaml - | KUBECONFIG=kubeconfig/admin.kubeconfig kubectl apply -f -
@@ -113,7 +115,7 @@ else
         kubectl create namespace cpipelines;
       fi;
 
-      kubectl create configmap ckcp-kubeconfig -n cpipelines --from-file kubeconfig/admin.kubeconfig -o yaml --dry-run=client | kubectl apply -f -
+      kubectl create secret generic ckcp-kubeconfig -n cpipelines --from-file kubeconfig/admin.kubeconfig -o yaml
       kubectl apply -f config/pipelines-deployment.yaml
 
       cplpod=$(kubectl get pods -n cpipelines -o jsonpath='{.items[0].metadata.name}')

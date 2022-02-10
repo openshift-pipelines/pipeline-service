@@ -94,3 +94,11 @@ roles                                      rbac.authorization.k8s.io/v1         
 workspaces                                 tenancy.kcp.dev/v1alpha1               false        Workspace
 workspaceshards                            tenancy.kcp.dev/v1alpha1               false        WorkspaceShard
 </pre>
+
+### Get access on an already setup cluster
+
+Configure kubectl to point to your physical cluster and run:
+
+```
+$ kubectl get secret ckcp-kubeconfig -n ckcp  -o jsonpath="{.data['admin\.kubeconfig']}" > kubeconfig
+```
