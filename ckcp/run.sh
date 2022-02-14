@@ -73,17 +73,6 @@ else
   do
     if [ $arg == "pipelines" ]; then
       echo "Arg $arg passed. Installing pipelines in ckcp"
-      if [[ ! -d ./pipeline ]]
-      then
-        git clone git@github.com:tektoncd/pipeline.git
-        (cd ./pipeline && git checkout v0.32.0)
-
-        # This feature unblocks Tekton pods. The READY annotation is not correctly propagated to the physical cluster.
-        (cd pipeline && git apply ../../pipeline-ff.patch)
-
-        # Conversion is not working yet on KCP
-        (cd pipeline && git apply ../../remove-conversion.patch)
-      fi
 
       #clean up old pods if any in kcp--admin--default ns
       KCPNS=$(kubectl get namespace kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad --ignore-not-found);
@@ -92,20 +81,39 @@ else
         kubectl delete pods -l kcp.dev/cluster=local --field-selector=status.phase==Succeeded -n kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad;
       fi;
 
+      PIPELINES="https://raw.githubusercontent.com/tektoncd/pipeline/v0.32.0"
+      CONFIG="$PIPELINES/config"
+
       #install namespaces in ckcp
       KUBECONFIG=kubeconfig/admin.kubeconfig kubectl create namespace default
       KUBECONFIG=kubeconfig/admin.kubeconfig kubectl create namespace tekton-pipelines
 
       #install pipelines CRDs in ckcp
-      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl apply -f pipeline/config/300-pipelinerun.yaml
-      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl apply -f pipeline/config/300-taskrun.yaml
+      curl -L "$CONFIG/300-pipelinerun.yaml" \
+        | yq e 'del(.spec.conversion)' - \
+        | KUBECONFIG=kubeconfig/admin.kubeconfig kubectl apply -f -
+      curl -L "$CONFIG/300-taskrun.yaml" \
+        | yq e 'del(.spec.conversion)' - \
+        | KUBECONFIG=kubeconfig/admin.kubeconfig kubectl apply -f -
 
       # will go away with v1 graduation
-      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl apply -f pipeline/config/300-run.yaml
-      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl apply -f pipeline/config/300-resource.yaml
-      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl apply -f pipeline/config/300-condition.yaml
+      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl apply -f "$CONFIG/300-run.yaml" \
+        -f "$CONFIG/300-resource.yaml" \
+        -f "$CONFIG/300-condition.yaml"
 
-      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl apply $(ls pipeline/config/config-* | awk ' { print " -f " $1 } ')
+      curl -L "$CONFIG/config-feature-flags.yaml" \
+        | yq eval '.data.running-in-environment-with-injected-sidecars = false' - \
+        | KUBECONFIG=kubeconfig/admin.kubeconfig kubectl apply -f -
+
+      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl apply \
+        -f "$CONFIG/config-artifact-bucket.yaml" \
+        -f "$CONFIG/config-artifact-pvc.yaml" \
+        -f "$CONFIG/config-defaults.yaml" \
+        -f "$CONFIG/config-info.yaml" \
+        -f "$CONFIG/config-leader-election.yaml" \
+        -f "$CONFIG/config-logging.yaml" \
+        -f "$CONFIG/config-observability.yaml" \
+        -f "$CONFIG/config-registry-cert.yaml"
 
       kubectl delete namespace cpipelines || true;
 
@@ -123,18 +131,14 @@ else
 
       #create taskrun and pipelinerun
       KUBECONFIG=kubeconfig/admin.kubeconfig kubectl create serviceaccount default
-      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl create -f pipeline/examples/v1beta1/taskruns/custom-env.yaml
-      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl create -f pipeline/examples/v1beta1/pipelineruns/using_context_variables.yaml
+      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl create -f "$PIPELINES/examples/v1beta1/taskruns/custom-env.yaml"
+      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl create -f "$PIPELINES/examples/v1beta1/pipelineruns/using_context_variables.yaml"
 
       sleep 20
       echo "Print kube resources inside kcp"
       KUBECONFIG=kubeconfig/admin.kubeconfig kubectl get pods,taskruns,pipelineruns
       echo "Print kube resources in the physical cluster (Note: physical cluster will not know what taskruns or pipelinesruns are)"
       KUBECONFIG=$KUBECONFIG kubectl get pods -n kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad
-
-      #removing pipelines folder created at the start of the script
-      rm -rf pipeline
-
     elif [ $arg == "triggers" ]; then
         echo "Arg triggers passed. Installing triggers in ckcp (yet to implement)"
     else
