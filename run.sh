@@ -15,7 +15,7 @@ cd $WORKING_DIR
 if [[ ! -d ./kcp ]]
 then
   git clone git@github.com:kcp-dev/kcp.git
-  (cd ./kcp && git checkout dfc490d656822da51234c9c18678c3a0c7952c0d)
+  (cd ./kcp && git checkout 986710c754ed0dac9ae1525661de931e5dd7c0cc)
 fi
 if [[ ! -d ./pipeline ]]
 then
@@ -63,9 +63,7 @@ rm -rf .kcp/
 ./kcp/bin/kcp start \
   --push-mode=true \
   --pull-mode=false \
-  --install-cluster-controller \
-  --install-workspace-scheduler \
-  --install-namespace-scheduler \
+  --run-controllers \
   --auto-publish-apis \
   --resources-to-sync="deployments.apps,pods,services,secrets" &
 KCP_PID=$!
