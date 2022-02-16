@@ -23,9 +23,6 @@ then
   git clone git@github.com:tektoncd/pipeline.git
   (cd ./pipeline && git checkout v0.32.0)
 
-  # This feature unblocks Tekton pods. The READY annotation is not correctly propagated to the physical cluster.
-  (cd pipeline && git apply "$ROOT_DIR/pipeline-ff.patch")
-
   # Conversion is not working yet on KCP
   (cd pipeline && git apply "$ROOT_DIR/remove-conversion.patch")
 fi
