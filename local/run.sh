@@ -5,6 +5,7 @@ set -exuo pipefail
 # kill all the child processes for this script when it exits
 trap 'jobs=($(jobs -p)); [ -n "${jobs-}" ] && ((${#jobs})) && kill "${jobs[@]}" || true' EXIT
 
+ROOT_DIR=$(pwd)/..
 WORKING_DIR=work/
 
 mkdir -p $WORKING_DIR
@@ -23,10 +24,10 @@ then
   (cd ./pipeline && git checkout v0.32.0)
 
   # This feature unblocks Tekton pods. The READY annotation is not correctly propagated to the physical cluster.
-  (cd pipeline && git apply ../../pipeline-ff.patch)
+  (cd pipeline && git apply "$ROOT_DIR/pipeline-ff.patch")
 
   # Conversion is not working yet on KCP
-  (cd pipeline && git apply ../../remove-conversion.patch)
+  (cd pipeline && git apply "$ROOT_DIR/remove-conversion.patch")
 fi
 if [[ ! -d ./triggers ]]
 then
@@ -35,13 +36,13 @@ then
 
   # Deployments need to talk to core interceptors. KCP rewrites namespace in physical cluster,
   # so we have to patch it until we get proper communication
-  (cd triggers && git apply ../../sink.patch)
+  (cd triggers && git apply "$ROOT_DIR/sink.patch")
 
   # EventListeners and interceptors are running on the physical cluster and need access to the KCP API.
   # A special secret is manually created in the physical cluster for that purpose.
   # The deployment is changed to use this secret instead of a service account.
-  (cd triggers && git apply ../../triggers-deploy.patch)
-  (cd triggers && git apply ../../fix-interceptors.patch)
+  (cd triggers && git apply "$ROOT_DIR/triggers-deploy.patch")
+  (cd triggers && git apply "$ROOT_DIR/fix-interceptors.patch")
 fi
 
 if [[ ! -f ./kcp/bin/kcp ]]
@@ -75,7 +76,7 @@ export KUBECONFIG="$(pwd)/.kcp/admin.kubeconfig"
 KUBECONFIG=kind1 kind delete cluster
 KUBECONFIG=kind1 kind create cluster
 
-kubectl create -f ../workspace.yaml
+kubectl create -f "$ROOT_DIR/workspace.yaml"
 sed -e 's/^/    /' kind1 | cat ./kcp/contrib/examples/cluster.yaml - | kubectl apply -f -
 sleep 5
 
@@ -138,7 +139,8 @@ HOST_ACCESS="host.docker.internal"
 if which podman &>/dev/null; then
     HOST_ACCESS=$(hostname -I | cut -d' ' -f1)
 fi
-sed -i "s/\[::1\]/${HOST_ACCESS}/" ./.kcp/remote.kubeconfig
+sed -i "s/localhost/${HOST_ACCESS}/" ./.kcp/remote.kubeconfig
+KUBECONFIG=./.kcp/remote.kubeconfig kubectl config set-cluster admin --insecure-skip-tls-verify=true
 
 kubectl create secret generic kcp-kubeconfig --from-file=kubeconfig=./.kcp/remote.kubeconfig
 kubectl create secret generic kcp-kubeconfig --from-file=kubeconfig=./.kcp/remote.kubeconfig -n tekton-pipelines
