@@ -12,14 +12,18 @@ Physical clusters know nothing about Tekton. They only run Deployments, Pods and
 
 ![Tekton Triggers](./images/triggers.png)
 
-## Run
+## Run in Kubernetes or OpenShift
+
+You can deploy this PoC to your Kubernetes cluster with the `build.sh` and `run.sh` scripts in `ckcp` folder.
+
+More info [here](https://github.com/openshift-pipelines/pipelines-service/tree/main/ckcp)
+
+## Run locally (deprecated)
+
 Requires to install [kind](https://github.com/kubernetes-sigs/kind) and [ko](https://github.com/google/ko).
 `KO_DOCKER_REPO` environment variable has to be set and system has to be logged in the registry.
 
-The script `run.sh` is tailored for macOS with Docker Desktop.
-
-The Tekton Triggers part works because Docker Desktop allows containers to call services on the host with `host.docker.internal`.
-Please update the script to the correct DNS name on your system.
+The script `run.sh` in `local` directory works both on macOS (with Docker Desktop) and Linux.
 
 ### Fedora 35 Notes
 Running with podman using, requires configure environment for kind - https://kind.sigs.k8s.io/docs/user/rootless/
@@ -35,23 +39,14 @@ Tekton controller requires all of them to be installed to work.
 
 Future: when graduating to v1, Tekton will drop these APIs
 
-2. Disable injected sidecar feature in Tekton
-
-By default, Tekton TaskRun controller creates pods that wait for a particular annotation before starting.
-This annotation is added by the controller once all init containers have run. 
-
-This annotation is not propagated by the KCP syncer, maybe something to change. A quick fix is to disable this feature.
-
-Future: KCP syncer will handle this and propagate new annotations.
-
-3. KCP version needs to be set
+2. KCP version needs to be set
 
 Tekton pipeline controller checks the version of the apiserver. It needs to satisfy a particular regexp.
 The default value doesn't work.
 
 Future: KCP will have a proper version set.
 
-4. TaskRun logs are not available
+3. TaskRun logs are not available
 
 Future: Pod will be a first-class citizen of KCP?
 
