@@ -1,5 +1,6 @@
 .idea/
 .kcp/
 /pipeline/
+/triggers/
 /kubeconfig/
 cluster.yaml

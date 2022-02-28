@@ -1,6 +1,6 @@
 
 
-# KCP in kubernetes!
+# KCP in Openshift!
 ## and we call it _ckcp_ : containerized-kcp
 
 ###
@@ -9,7 +9,7 @@
 This script essentially does this :  
 
 Short Version:
-1. Run kcp in a container in a k8s cluster.
+1. Run kcp in a container in an Openshift cluster.
 2. Add the current cluster as a physical cluster when running KCP in k8s.
 3. Install pipelines and/or triggers (optional)
 
@@ -23,6 +23,7 @@ Long Version:
    ***(optional)***
 7. Apply patches to pipelines repo and run the controller.
 8. Run some example TaskRuns and PipelineRuns.
+9. Apply patches to triggers repo and run the controller, interceptor and eventlistener.
 
 ### Pre-requisites
 Before you execute the script, 
@@ -42,6 +43,7 @@ $ ./build.sh
 Yup that's it! Just run the script, and you're ready with a pod running kcp inside it!  
 
 You can run the script with or without parameters as specified below:  
+Note: Triggers requires pipelines to be running and thus running ckcp with triggers alone is not supported.
 
 ```
 $ ./run.sh
@@ -49,9 +51,6 @@ $ ./run.sh
 
 $ ./run.sh pipelines
     #installs ckcp + pipelines + example TaskRuns and PipelineRuns
-
-$ ./run.sh triggers
-    #installs ckcp + triggers
 
 $ ./run.sh pipelines triggers
     #installs ckcp + pipelines + triggers 

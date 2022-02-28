@@ -1,3 +1,16 @@
+diff --git a/pkg/reconciler/eventlistener/resources/config.go b/pkg/reconciler/eventlistener/resources/config.go
+index 20b4bfc6..c74da9f7 100644
+--- a/pkg/reconciler/eventlistener/resources/config.go
++++ b/pkg/reconciler/eventlistener/resources/config.go
+@@ -22,7 +22,7 @@ var (
+ 	// DefaultPort is the port used by default.
+ 	DefaultPort = 8080
+ 	// DefaultSetSecurityContext is the SetSecurityContext value used by default.
+-	DefaultSetSecurityContext = true
++	DefaultSetSecurityContext = false
+ 	// DefaultReadTimeout is the ReadTimeout used by default.
+ 	DefaultReadTimeout = int64(5)
+ 	// DefaultWriteTimeout is the WriteTimeout used by default.
 diff --git a/pkg/reconciler/eventlistener/resources/container.go b/pkg/reconciler/eventlistener/resources/container.go
 index 5226a547..718eb73d 100644
 --- a/pkg/reconciler/eventlistener/resources/container.go

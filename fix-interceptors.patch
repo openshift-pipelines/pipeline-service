@@ -1,5 +1,5 @@
 diff --git a/config/interceptors/core-interceptors-deployment.yaml b/config/interceptors/core-interceptors-deployment.yaml
-index 4f903b1e..7f4df4b5 100644
+index 4f903b1e..1d035459 100644
 --- a/config/interceptors/core-interceptors-deployment.yaml
 +++ b/config/interceptors/core-interceptors-deployment.yaml
 @@ -25,6 +25,7 @@ metadata:
@@ -41,7 +41,22 @@ index 4f903b1e..7f4df4b5 100644
          readinessProbe:
            httpGet:
              path: /ready
-@@ -94,6 +103,7 @@ metadata:
+@@ -73,14 +82,6 @@ spec:
+           initialDelaySeconds: 5
+           periodSeconds: 10
+           timeoutSeconds: 5
+-        securityContext:
+-          allowPrivilegeEscalation: false
+-          # User 65532 is the distroless nonroot user ID
+-          runAsUser: 65532
+-          runAsGroup: 65532
+-          capabilities:
+-            drop:
+-            - all
+ ---
+ apiVersion: v1
+ kind: Service
+@@ -94,6 +95,7 @@ metadata:
      triggers.tekton.dev/release: "devel"
      app: tekton-triggers-core-interceptors
      version: "devel"
@@ -49,7 +64,7 @@ index 4f903b1e..7f4df4b5 100644
    name: tekton-triggers-core-interceptors
    namespace: tekton-pipelines
  spec:
-@@ -101,6 +111,7 @@ spec:
+@@ -101,6 +103,7 @@ spec:
      - name: "http"
        port: 80
        targetPort: 8082
