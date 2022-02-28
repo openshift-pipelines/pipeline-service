@@ -8,14 +8,11 @@ export KUBECONFIG=$KUBECONFIG
 
 #create ns, sa, deployment and service resources
 #check if namespace and serviceaccount exists; if not, create them
-NS=$(kubectl get namespace ckcp --ignore-not-found);
-if [[ "$NS" ]]; then
-  echo "namespace ckcp exists";
-  kubectl delete all --all -n ckcp;
-else
-  echo "creating namespace ckcp";
-  kubectl create namespace ckcp;
-fi;
+
+kubectl delete namespace ckcp || true;
+echo "creating namespace ckcp";
+kubectl create namespace ckcp;
+
 SA=$(kubectl get sa anyuid -n ckcp --ignore-not-found);
 if [[ "$SA" ]]; then
   echo "service account anyuid already exists in ckcp namespace";
@@ -47,7 +44,9 @@ done
 
 external_ip=$(kubectl get service ckcp-service -n ckcp -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 external_ip+=$(kubectl get service ckcp-service -n ckcp -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-sed -i "s/\[::1]/$external_ip/g" kubeconfig/admin.kubeconfig
+sed -i "s/localhost/$external_ip/g" kubeconfig/admin.kubeconfig
+
+KUBECONFIG=kubeconfig/admin.kubeconfig kubectl config set-cluster admin --insecure-skip-tls-verify=true
 
 #make sure access to kcp-in-a-pod is good
 until KUBECONFIG=kubeconfig/admin.kubeconfig kubectl api-resources
@@ -55,6 +54,10 @@ do
   sleep 5
   echo "Try again"
 done
+
+kubectl create secret generic ckcp-kubeconfig -n ckcp --from-file kubeconfig/admin.kubeconfig
+
+KUBECONFIG=kubeconfig/admin.kubeconfig kubectl create -f ../workspace.yaml
 
 #test the registration of a Physical Cluster
 curl https://raw.githubusercontent.com/kcp-dev/kcp/main/contrib/examples/cluster.yaml > cluster.yaml
@@ -75,18 +78,15 @@ else
         git clone git@github.com:tektoncd/pipeline.git
         (cd ./pipeline && git checkout v0.32.0)
 
-        # This feature unblocks Tekton pods. The READY annotation is not correctly propagated to the physical cluster.
-        (cd pipeline && git apply ../../pipeline-ff.patch)
-
         # Conversion is not working yet on KCP
         (cd pipeline && git apply ../../remove-conversion.patch)
       fi
 
       #clean up old pods if any in kcp--admin--default ns
-      KCPNS=$(kubectl get namespace kcp--admin--default --ignore-not-found);
+      KCPNS=$(kubectl get namespace kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad --ignore-not-found);
       if [[ "$KCPNS" ]]; then
         echo "namespace kcp--admin--default exists";
-        kubectl delete pods -l kcp.dev/cluster=local --field-selector=status.phase==Succeeded -n kcp--admin--default;
+        kubectl delete pods -l kcp.dev/cluster=local --field-selector=status.phase==Succeeded -n kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad;
       fi;
 
       #install namespaces in ckcp
@@ -104,16 +104,12 @@ else
 
       KUBECONFIG=kubeconfig/admin.kubeconfig kubectl apply $(ls pipeline/config/config-* | awk ' { print " -f " $1 } ')
 
-      CPNS=$(kubectl get namespace cpipelines --ignore-not-found);
-      if [[ "$CPNS" ]]; then
-        echo "namespace cpipelines exists";
-        kubectl delete all --all -n cpipelines;
-      else
-        echo "creating namespace cpipelines";
-        kubectl create namespace cpipelines;
-      fi;
+      kubectl delete namespace cpipelines || true;
 
-      kubectl create configmap ckcp-kubeconfig -n cpipelines --from-file kubeconfig/admin.kubeconfig -o yaml --dry-run=client | kubectl apply -f -
+      echo "creating namespace cpipelines";
+      kubectl create namespace cpipelines;
+
+      kubectl create secret generic ckcp-kubeconfig -n cpipelines --from-file kubeconfig/admin.kubeconfig -o yaml
       kubectl apply -f config/pipelines-deployment.yaml
 
       cplpod=$(kubectl get pods -n cpipelines -o jsonpath='{.items[0].metadata.name}')
@@ -131,7 +127,7 @@ else
       echo "Print kube resources inside kcp"
       KUBECONFIG=kubeconfig/admin.kubeconfig kubectl get pods,taskruns,pipelineruns
       echo "Print kube resources in the physical cluster (Note: physical cluster will not know what taskruns or pipelinesruns are)"
-      KUBECONFIG=$KUBECONFIG kubectl get pods -n kcp--admin--default
+      KUBECONFIG=$KUBECONFIG kubectl get pods -n kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad
 
       #removing pipelines folder created at the start of the script
       rm -rf pipeline

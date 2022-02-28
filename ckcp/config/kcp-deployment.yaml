@@ -17,7 +17,7 @@ spec:
     spec:
       serviceAccountName: anyuid
       containers:
-        - image: quay.io/bnr/ckcp:latest
+        - image: quay.io/bnr/ckcp:986710c754ed0dac9ae1525661de931e5dd7c0cc
           name: ckcp
           readinessProbe:
             initialDelaySeconds: 20
