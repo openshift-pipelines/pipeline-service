@@ -28,6 +28,9 @@ then
 
   # Enable OCI bundles
   (cd pipeline && git apply "$ROOT_DIR/oci-bundle.patch")
+
+  # Enable artifact PVC volume
+  (cd pipeline && git apply "$ROOT_DIR/pvc.patch")
 fi
 if [[ ! -d ./triggers ]]
 then
