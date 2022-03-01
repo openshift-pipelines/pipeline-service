@@ -25,6 +25,9 @@ then
 
   # Conversion is not working yet on KCP
   (cd pipeline && git apply "$ROOT_DIR/remove-conversion.patch")
+
+  # Enable OCI bundles
+  (cd pipeline && git apply "$ROOT_DIR/oci-bundle.patch")
 fi
 if [[ ! -d ./triggers ]]
 then
