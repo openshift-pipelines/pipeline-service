@@ -48,6 +48,8 @@ sed -i "s/localhost/$external_ip/g" kubeconfig/admin.kubeconfig
 
 KUBECONFIG=kubeconfig/admin.kubeconfig kubectl config set-cluster admin --insecure-skip-tls-verify=true
 
+KUBECONFIG=kubeconfig/admin.kubeconfig kubectl config set-cluster admin --insecure-skip-tls-verify=true
+
 #make sure access to kcp-in-a-pod is good
 until KUBECONFIG=kubeconfig/admin.kubeconfig kubectl api-resources
 do
@@ -88,10 +90,10 @@ else
         (cd pipeline && git apply ../../pvc.patch)
       fi
 
-      #clean up old pods if any in kcp--admin--default ns
+      #clean up old pods if any in kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad ns
       KCPNS=$(kubectl get namespace kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad --ignore-not-found);
       if [[ "$KCPNS" ]]; then
-        echo "namespace kcp--admin--default exists";
+        echo "namespace kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad exists";
         kubectl delete pods -l kcp.dev/cluster=local --field-selector=status.phase==Succeeded -n kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad;
       fi;
 
@@ -124,24 +126,59 @@ else
       #print the pod running pipelines controller
       KUBECONFIG=$KUBECONFIG kubectl get pods -n cpipelines
 
-      #create taskrun and pipelinerun
-      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl create serviceaccount default
-      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl create -f pipeline/examples/v1beta1/taskruns/custom-env.yaml
-      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl create -f pipeline/examples/v1beta1/pipelineruns/using_context_variables.yaml
-
-      sleep 20
-      echo "Print kube resources inside kcp"
-      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl get pods,taskruns,pipelineruns
-      echo "Print kube resources in the physical cluster (Note: physical cluster will not know what taskruns or pipelinesruns are)"
-      KUBECONFIG=$KUBECONFIG kubectl get pods -n kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad
-
-      #removing pipelines folder created at the start of the script
-      rm -rf pipeline
-
     elif [ $arg == "triggers" ]; then
-        echo "Arg triggers passed. Installing triggers in ckcp (yet to implement)"
+      echo "Arg triggers passed. Installing triggers in ckcp"
+
+      if [[ ! -d ./triggers ]]
+      then
+      git clone git@github.com:tektoncd/triggers.git
+      (cd ./triggers && git checkout 7fbff3b122fcb77d44e1b39bb45c8a935e61f5ed)
+
+      # Deployments need to talk to core interceptors. KCP rewrites namespace in physical cluster,
+      # so we have to patch it until we get proper communication
+      (cd triggers && git apply ../../sink.patch)
+
+      # EventListeners and interceptors are running on the physical cluster and need access to the KCP API.
+      # A special secret is manually created in the physical cluster for that purpose.
+      # The deployment is changed to use this secret instead of a service account.
+      (cd triggers && git apply ../../triggers-deploy.patch)
+      (cd triggers && git apply ../../fix-interceptors.patch)
+      fi
+
+      #create secrets for event listener and interceptors so that they can talk to KCP
+      kubectl create secret generic kcp-kubeconfig --from-file=kubeconfig=kubeconfig/admin.kubeconfig --dry-run=client -o yaml | KUBECONFIG=kubeconfig/admin.kubeconfig kubectl apply -f -
+      kubectl create secret generic kcp-kubeconfig -n tekton-pipelines --from-file=kubeconfig=kubeconfig/admin.kubeconfig --dry-run=client -o yaml | KUBECONFIG=kubeconfig/admin.kubeconfig kubectl apply -f -
+
+      kubectl delete namespace ctriggers || true;
+      echo "creating namespace ctriggers";
+      kubectl create namespace ctriggers;
+
+      #create secret for ctriggers namespace on the physical cluster so that triggers controller deployment can use it
+      kubectl create secret generic ckcp-kubeconfig -n ctriggers --from-file kubeconfig/admin.kubeconfig --dry-run=client -o yaml | kubectl apply -f -
+      kubectl apply -f config/triggers-deployment.yaml
+
+      ctrpod=$(kubectl get pods -n ctriggers -o jsonpath='{.items[0].metadata.name}')
+      kubectl wait --for=condition=Ready pod/$ctrpod -n ctriggers --timeout=300s
+
+      #print the pod running pipelines controller
+      KUBECONFIG=$KUBECONFIG kubectl get pods -n ctriggers
+
+      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl apply $(ls triggers/config/300-* | awk ' { print " -f " $1 } ')
+      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl apply $(ls triggers/config/config-* | awk ' { print " -f " $1 } ')
+
+      (cd triggers && KUBECONFIG=../kubeconfig/admin.kubeconfig ko apply -f config/interceptors)
+
+      echo "kubectl get namespaces | grep -i kcp"
+      KUBECONFIG=$KUBECONFIG kubectl get namespaces | grep -i kcp
+
+      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl apply -f triggers/examples/v1beta1/github/
+
+      echo "Print Interceptor and Event Listener resources in the physical cluster"
+      KUBECONFIG=$KUBECONFIG kubectl -n kcpa9f18e6516b976c21e45eb38fd4291927a3c9dd86fda1b7b7c03ead1 get deploy,pods
+      KUBECONFIG=$KUBECONFIG kubectl -n kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad get deploy,pods
+
     else
-      echo "Incorrect argument/s passed. Allowed args are 'pipelines' or 'triggers' or 'pipelines triggers'"
+      echo "Incorrect argument/s passed. Allowed args are 'pipelines' or 'pipelines triggers'"
     fi
   done
 fi

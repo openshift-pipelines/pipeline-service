@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: triggers-in-a-pod
+  name: ctriggers
+  namespace: ctriggers
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: triggers-in-a-pod
+  template:
+    metadata:
+      labels:
+        app: triggers-in-a-pod
+    spec:
+      containers:
+        - image: "quay.io/bnr/controller-f656ca31de179ab913fa76abc255c315:latest"
+          name: ctriggers
+          args: [
+            "-logtostderr",
+            "-stderrthreshold", "2",
+            "-el-image", "quay.io/bnr/eventlistenersink-7ad1faa98cddbcb0c24990303b220bb8",
+            "-el-port", "8080",
+            "-el-security-context=false",
+            "-el-readtimeout", "5",
+            "-el-writetimeout", "40",
+            "-el-idletimeout", "120",
+            "-el-timeouthandler", "30",
+            "-period-seconds", "10",
+            "-failure-threshold", "1"
+          ]
+          env:
+            - name: KUBECONFIG
+              value: /workspace/kubeconfig/admin.kubeconfig
+            - name: SYSTEM_NAMESPACE
+              value: tekton-pipelines
+            - name: METRICS_DOMAIN
+              value: tekton.dev/triggers
+            - name: METRICS_PROMETHEUS_PORT
+              value: "9000"
+#            - name: CONFIG_LOGGING_NAME
+#              value: config-logging-triggers
+#            - name: CONFIG_OBSERVABILITY_NAME
+#              value: config-observability-triggers
+#            - name: CONFIG_DEFAULTS_NAME
+#              value: config-defaults-triggers
+          volumeMounts:
+            - mountPath: /workspace/kubeconfig/admin.kubeconfig
+              name: kubeconfig
+              subPath: admin.kubeconfig
+      volumes:
+        - name: kubeconfig
+          secret:
+            secretName: ckcp-kubeconfig
