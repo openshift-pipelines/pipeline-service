@@ -63,7 +63,7 @@ rm -rf .kcp/
   --pull-mode=false \
   --run-controllers \
   --auto-publish-apis \
-  --resources-to-sync="deployments.apps,pods,services,secrets" &
+  --resources-to-sync="deployments.apps,statefulsets.apps,pods,services,secrets,persistentvolumeclaims" &
 KCP_PID=$!
 
 export KUBECONFIG="$(pwd)/.kcp/admin.kubeconfig"
