@@ -42,7 +42,7 @@ $ ./build.sh
 
 Yup that's it! Just run the script, and you're ready with a pod running kcp inside it!  
 
-You can run the script with or without parameters as specified below:  
+You can run the run.sh script with or without parameters as specified below:  
 Note: Triggers requires pipelines to be running and thus running ckcp with triggers alone is not supported.
 
 ```
@@ -50,10 +50,26 @@ $ ./run.sh
     #installs kcp in a pod running in a k8s cluster a.k.a ckcp
 
 $ ./run.sh pipelines
-    #installs ckcp + pipelines + example TaskRuns and PipelineRuns
+    #installs ckcp + pipelines
 
 $ ./run.sh pipelines triggers
     #installs ckcp + pipelines + triggers 
+```
+
+test.sh script runs certain examples from tektoncd repo for pipelines and triggers. You can run the below script only after run.sh is run and the required resources are up and running. 
+
+```
+$ ./test.sh pipelines
+    #Runs TaskRun and PipelineRun which sets and uses some env variables respectively.
+    #https://github.com/tektoncd/pipeline/blob/main/examples/v1beta1/taskruns/custom-env.yaml
+    #https://github.com/tektoncd/pipeline/blob/main/examples/v1beta1/pipelineruns/using_context_variables.yaml
+
+$ ./run.sh triggers
+    #Simulates a webhook for a Github PR which triggers a TaskRun
+    #https://github.com/tektoncd/triggers/tree/main/examples/v1beta1/github
+
+$ ./run.sh pipelines triggers
+    #Runs both tests
 ```
 
 Once the script is done executing, notice that _deployment.apps, pods_ and _service_ (we specified only these 3 when we started kcp) are synced after we registered our physical cluster with kcp.

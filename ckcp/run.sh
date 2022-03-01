@@ -120,17 +120,6 @@ else
       #print the pod running pipelines controller
       KUBECONFIG=$KUBECONFIG kubectl get pods -n cpipelines
 
-      #create taskrun and pipelinerun
-      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl create serviceaccount default
-      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl create -f pipeline/examples/v1beta1/taskruns/custom-env.yaml
-      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl create -f pipeline/examples/v1beta1/pipelineruns/using_context_variables.yaml
-
-      sleep 20
-      echo "Print kube resources inside kcp"
-      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl get pods,taskruns,pipelineruns
-      echo "Print kube resources in the physical cluster (Note: physical cluster will not know what taskruns or pipelinesruns are)"
-      KUBECONFIG=$KUBECONFIG kubectl get pods -n kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad
-
     elif [ $arg == "triggers" ]; then
       echo "Arg triggers passed. Installing triggers in ckcp"
 
@@ -178,22 +167,9 @@ else
 
       KUBECONFIG=kubeconfig/admin.kubeconfig kubectl apply -f triggers/examples/v1beta1/github/
 
-      sleep 20
-      # Simulate the behaviour of the webhook. GitHub sends some payload and trigger a TaskRun.
-      KUBECONFIG=$KUBECONFIG kubectl -n kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad port-forward service/el-github-listener 8089:8080 &
-      SVC_FORWARD_PID=$!
-
-      sleep 20
-      curl -v \
-         -H 'X-GitHub-Event: pull_request' \
-         -H 'X-Hub-Signature: sha1=ba0cdc263b3492a74b601d240c27efe81c4720cb' \
-         -H 'Content-Type: application/json' \
-         -d '{"action": "opened", "pull_request":{"head":{"sha": "28911bbb5a3e2ea034daf1f6be0a822d50e31e73"}},"repository":{"clone_url": "https://github.com/tektoncd/triggers.git"}}' \
-         http://localhost:8089
-      kill $SVC_FORWARD_PID
-
-      sleep 20
-      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl get taskruns,pipelineruns
+      echo "Print Interceptor and Event Listener resources in the physical cluster"
+      KUBECONFIG=$KUBECONFIG kubectl -n kcpa9f18e6516b976c21e45eb38fd4291927a3c9dd86fda1b7b7c03ead1 get deploy,pods
+      KUBECONFIG=$KUBECONFIG kubectl -n kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad get deploy,pods
 
     else
       echo "Incorrect argument/s passed. Allowed args are 'pipelines' or 'pipelines triggers'"
