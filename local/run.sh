@@ -25,6 +25,12 @@ then
 
   # Conversion is not working yet on KCP
   (cd pipeline && git apply "$ROOT_DIR/remove-conversion.patch")
+
+  # Enable OCI bundles
+  (cd pipeline && git apply "$ROOT_DIR/oci-bundle.patch")
+
+  # Enable artifact PVC volume
+  (cd pipeline && git apply "$ROOT_DIR/pvc.patch")
 fi
 if [[ ! -d ./triggers ]]
 then
@@ -63,7 +69,7 @@ rm -rf .kcp/
   --pull-mode=false \
   --run-controllers \
   --auto-publish-apis \
-  --resources-to-sync="deployments.apps,pods,services,secrets" &
+  --resources-to-sync="deployments.apps,statefulsets.apps,pods,services,secrets,persistentvolumeclaims" &
 KCP_PID=$!
 
 export KUBECONFIG="$(pwd)/.kcp/admin.kubeconfig"

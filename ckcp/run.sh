@@ -80,6 +80,12 @@ else
 
         # Conversion is not working yet on KCP
         (cd pipeline && git apply ../../remove-conversion.patch)
+
+        # Enable OCI bundles
+        (cd pipeline && git apply ../../oci-bundle.patch)
+
+        # Enable artifact PVC volume
+        (cd pipeline && git apply ../../pvc.patch)
       fi
 
       #clean up old pods if any in kcp--admin--default ns
