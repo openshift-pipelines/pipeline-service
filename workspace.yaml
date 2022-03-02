@@ -1,6 +1,6 @@
-kind: Workspace
+kind: ClusterWorkspace
 apiVersion: tenancy.kcp.dev/v1alpha1
 metadata:
   name: demo
 spec:
-  inheritFrom: admin
+  inheritFrom: root

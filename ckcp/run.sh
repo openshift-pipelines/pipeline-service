@@ -44,9 +44,9 @@ done
 
 external_ip=$(kubectl get service ckcp-service -n ckcp -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 external_ip+=$(kubectl get service ckcp-service -n ckcp -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-sed -i "s/localhost/$external_ip/g" kubeconfig/admin.kubeconfig
+sed -r -i 's/(\b[0-9]{1,3}\.){3}[0-9]{1,3}\b'/"$external_ip"/g kubeconfig/admin.kubeconfig
 
-KUBECONFIG=kubeconfig/admin.kubeconfig kubectl config set-cluster admin --insecure-skip-tls-verify=true
+KUBECONFIG=kubeconfig/admin.kubeconfig kubectl config set-cluster root:default --insecure-skip-tls-verify=true
 
 KUBECONFIG=kubeconfig/admin.kubeconfig kubectl config set-cluster admin --insecure-skip-tls-verify=true
 
