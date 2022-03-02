@@ -32,7 +32,7 @@ kubectl wait --for=condition=Ready pod/$podname -n ckcp --timeout=300s
 
 #copy the kubeconfig of kcp from inside the pod onto local filesystem
 rm -f kubeconfig/admin.kubeconfig
-kubectl cp ckcp/$podname:/workspace/.kcp/admin.kubeconfig kubeconfig/admin.kubeconfig
+kubectl cp ckcp/$podname:/.kcp/admin.kubeconfig kubeconfig/admin.kubeconfig
 
 #check if external ip is assigned and replace kcp's external IP in the kubeconfig file
 while [ "$(kubectl get service ckcp-service -n ckcp -o jsonpath='{.status.loadBalancer.ingress[0]}')" == "" ]; do

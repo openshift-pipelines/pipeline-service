@@ -17,12 +17,26 @@ spec:
     spec:
       serviceAccountName: anyuid
       containers:
-        - image: quay.io/bnr/ckcp:986710c754ed0dac9ae1525661de931e5dd7c0cc
+        - image: ghcr.io/kcp-dev/kcp:latest
           name: ckcp
+          command:
+            - /kcp
+            - start
+            - --push-mode=true
+            - --pull-mode=false
+            - --run-controllers
+            - --auto-publish-apis
+            - --resources-to-sync=deployments.apps,statefulsets.apps,pods,services,secrets,persistentvolumeclaims
+          volumeMounts:
+            - mountPath: /.kcp
+              name: workdir-volume
           readinessProbe:
             initialDelaySeconds: 20
             periodSeconds: 3
             exec:
               command:
                 - ls
-                - /workspace/.kcp/admin.kubeconfig
+                - /.kcp/admin.kubeconfig
+      volumes:
+        - name: workdir-volume
+          emptyDir: {}
