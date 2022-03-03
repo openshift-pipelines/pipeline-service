@@ -22,8 +22,8 @@ else
   oc adm policy add-scc-to-user -n ckcp -z anyuid anyuid;
 fi;
 
-sed "s|quay.io/bnr|$KO_DOCKER_REPO|g" config/kcp-deployment.yaml | kubectl apply -f -
-kubectl apply -f config/kcp-service.yaml
+sed "s|quay.io/bnr|$KO_DOCKER_REPO|g" gitops/ckcp/base/deployment.yaml | kubectl apply -f -
+kubectl apply -f ../gitops/ckcp/base/service.yaml
 
 podname=$(kubectl get pods -n ckcp -l=app='kcp-in-a-pod' -o jsonpath='{.items[0].metadata.name}')
 
@@ -62,7 +62,7 @@ kubectl create secret generic ckcp-kubeconfig -n ckcp --from-file kubeconfig/adm
 KUBECONFIG=kubeconfig/admin.kubeconfig kubectl create -f ../workspace.yaml
 
 #test the registration of a Physical Cluster
-curl https://raw.githubusercontent.com/kcp-dev/kcp/main/contrib/examples/cluster.yaml > cluster.yaml
+curl https://raw.githubusercontent.com/kcp-dev/kcp/948dbe9565cc7da439c698875ca1fa78350c4530/contrib/examples/cluster.yaml > cluster.yaml
 sed -e 's/^/    /' $KUBECONFIG | cat cluster.yaml - | KUBECONFIG=kubeconfig/admin.kubeconfig kubectl apply -f -
 
 echo "kcp is ready inside a pod and is synced with cluster 'local' and deployment.apps,pods,services and secrets"
@@ -118,7 +118,7 @@ else
       kubectl create namespace cpipelines;
 
       kubectl create secret generic ckcp-kubeconfig -n cpipelines --from-file kubeconfig/admin.kubeconfig -o yaml
-      kubectl apply -f config/pipelines-deployment.yaml
+      kubectl apply -f gitops/cpipelines/base/deployment.yaml
 
       cplpod=$(kubectl get pods -n cpipelines -o jsonpath='{.items[0].metadata.name}')
       kubectl wait --for=condition=Ready pod/$cplpod -n cpipelines --timeout=300s
