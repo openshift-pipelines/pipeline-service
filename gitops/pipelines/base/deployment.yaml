@@ -3,8 +3,8 @@ kind: Deployment
 metadata:
   labels:
     app: pipelines-in-a-pod
-  name: cpipelines
-  namespace: cpipelines
+  name: pipelines
+  namespace: pipelines
 spec:
   replicas: 1
   selector:
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - image: gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/controller:v0.32.0
-          name: cpipelines
+          name: pipelines
           args:
             - -kubeconfig-writer-image
             - gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/kubeconfigwriter:v0.32.0

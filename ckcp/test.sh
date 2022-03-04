@@ -3,9 +3,10 @@
 #quit if exit status of any cmd is a non-zero value
 set -exuo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" >/dev/null ; pwd)"
 KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
 export KUBECONFIG=$KUBECONFIG
-
+KUBECONFIG_KCP="$SCRIPT_DIR/work/kubeconfig/admin.kubeconfig"
 #install pipelines/triggers based on args
 if [ $# -eq 0 ]; then
   echo "No args passed; exiting now! ckcp is running in a pod"
@@ -17,22 +18,29 @@ else
       echo "Running a sample TaskRun and PipelineRun which sets and uses env variables (from tektoncd/pipeline/examples)"
 
       #create taskrun and pipelinerun
-      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl create serviceaccount default
-      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl create -f pipeline/examples/v1beta1/taskruns/custom-env.yaml
-      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl create -f pipeline/examples/v1beta1/pipelineruns/using_context_variables.yaml
+      if ! KUBECONFIG="$KUBECONFIG_KCP" kubectl get namespace default >/dev/null 2>&1; then
+        KUBECONFIG="$KUBECONFIG_KCP" kubectl create namespace default
+      fi
+      if ! KUBECONFIG="$KUBECONFIG_KCP" kubectl get serviceaccount default >/dev/null 2>&1; then
+        KUBECONFIG="$KUBECONFIG_KCP" kubectl create serviceaccount default
+      fi
+      BASE_URL="https://raw.githubusercontent.com/tektoncd/pipeline/v0.32.0"
+      for manifest in taskruns/custom-env.yaml pipelineruns/using_context_variables.yaml; do
+        curl --fail --silent "$BASE_URL/examples/v1beta1/$manifest" | KUBECONFIG="$KUBECONFIG_KCP" kubectl create -f -
+      done
       sleep 20
 
       echo "Print pipelines custom resources inside kcp"
-      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl get pods,taskruns,pipelineruns
+      KUBECONFIG="$KUBECONFIG_KCP" kubectl get pods,taskruns,pipelineruns
       echo "Print kube resources in the physical cluster (Note: physical cluster will not know what taskruns or pipelinesruns are)"
-      KUBECONFIG=$KUBECONFIG kubectl get pods -n kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad
+      kubectl get pods -n kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad
 
     elif [ $arg == "triggers" ]; then
       echo "Arg triggers passed. Running triggers tests..."
       echo "Simulating a Github PR through a curl request which creates a TaskRun (from tektoncd/triggers/examples)"
 
       # Simulate the behaviour of a webhook. GitHub sends some payload and trigger a TaskRun.
-      KUBECONFIG=$KUBECONFIG kubectl -n kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad port-forward service/el-github-listener 8089:8080 &
+      kubectl -n kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad port-forward service/el-github-listener 8089:8080 &
       SVC_FORWARD_PID=$!
 
       sleep 10
@@ -45,7 +53,7 @@ else
       kill $SVC_FORWARD_PID
 
       sleep 20
-      KUBECONFIG=kubeconfig/admin.kubeconfig kubectl get taskruns,pipelineruns
+      KUBECONFIG="$KUBECONFIG_KCP" kubectl get taskruns,pipelineruns
     else
       echo "Incorrect argument/s passed. Allowed args are 'pipelines' or 'triggers' or 'pipelines triggers'"
     fi

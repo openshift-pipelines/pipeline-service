@@ -29,7 +29,11 @@ Long Version:
 Before you execute the script, 
 
 1. You need to have a kubernetes/openshift cluster.
-2. You need to build the docker image for ckcp and upload it to *quay.io* and make it *Public*.  
+2. You need to build the docker image for ckcp and upload it to *quay.io* and make it *Public*.
+3. You need to [oc](https://docs.openshift.com/container-platform/4.2/cli_reference/openshift_cli/getting-started-cli.html#cli-installing-cli_cli-developer-commands)
+4. You need to install [argocd](https://argo-cd.readthedocs.io/en/stable/cli_installation/).
+5. You need to install [yq](http://mikefarah.github.io/yq/#install)
+
 Note: KO_DOCKER_REPO has to point to your own *quay.io* repo.
 ```
 $ echo $KO_DOCKER_REPO
@@ -46,16 +50,17 @@ You can run the run.sh script with or without parameters as specified below:
 Note: Triggers requires pipelines to be running and thus running ckcp with triggers alone is not supported.
 
 ```
-$ ./run.sh
-    #installs kcp in a pod running in a k8s cluster a.k.a ckcp
+$ ./gitops.sh
+    #installs openshift-gitops in a host cluster, install kcp in a pod (a.k.a ckcp)
+    #and register the kcp cluster to the ArgoCD instance
 
-$ ./run.sh pipelines
-    #installs ckcp + pipelines
+$ ./gitops.sh -a tekton-pipeline -a pipelines
+    #installs openshift-gitops + ckcp + tekton-pipeline + pipelines + example TaskRuns
+    #and PipelineRuns
 
 $ ./run.sh pipelines triggers
     #installs ckcp + pipelines + triggers 
 ```
-
 test.sh script runs certain examples from tektoncd repo for pipelines and triggers. You can run the below script only after run.sh is run and the required resources are up and running. 
 
 ```
