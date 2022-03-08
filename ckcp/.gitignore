@@ -2,5 +2,5 @@
 .kcp/
 /pipeline/
 /triggers/
-/kubeconfig/
+/work/
 cluster.yaml
