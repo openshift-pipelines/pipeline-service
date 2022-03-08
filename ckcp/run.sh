@@ -77,20 +77,6 @@ else
   do
     if [ $arg == "pipelines" ]; then
       echo "Arg $arg passed. Installing pipelines in ckcp"
-#      if [[ ! -d ./pipeline ]]
-#      then
-#        git clone git@github.com:tektoncd/pipeline.git
-#        (cd ./pipeline && git checkout v0.32.0)
-#
-#        # Conversion is not working yet on KCP
-#        (cd pipeline && git apply ../../remove-conversion.patch)
-#
-#        # Enable OCI bundles
-#        (cd pipeline && git apply ../../oci-bundle.patch)
-#
-#        # Enable artifact PVC volume
-#        (cd pipeline && git apply ../../pvc.patch)
-#      fi
 
       #clean up old pods if any in kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad ns
       KCPNS=$(kubectl get namespace kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad --ignore-not-found);
@@ -98,21 +84,6 @@ else
         echo "namespace kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad exists";
         kubectl delete pods -l kcp.dev/cluster=local --field-selector=status.phase==Succeeded -n kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad;
       fi;
-
-      #install namespaces in ckcp
-#      KUBECONFIG=$KUBECONFIG_KCP kubectl create namespace default
-#      KUBECONFIG=$KUBECONFIG_KCP kubectl create namespace tekton-pipelines
-
-      #install pipelines CRDs in ckcp
-#      KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f pipeline/config/300-pipelinerun.yaml
-#      KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f pipeline/config/300-taskrun.yaml
-
-      # will go away with v1 graduation
-#      KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f pipeline/config/300-run.yaml
-#      KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f pipeline/config/300-resource.yaml
-#      KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f pipeline/config/300-condition.yaml
-
-#      KUBECONFIG=$KUBECONFIG_KCP kubectl apply $(ls pipeline/config/config-* | awk ' { print " -f " $1 } ')
 
       KUBECONFIG=$KUBECONFIG_KCP kubectl apply -k ../gitops/tekton-pipeline/overlays/patched
 
