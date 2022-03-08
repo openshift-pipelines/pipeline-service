@@ -6,6 +6,8 @@ set -exuo pipefail
 KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
 export KUBECONFIG=$KUBECONFIG
 SCRIPT_DIR="$(cd "$(dirname "$0")" >/dev/null ; pwd)"
+PIPELINES_SERVICE_DIR="$(dirname "$SCRIPT_DIR")"
+GITOPS_DIR="$(dirname "$SCRIPT_DIR")/gitops"
 KUBECONFIG_KCP="$SCRIPT_DIR/work/kubeconfig/admin.kubeconfig"
 
 #create ns, sa, deployment and service resources
@@ -24,8 +26,8 @@ else
   oc adm policy add-scc-to-user -n ckcp -z anyuid anyuid;
 fi;
 
-sed "s|quay.io/bnr|$KO_DOCKER_REPO|g" ../gitops/ckcp/base/deployment.yaml | kubectl apply -f -
-kubectl apply -f ../gitops/ckcp/base/service.yaml
+sed "s|quay.io/bnr|$KO_DOCKER_REPO|g" $GITOPS_DIR/ckcp/base/deployment.yaml | kubectl apply -f -
+kubectl apply -f $GITOPS_DIR/ckcp/base/service.yaml
 
 podname=$(kubectl get pods -n ckcp -l=app='kcp-in-a-pod' -o jsonpath='{.items[0].metadata.name}')
 
@@ -61,7 +63,7 @@ done
 
 kubectl create secret generic ckcp-kubeconfig -n ckcp --from-file $KUBECONFIG_KCP
 
-KUBECONFIG=$KUBECONFIG_KCP kubectl create -f ../workspace.yaml
+KUBECONFIG=$KUBECONFIG_KCP kubectl create -f $PIPELINES_SERVICE_DIR/workspace.yaml
 
 #test the registration of a Physical Cluster
 curl https://raw.githubusercontent.com/kcp-dev/kcp/948dbe9565cc7da439c698875ca1fa78350c4530/contrib/examples/cluster.yaml > cluster.yaml
@@ -85,15 +87,15 @@ else
         kubectl delete pods -l kcp.dev/cluster=local --field-selector=status.phase==Succeeded -n kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad;
       fi;
 
-      KUBECONFIG=$KUBECONFIG_KCP kubectl apply -k ../gitops/tekton-pipeline/overlays/patched
+      KUBECONFIG=$KUBECONFIG_KCP kubectl apply -k $GITOPS_DIR/tekton-pipeline/overlays/patched
 
       kubectl delete namespace pipelines || true;
 
       echo "creating namespace pipelines";
-      kubectl apply -f ../gitops/pipelines/base/namespace.yaml;
+      kubectl apply -f $GITOPS_DIR/pipelines/base/namespace.yaml;
 
       kubectl create secret generic ckcp-kubeconfig -n pipelines --from-file $KUBECONFIG_KCP -o yaml
-      kubectl apply -f ../gitops/pipelines/base/deployment.yaml
+      kubectl apply -f $GITOPS_DIR/pipelines/base/deployment.yaml
 
       cplpod=$(kubectl get pods -n pipelines -o jsonpath='{.items[0].metadata.name}')
       kubectl wait --for=condition=Ready pod/$cplpod -n pipelines --timeout=300s
