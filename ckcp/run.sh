@@ -22,7 +22,7 @@ else
   oc adm policy add-scc-to-user -n ckcp -z anyuid anyuid;
 fi;
 
-sed "s|quay.io/bnr|$KO_DOCKER_REPO|g" gitops/ckcp/base/deployment.yaml | kubectl apply -f -
+sed "s|quay.io/bnr|$KO_DOCKER_REPO|g" ../gitops/ckcp/base/deployment.yaml | kubectl apply -f -
 kubectl apply -f ../gitops/ckcp/base/service.yaml
 
 podname=$(kubectl get pods -n ckcp -l=app='kcp-in-a-pod' -o jsonpath='{.items[0].metadata.name}')
