@@ -186,12 +186,9 @@ install_ckcp(){
   # Check if external ip is assigned and replace kcp's external IP in the kubeconfig file
   echo -n "  - External IP: "
   if grep -q "localhost" "$KUBECONFIG_KCP"; then
-    local external_ip
-    external_ip=$(oc get service ckcp-service -n "$APP" -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-    if [ -z "$external_ip" ]; then
-      external_ip+=$(oc get service ckcp-service -n "$APP" -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-    fi
-    sed -i "s/localhost/$external_ip/g" "$KUBECONFIG_KCP"
+    local route
+    route=$(oc get route ckcp -n "$APP" -o jsonpath='{.spec.host}')
+    sed -i "s/localhost:6443/$route:443/g" $KUBECONFIG_KCP
   fi
   echo "OK"
 

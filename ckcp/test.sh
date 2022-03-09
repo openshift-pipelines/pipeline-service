@@ -26,7 +26,8 @@ else
       fi
       BASE_URL="https://raw.githubusercontent.com/tektoncd/pipeline/v0.32.0"
       for manifest in taskruns/custom-env.yaml pipelineruns/using_context_variables.yaml; do
-        curl --fail --silent "$BASE_URL/examples/v1beta1/$manifest" | KUBECONFIG="$KUBECONFIG_KCP" kubectl create -f -
+        # change ubuntu image to ubi to avoid dockerhub registry pull limit
+        curl --fail --silent "$BASE_URL/examples/v1beta1/$manifest" | sed 's|ubuntu|registry.access.redhat.com/ubi8/ubi-minimal:latest|' | KUBECONFIG="$KUBECONFIG_KCP" kubectl create -f -
       done
       sleep 20
 

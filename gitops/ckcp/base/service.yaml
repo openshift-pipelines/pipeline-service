@@ -4,7 +4,6 @@ metadata:
   labels:
     app: kcp-in-a-pod
   name: ckcp-service
-  namespace: ckcp
 spec:
   selector:
     app: kcp-in-a-pod
@@ -12,4 +11,3 @@ spec:
   - port: 6443
     protocol: TCP
     targetPort: 6443
-  type: LoadBalancer
