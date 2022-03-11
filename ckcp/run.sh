@@ -80,53 +80,29 @@ else
     elif [ $arg == "triggers" ]; then
       echo "Arg triggers passed. Installing triggers in ckcp"
 
-      if [[ ! -d ./triggers ]]
-      then
-      git clone git@github.com:tektoncd/triggers.git
-      (cd ./triggers && git checkout 7fbff3b122fcb77d44e1b39bb45c8a935e61f5ed)
+      #TODO : Remove this by shifting this to pipelines
+      kubectl create namespace default --dry-run=client -o yaml | KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f -
 
-      # Deployments need to talk to core interceptors. KCP rewrites namespace in physical cluster,
-      # so we have to patch it until we get proper communication
-      (cd triggers && git apply ../../sink.patch)
-
-      # EventListeners and interceptors are running on the physical cluster and need access to the KCP API.
-      # A special secret is manually created in the physical cluster for that purpose.
-      # The deployment is changed to use this secret instead of a service account.
-      (cd triggers && git apply ../../triggers-deploy.patch)
-      (cd triggers && git apply ../../fix-interceptors.patch)
-      fi
-
-      #create secrets for event listener and interceptors so that they can talk to KCP
+      #create secrets for event listener and interceptors so that they can talk to KCP; create secrets for triggers controller
+      kubectl create secret generic ckcp-kubeconfig -n ctriggers --from-file kubeconfig/admin.kubeconfig --dry-run=client -o yaml | kubectl apply -f -
       kubectl create secret generic kcp-kubeconfig --from-file=kubeconfig=$KUBECONFIG_KCP --dry-run=client -o yaml | KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f -
       kubectl create secret generic kcp-kubeconfig -n tekton-pipelines --from-file=kubeconfig=$KUBECONFIG_KCP --dry-run=client -o yaml | KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f -
 
-      kubectl delete --ignore-not-found namespace ctriggers
-      echo "creating namespace ctriggers";
-      kubectl create namespace ctriggers;
+      #create everything using kustomize
+      #Deploy triggers controller
+      kubectl apply -k $GITOPS_DIR/triggers/triggers-controller/base
 
-      #create secret for ctriggers namespace on the physical cluster so that triggers controller deployment can use it
-      kubectl create secret generic ckcp-kubeconfig -n ctriggers --from-file $KUBECONFIG_KCP --dry-run=client -o yaml | kubectl apply -f -
-      kubectl apply -f config/triggers-deployment.yaml
+      #Check if triggers controller pod is up and running
+      ctrpod=$(kubectl get pods -n triggers -o jsonpath='{.items[0].metadata.name}')
+      kubectl wait --for=condition=Ready pod/$ctrpod -n triggers --timeout=300s
+      KUBECONFIG=$KUBECONFIG kubectl get pods -n triggers
 
-      ctrpod=$(kubectl get pods -n ctriggers -o jsonpath='{.items[0].metadata.name}')
-      kubectl wait --for=condition=Ready pod/$ctrpod -n ctriggers --timeout=300s
+      #Apply triggers crds (300-* & config-*)
+      KUBECONFIG=$KUBECONFIG_KCP kubectl apply -k $GITOPS_DIR/triggers/triggers-crds/base
 
-      #print the pod running pipelines controller
-      KUBECONFIG=$KUBECONFIG kubectl get pods -n ctriggers
-
-      KUBECONFIG=$KUBECONFIG_KCP kubectl apply $(ls triggers/config/300-* | awk ' { print " -f " $1 } ')
-      KUBECONFIG=$KUBECONFIG_KCP kubectl apply $(ls triggers/config/config-* | awk ' { print " -f " $1 } ')
-
-      (cd triggers && KUBECONFIG=../$KUBECONFIG_KCP ko apply -f config/interceptors)
-
-      echo "kubectl get namespaces | grep -i kcp"
-      KUBECONFIG=$KUBECONFIG kubectl get namespaces | grep -i kcp
-
-      KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f triggers/examples/v1beta1/github/
-
-      echo "Print Interceptor and Event Listener resources in the physical cluster"
-      KUBECONFIG=$KUBECONFIG kubectl -n kcpa9f18e6516b976c21e45eb38fd4291927a3c9dd86fda1b7b7c03ead1 get deploy,pods
-      KUBECONFIG=$KUBECONFIG kubectl -n kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad get deploy,pods
+      sleep 30
+      #Deploy triggers interceptors
+      KUBECONFIG=$KUBECONFIG_KCP kubectl apply -k $GITOPS_DIR/triggers/triggers-crds/interceptors
 
     else
       echo "Incorrect argument/s passed. Allowed args are 'pipelines' or 'pipelines triggers'"
