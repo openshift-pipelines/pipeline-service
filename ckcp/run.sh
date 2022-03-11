@@ -13,44 +13,19 @@ KUBECONFIG_KCP="$SCRIPT_DIR/work/kubeconfig/admin.kubeconfig"
 #create ns, sa, deployment and service resources
 #check if namespace and serviceaccount exists; if not, create them
 
-kubectl delete namespace ckcp || true;
-echo "creating namespace ckcp";
-kubectl create namespace ckcp;
+kubectl delete --ignore-not-found namespace ckcp
 
-SA=$(kubectl get sa anyuid -n ckcp --ignore-not-found);
-if [[ "$SA" ]]; then
-  echo "service account anyuid already exists in ckcp namespace";
-else
-  echo "creating service account anyuid in ckcp namespace";
-  oc create sa anyuid -n ckcp;
-  oc adm policy add-scc-to-user -n ckcp -z anyuid anyuid;
-fi;
-
-sed "s|quay.io/bnr|$KO_DOCKER_REPO|g" $GITOPS_DIR/ckcp/base/deployment.yaml | kubectl apply -f -
-kubectl apply -f $GITOPS_DIR/ckcp/base/service.yaml
-
+kubectl apply -k $GITOPS_DIR/ckcp/base/
 podname=$(kubectl get pods -n ckcp -l=app='kcp-in-a-pod' -o jsonpath='{.items[0].metadata.name}')
 
 #check if kcp inside pod is running or not
 kubectl wait --for=condition=Ready pod/$podname -n ckcp --timeout=300s
 
 #copy the kubeconfig of kcp from inside the pod onto local filesystem
-rm -f work/kubeconfig/admin.kubeconfig
-kubectl cp ckcp/$podname:/workspace/.kcp/admin.kubeconfig work/kubeconfig/admin.kubeconfig
+kubectl cp ckcp/$podname:/workspace/.kcp/admin.kubeconfig $KUBECONFIG_KCP
 
-#check if external ip is assigned and replace kcp's external IP in the kubeconfig file
-while [ "$(kubectl get service ckcp-service -n ckcp -o jsonpath='{.status.loadBalancer.ingress[0]}')" == "" ]; do
-  sleep 3
-  echo "Waiting for external ip or hostname to be assigned"
-done
-
-#sleep 60
-
-external_ip=$(kubectl get service ckcp-service -n ckcp -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-external_ip+=$(kubectl get service ckcp-service -n ckcp -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-sed -i "s/localhost/$external_ip/g" $KUBECONFIG_KCP
-
-KUBECONFIG=$KUBECONFIG_KCP kubectl config set-cluster admin --insecure-skip-tls-verify=true
+route=$(kubectl get route ckcp -n ckcp -o jsonpath='{.spec.host}')
+sed -i "s/localhost:6443/$route:443/g" $KUBECONFIG_KCP
 
 KUBECONFIG=$KUBECONFIG_KCP kubectl config set-cluster admin --insecure-skip-tls-verify=true
 
@@ -89,13 +64,12 @@ else
 
       KUBECONFIG=$KUBECONFIG_KCP kubectl apply -k $GITOPS_DIR/tekton-pipeline/overlays/patched
 
-      kubectl delete namespace pipelines || true;
+      kubectl delete --ignore-not-found namespace pipelines
 
-      echo "creating namespace pipelines";
-      kubectl apply -f $GITOPS_DIR/pipelines/base/namespace.yaml;
+      echo "creating namespace pipelines"
+      kubectl apply -k $GITOPS_DIR/pipelines/base
 
       kubectl create secret generic ckcp-kubeconfig -n pipelines --from-file $KUBECONFIG_KCP -o yaml
-      kubectl apply -f $GITOPS_DIR/pipelines/base/deployment.yaml
 
       cplpod=$(kubectl get pods -n pipelines -o jsonpath='{.items[0].metadata.name}')
       kubectl wait --for=condition=Ready pod/$cplpod -n pipelines --timeout=300s
