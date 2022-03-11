@@ -4,7 +4,6 @@ metadata:
   labels:
     app: kcp-in-a-pod
   name: ckcp
-  namespace: ckcp
 spec:
   replicas: 1
   selector:
@@ -17,7 +16,7 @@ spec:
     spec:
       serviceAccountName: anyuid
       containers:
-        - image: quay.io/bnr/ckcp:986710c754ed0dac9ae1525661de931e5dd7c0cc
+        - image: ckcp
           name: ckcp
           readinessProbe:
             initialDelaySeconds: 20

@@ -4,7 +4,6 @@ metadata:
   labels:
     app: pipelines-in-a-pod
   name: pipelines
-  namespace: pipelines
 spec:
   replicas: 1
   selector:
