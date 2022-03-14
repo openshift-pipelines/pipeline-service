@@ -5,17 +5,14 @@ metadata:
   name: ckcp
 
 spec:
-  project: default
-
-  source:
-    repoURL: https://github.com/openshift-pipelines/pipelines-service.git
-    targetRevision: main
-    path: gitops/ckcp/base
-
   destination:
     namespace: ckcp
     server: https://kubernetes.default.svc
-
+  source:
+    path: gitops/ckcp/base
+    repoURL: https://github.com/openshift-pipelines/pipelines-service.git
+    targetRevision: main
+  project: default
   syncPolicy:
 
     # Comment this out if you want to manually trigger deployments (using the 
