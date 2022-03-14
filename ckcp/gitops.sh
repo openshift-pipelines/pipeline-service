@@ -318,7 +318,78 @@ install_triggers(){
   echo
 }
 
+install_triggers_crds(){
+  APP="triggers-crds"
+  export KUBECONFIG="$KUBECONFIG_CLUSTER"
 
+  #############################################################################
+  # Create default namespace in kcp cluster
+  # Create kcp-kubeconfig secrets for event listener and interceptors so that they can talk to KCP
+  # Create kcp-kubeconfig secret for triggers controller
+  #############################################################################
+  if ! KUBECONFIG=$KUBECONFIG_KCP oc get namespace default  >/dev/null 2>&1; then
+    echo -n "."
+    KUBECONFIG=$KUBECONFIG_KCP oc create namespace default >/dev/null
+  fi
+  if ! KUBECONFIG=$KUBECONFIG_KCP oc get secret kcp-kubeconfig >/dev/null 2>&1; then
+    echo -n "."
+    KUBECONFIG=$KUBECONFIG_KCP oc create secret generic kcp-kubeconfig --from-file "$KUBECONFIG_KCP" >/dev/null
+  fi
+  if ! KUBECONFIG=$KUBECONFIG_KCP oc get secret kcp-kubeconfig -n tekton-pipelines >/dev/null 2>&1; then
+    echo -n "."
+    KUBECONFIG=$KUBECONFIG_KCP oc create secret generic kcp-kubeconfig -n tekton-pipelines --from-file "$KUBECONFIG_KCP" >/dev/null
+  fi
+
+  #############################################################################
+  # Install triggers CRDs
+  #############################################################################
+  echo -n "  - $APP application: "
+  if ! oc get apps -n openshift-gitops "$APP" >/dev/null 2>&1; then
+    oc apply -f "$GITOPS_DIR/$APP.yaml" --wait >/dev/null
+  fi
+  argocd app wait $APP >/dev/null
+  echo "OK"
+}
+
+install_triggers_interceptors(){
+  APP="triggers-interceptors"
+  export KUBECONFIG="$KUBECONFIG_CLUSTER"
+
+  #############################################################################
+  # Install triggers interceptors
+  #############################################################################
+  echo -n "  - $APP application: "
+  if ! oc get apps -n openshift-gitops "$APP" >/dev/null 2>&1; then
+    oc apply -f "$GITOPS_DIR/$APP.yaml" --wait >/dev/null
+  fi
+  argocd app wait $APP >/dev/null
+  echo "OK"
+}
+
+install_triggers_controller(){
+  APP="triggers-controller"
+  export KUBECONFIG="$KUBECONFIG_CLUSTER"
+
+  #############################################################################
+  # Install triggers controller
+  #############################################################################
+  if ! oc get secret ckcp-kubeconfig -n triggers >/dev/null 2>&1; then
+    echo -n "."
+    oc create secret generic ckcp-kubeconfig -n triggers --from-file "$KUBECONFIG_KCP" >/dev/null
+  fi
+  echo -n "  - $APP application: "
+  if ! oc get apps -n openshift-gitops "$APP" >/dev/null 2>&1; then
+    oc apply -f "$GITOPS_DIR/$APP.yaml" --wait >/dev/null
+  fi
+  if ! oc get secret ckcp-kubeconfig -n "$APP" >/dev/null 2>&1; then
+    until oc get namespace "$APP" >/dev/null 2>&1; do
+      sleep 2
+    done
+    oc create secret ckcp-kubeconfig -n "$APP" --from-file "$KUBECONFIG_KCP" -o yaml --dry-run=client | oc apply -f - >/dev/null
+  fi
+  argocd app wait "$APP" >/dev/null
+  echo "OK"
+}
 
 main(){
   parse_args "$@"
