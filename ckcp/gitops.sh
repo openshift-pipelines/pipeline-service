@@ -327,10 +327,6 @@ install_triggers_crds(){
   # Create kcp-kubeconfig secrets for event listener and interceptors so that they can talk to KCP
   # Create kcp-kubeconfig secret for triggers controller
   #############################################################################
-  if ! KUBECONFIG=$KUBECONFIG_KCP oc get namespace default  >/dev/null 2>&1; then
-    echo -n "."
-    KUBECONFIG=$KUBECONFIG_KCP oc create namespace default >/dev/null
-  fi
   if ! KUBECONFIG=$KUBECONFIG_KCP oc get secret kcp-kubeconfig >/dev/null 2>&1; then
     echo -n "."
     KUBECONFIG=$KUBECONFIG_KCP oc create secret generic kcp-kubeconfig --from-file "$KUBECONFIG_KCP" >/dev/null
@@ -344,8 +340,8 @@ install_triggers_crds(){
   # Install triggers CRDs
   #############################################################################
   echo -n "  - $APP application: "
-  if ! oc get apps -n openshift-gitops "$APP" >/dev/null 2>&1; then
-    oc apply -f "$GITOPS_DIR/$APP.yaml" --wait >/dev/null
+  if ! KUBECONFIG=$KUBECONFIG_KCP oc get apps -n openshift-gitops "$APP" >/dev/null 2>&1; then
+    KUBECONFIG=$KUBECONFIG_KCP oc apply -f "$GITOPS_DIR/$APP.yaml" --wait >/dev/null
   fi
   argocd app wait $APP >/dev/null
   echo "OK"
@@ -359,8 +355,8 @@ install_triggers_interceptors(){
   # Install triggers interceptors
   #############################################################################
   echo -n "  - $APP application: "
-  if ! oc get apps -n openshift-gitops "$APP" >/dev/null 2>&1; then
-    oc apply -f "$GITOPS_DIR/$APP.yaml" --wait >/dev/null
+  if ! KUBECONFIG=$KUBECONFIG_KCP oc get apps -n openshift-gitops "$APP" >/dev/null 2>&1; then
+    KUBECONFIG=$KUBECONFIG_KCP oc apply -f "$GITOPS_DIR/$APP.yaml" --wait >/dev/null
   fi
   argocd app wait $APP >/dev/null
   echo "OK"
