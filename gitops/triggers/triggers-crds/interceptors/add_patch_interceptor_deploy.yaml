@@ -28,7 +28,7 @@ spec:
           image: "quay.io/bnr/interceptors-3176d6a3f314c3655b30bfd36e421dd5"
           env:
             - name: KUBECONFIG
-              value: /kubeconfig/kubeconfig
+              value: /kubeconfig/admin.kubeconfig
           volumeMounts:
             - mountPath: /kubeconfig
               name: kubeconfig
