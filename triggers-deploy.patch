@@ -14,7 +14,7 @@ index 5226a547..718eb73d 100644
 +		},
  		Env: append(ev, []corev1.EnvVar{{
 +			Name:  "KUBECONFIG",
-+			Value: "/kubeconfig/kubeconfig",
++			Value: "/kubeconfig/admin.kubeconfig",
 +		}, {
  			Name:  "NAMESPACE",
  			Value: el.Namespace,

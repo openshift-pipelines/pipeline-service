@@ -27,7 +27,7 @@ index 4f903b1e..1d035459 100644
          ]
          env:
 +        - name: KUBECONFIG
-+          value: /kubeconfig/kubeconfig
++          value: /kubeconfig/admin.kubeconfig
          - name: SYSTEM_NAMESPACE
            valueFrom:
              fieldRef:

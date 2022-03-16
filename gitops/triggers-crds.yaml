@@ -6,8 +6,8 @@ metadata:
 
 spec:
   destination:
+    name: kcp
     namespace: kube-system # not relevant yet since every object has an explicit namespace.
-    server: https://kubernetes.default.svc
   source:
     path: gitops/triggers/triggers-crds/base
     repoURL: https://github.com/openshift-pipelines/pipelines-service.git
