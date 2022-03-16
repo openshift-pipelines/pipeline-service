@@ -17,7 +17,7 @@ Long Version:
 1. Create ns, sa, and add appropriate scc.
 2. Create deployment and service resources.
 3. Copy kube config from inside the pod to local system.
-4. Update external IP Address of kcp-service in the just copied admin.kubeconfig file.
+4. Update route of kcp-service in the just copied admin.kubeconfig file.
 5. Copy a physical cluster's kubeconfig inside a pod.
 6. Add a physical cluster to kcp running inside the pod.  
    ***(optional)***
@@ -30,7 +30,7 @@ Before you execute the script,
 
 1. You need to have a kubernetes/openshift cluster.
 2. You need to build the docker image for ckcp and upload it to *quay.io* and make it *Public*.
-3. You need to [oc](https://docs.openshift.com/container-platform/4.2/cli_reference/openshift_cli/getting-started-cli.html#cli-installing-cli_cli-developer-commands)
+3. You need to install [oc](https://docs.openshift.com/container-platform/4.9/cli_reference/openshift_cli/getting-started-cli.html)
 4. You need to install [argocd](https://argo-cd.readthedocs.io/en/stable/cli_installation/).
 5. You need to install [yq](http://mikefarah.github.io/yq/#install)
 
@@ -39,14 +39,14 @@ Note: KO_DOCKER_REPO has to point to your own *quay.io* repo.
 $ echo $KO_DOCKER_REPO
 quay.io/bnr
 ```
-
+Run build.sh
 ```
 $ ./build.sh
 ```
 
 Yup that's it! Just run the script, and you're ready with a pod running kcp inside it!  
 
-You can run the run.sh script with or without parameters as specified below:  
+You can run the gitops.sh script with or without parameters as specified below:  
 Note: Triggers requires pipelines to be running and thus running ckcp with triggers alone is not supported.
 
 ```
@@ -55,13 +55,12 @@ $ ./gitops.sh
     #and register the kcp cluster to the ArgoCD instance
 
 $ ./gitops.sh -a tekton-pipeline -a pipelines
-    #installs openshift-gitops + ckcp + tekton-pipeline + pipelines + example TaskRuns
-    #and PipelineRuns
+    #installs openshift-gitops + ckcp + tekton-pipeline + pipelines controller
 
-$ ./run.sh pipelines triggers
-    #installs ckcp + pipelines + triggers 
+$ ./gitops.sh -a triggers-crds -a triggers-interceptors -a triggers-controller
+    #installs openshift-gitops + ckcp + triggers crds, interceptors and controller 
 ```
-test.sh script runs certain examples from tektoncd repo for pipelines and triggers. You can run the below script only after run.sh is run and the required resources are up and running. 
+test.sh script runs certain examples from tektoncd repo for pipelines and triggers. You can run the below script only after gitops.sh is run and the required resources are up and running. 
 
 ```
 $ ./test.sh pipelines
@@ -69,18 +68,18 @@ $ ./test.sh pipelines
     #https://github.com/tektoncd/pipeline/blob/main/examples/v1beta1/taskruns/custom-env.yaml
     #https://github.com/tektoncd/pipeline/blob/main/examples/v1beta1/pipelineruns/using_context_variables.yaml
 
-$ ./run.sh triggers
+$ ./test.sh triggers
     #Simulates a webhook for a Github PR which triggers a TaskRun
     #https://github.com/tektoncd/triggers/tree/main/examples/v1beta1/github
 
-$ ./run.sh pipelines triggers
+$ ./test.sh pipelines triggers
     #Runs both tests
 ```
 
 Once the script is done executing, notice that _deployment.apps, pods_ and _service_ (we specified only these 3 when we started kcp) are synced after we registered our physical cluster with kcp.
 
 <pre>
- $ KUBECONFIG=kubeconfig/admin.kubeconfig kubectl api-resources
+ $ KUBECONFIG=work/kubeconfig/admin.kubeconfig kubectl api-resources
 NAME                          SHORTNAMES   APIVERSION                             NAMESPACED   KIND
 configmaps                    cm           v1                                     true         ConfigMap
 events                        ev           v1                                     true         Event
@@ -115,7 +114,7 @@ workspaces                                 tenancy.kcp.dev/v1alpha1             
 workspaceshards                            tenancy.kcp.dev/v1alpha1               false        WorkspaceShard
 </pre>
 
-### Get access on an already setup cluster
+### How to get access on an already setup cluster
 
 Configure kubectl to point to your physical cluster and run:
 

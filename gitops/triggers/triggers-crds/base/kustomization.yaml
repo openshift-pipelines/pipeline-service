@@ -1,4 +1,7 @@
 resources:
+  #namespaces
+  - namespace.yaml
+  #trigger and eventlistener configs
   - https://raw.githubusercontent.com/tektoncd/triggers/v0.18.0/config/300-clusterinterceptor.yaml
   - https://raw.githubusercontent.com/tektoncd/triggers/v0.18.0/config/300-clustertriggerbinding.yaml
   - https://raw.githubusercontent.com/tektoncd/triggers/v0.18.0/config/300-eventlistener.yaml

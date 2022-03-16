@@ -83,17 +83,7 @@ else
       #default namespace is required on kcp cluster for triggers to install CRDs
       kubectl create namespace default --dry-run=client -o yaml | KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f -
 
-      #create everything using kustomize
-      #Deploy triggers controller
-      kubectl apply -k $GITOPS_DIR/triggers/triggers-controller/base
-
-      #Check if triggers controller pod is up and running
-      ctrpod=$(kubectl get pods -n triggers -o jsonpath='{.items[0].metadata.name}')
-      kubectl wait --for=condition=Ready pod/$ctrpod -n triggers --timeout=300s
-      KUBECONFIG=$KUBECONFIG kubectl get pods -n triggers
-
-      #create secrets for event listener and interceptors so that they can talk to KCP; create secrets for triggers controller
-      kubectl create secret generic ckcp-kubeconfig -n triggers --from-file $KUBECONFIG_KCP --dry-run=client -o yaml | kubectl apply -f -
+      #create secrets for event listener and interceptors so that they can talk to KCP
       kubectl create secret generic kcp-kubeconfig --from-file=kubeconfig=$KUBECONFIG_KCP --dry-run=client -o yaml | KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f -
       kubectl create secret generic kcp-kubeconfig -n tekton-pipelines --from-file=kubeconfig=$KUBECONFIG_KCP --dry-run=client -o yaml | KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f -
 
@@ -103,6 +93,17 @@ else
       sleep 30
       #Deploy triggers interceptors
       KUBECONFIG=$KUBECONFIG_KCP kubectl apply -k $GITOPS_DIR/triggers/triggers-crds/interceptors
+
+      #create everything using kustomize
+      #Deploy triggers controller
+      kubectl apply -k $GITOPS_DIR/triggers/triggers-controller/base
+      # Create secrets for triggers controller
+      kubectl create secret generic ckcp-kubeconfig -n triggers --from-file $KUBECONFIG_KCP --dry-run=client -o yaml | kubectl apply -f -
+
+      #Check if triggers controller pod is up and running
+      ctrpod=$(kubectl get pods -n triggers -o jsonpath='{.items[0].metadata.name}')
+      kubectl wait --for=condition=Ready pod/$ctrpod -n triggers --timeout=300s
+      KUBECONFIG=$KUBECONFIG kubectl get pods -n triggers
 
     else
       echo "Incorrect argument/s passed. Allowed args are 'pipelines' or 'pipelines triggers'"
