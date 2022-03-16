@@ -133,7 +133,6 @@ install_openshift_gitops(){
 }
 
 
-
 install_ckcp(){
   APP="ckcp"
   export KUBECONFIG="$KUBECONFIG_CLUSTER"
@@ -272,7 +271,6 @@ secrets:
 }
 
 
-
 install_tekton_pipeline(){
   APP="tekton-pipeline"
   export KUBECONFIG="$KUBECONFIG_CLUSTER"
@@ -287,7 +285,6 @@ install_tekton_pipeline(){
   argocd app wait $APP >/dev/null
   echo "OK"
 }
-
 
 
 install_pipelines(){
@@ -306,12 +303,6 @@ install_pipelines(){
 }
 
 
-
-install_triggers(){
-  echo "  - Not implemented"
-  echo
-}
-
 install_triggers_crds(){
   APP="triggers-crds"
   export KUBECONFIG="$KUBECONFIG_CLUSTER"
@@ -324,11 +315,9 @@ install_triggers_crds(){
     oc apply -f "$GITOPS_DIR/$APP.yaml" --wait >/dev/null
   fi
   argocd app wait $APP >/dev/null
-
-
-
   echo "OK"
 }
+
 
 install_triggers_interceptors(){
   APP="triggers-interceptors"
@@ -391,7 +380,6 @@ main(){
     echo
   done
 }
-
 
 
 if [ "${BASH_SOURCE[0]}" == "$0" ]; then
