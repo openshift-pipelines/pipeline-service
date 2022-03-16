@@ -8,9 +8,9 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" >/dev/null ; pwd)"
 GITOPS_DIR="$(dirname "$SCRIPT_DIR")/gitops"
 WORK_DIR="$SCRIPT_DIR/work"
 KUBECONFIG_CLUSTER="${KUBECONFIG:-$HOME/.kube/config}"
+KUBECONFIG=${KUBECONFIG_CLUSTER}
 KUBECONFIG_KCP="$WORK_DIR/kubeconfig/admin.kubeconfig"
 KUBECONFIG_MERGED="merged-config.kubeconfig:$KUBECONFIG_CLUSTER:$KUBECONFIG_KCP"
-
 
 
 usage(){
@@ -86,11 +86,17 @@ check_cluster_role(){
   fi
 }
 
+install_app(){
+  APP="$1"
 
+  echo -n "  - $APP application: "
+  oc apply -f "$GITOPS_DIR/$APP.yaml" --wait >/dev/null
+  argocd app wait "$APP" >/dev/null
+  echo "OK"
+}
 
 install_openshift_gitops(){
   APP="openshift-gitops"
-  export KUBECONFIG="$KUBECONFIG_CLUSTER"
 
   local ns="openshift-operators"
 
@@ -98,9 +104,7 @@ install_openshift_gitops(){
   # Install the gitops operator
   #############################################################################
   echo -n "  - OpenShift-GitOps: "
-  if ! oc get subscriptions -n "$ns" openshift-gitops-operator >/dev/null 2>&1; then
-    oc apply -f "$GITOPS_DIR/$APP.yaml" --wait >/dev/null
-  fi
+  oc apply -f "$GITOPS_DIR/$APP.yaml" --wait >/dev/null
   echo "OK"
 
   #############################################################################
@@ -108,11 +112,11 @@ install_openshift_gitops(){
   #############################################################################
   echo -n "  - ArgoCD dashboard: "
   test_cmd="oc get route/openshift-gitops-server --ignore-not-found -n $APP -o jsonpath={.spec.host}"
-  ARGOCD_HOSTNAME="$(${test_cmd[@]})"
+  ARGOCD_HOSTNAME="$($test_cmd})"
   until curl --fail --insecure --output /dev/null --silent "https://$ARGOCD_HOSTNAME"; do
     echo -n "."
     sleep 2
-    ARGOCD_HOSTNAME="$(${test_cmd[@]})"
+    ARGOCD_HOSTNAME="$(${test_cmd})"
   done
   echo "OK"
   echo "  - ArgoCD URL: https://$ARGOCD_HOSTNAME"
@@ -135,55 +139,24 @@ install_openshift_gitops(){
 
 install_ckcp(){
   APP="ckcp"
-  export KUBECONFIG="$KUBECONFIG_CLUSTER"
 
   local ns="$APP"
   local kube_dir="$WORK_DIR/kubeconfig"
-  local test_cmd
 
   #############################################################################
   # Deploy KCP
   #############################################################################
-  echo -n "  - $APP application: "
-  if ! oc get apps -n openshift-gitops "$APP" >/dev/null 2>&1; then
-    mkdir -p "$kube_dir"
-    if [ -e "$KUBECONFIG_KCP" ]; then
-      rm "$KUBECONFIG_KCP"
-    fi
-    oc apply -f "$GITOPS_DIR/$APP.yaml" --wait >/dev/null
-  fi
-  argocd app wait "$APP" >/dev/null
-  echo "OK"
-
-  #############################################################################
-  # Wait for KCP to be online
-  #############################################################################
-  local podname
-  echo -n "  - KCP pod: "
-  test_cmd="oc get pods --ignore-not-found -n $ns -l=app=kcp-in-a-pod -o jsonpath={.items[0].metadata.name}"
-  podname=$(${test_cmd[@]})
-  while [ -z "$podname" ]; do
-    echo -en "?\b"
-    sleep 1
-    echo -en " \b"
-    sleep 1
-    podname=$(${test_cmd[@]})
-  done
-  until oc wait --for=condition=Ready "pod/$podname" -n "$APP" --timeout=2s >/dev/null 2>&1; do
-    echo -n "."
-  done
-  echo "OK"
+  install_app $APP
 
   #############################################################################
   # Post install
   #############################################################################
   # Copy the kubeconfig of kcp from inside the pod onto the local filesystem
-  if [ ! -e "$KUBECONFIG_KCP" ]; then
-    oc cp "$APP/$podname:/workspace/.kcp/admin.kubeconfig" "$KUBECONFIG_KCP" >/dev/null
-  fi
+  podname=$(oc get pods --ignore-not-found -n $ns -l=app=kcp-in-a-pod -o jsonpath={.items[0].metadata.name})
+  oc cp "$APP/$podname:/workspace/.kcp/admin.kubeconfig" "$KUBECONFIG_KCP" >/dev/null
 
   # Check if external ip is assigned and replace kcp's external IP in the kubeconfig file
-  echo -n "  - External IP: "
+  echo -n "  - Route: "
   if grep -q "localhost" "$KUBECONFIG_KCP"; then
     local route
     route=$(oc get route ckcp -n "$APP" -o jsonpath='{.spec.host}')
@@ -194,7 +167,6 @@ install_ckcp(){
   # Make sure access to kcp-in-a-pod is good
   echo -n "  - KCP api-server: "
   KUBECONFIG="$KUBECONFIG_KCP" oc config set-cluster admin --insecure-skip-tls-verify=true >/dev/null
-  test_cmd=""
   until KUBECONFIG="$KUBECONFIG_KCP" oc api-resources >/dev/null 2>&1; do
     echo -n "."
     sleep 2
@@ -203,14 +175,8 @@ install_ckcp(){
 
   # Create secret
   echo -n "  - Register KCP secret to host cluster: "
-  if ! oc get namespace pipelines >/dev/null 2>&1; then
-    echo -n "."
-    oc create namespace pipelines >/dev/null
-  fi
-  if ! oc get secret ckcp-kubeconfig -n pipelines >/dev/null 2>&1; then
-    echo -n "."
-    oc create secret generic ckcp-kubeconfig -n pipelines --from-file "$KUBECONFIG_KCP" >/dev/null
-  fi
+  oc create namespace pipelines --dry-run=client -o yaml | oc apply -f - &>/dev/null
+  oc create secret generic ckcp-kubeconfig -n pipelines --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | oc apply -f - &>/dev/null
   echo "OK"
 
   # Register the host cluster to KCP
@@ -224,14 +190,13 @@ install_ckcp(){
 
   echo -n "  - Workspace: "
   if ! KUBECONFIG="$KUBECONFIG_KCP" oc get workspaces demo >/dev/null 2>&1; then
-    KUBECONFIG="$KUBECONFIG_KCP" oc create -f "$SCRIPT_DIR/../workspace.yaml"
+    KUBECONFIG="$KUBECONFIG_KCP" oc create -f "$SCRIPT_DIR/../workspace.yaml" &>/dev/null
   fi
   echo "OK"
 
   # Register the KCP cluster into ArgoCD
-  export KUBECONFIG="$KUBECONFIG_MERGED"
   echo -n "  - ArgoCD KCP registration: "
-  if ! argocd cluster get kcp >/dev/null 2>&1; then
+  if ! KUBECONFIG="$KUBECONFIG_MERGED" argocd cluster get kcp >/dev/null 2>&1; then
 
     # <workaround> See https://github.com/kcp-dev/kcp/issues/535
     # Manually create the serviceaccount and secret on the KCP cluster for ArgoCD to use
@@ -265,64 +230,28 @@ secrets:
     # </workaround>
 
     sed -i -e 's:admin$:admin_kcp:g' "$KUBECONFIG_KCP"
-    argocd cluster add admin_kcp --name=kcp --yes >/dev/null 2>&1
+    KUBECONFIG="$KUBECONFIG_MERGED" argocd cluster add admin_kcp --name=kcp --yes >/dev/null 2>&1
   fi
   echo "OK"
 }
 
 
 install_tekton_pipeline(){
-  APP="tekton-pipeline"
-  export KUBECONFIG="$KUBECONFIG_CLUSTER"
-
-  #############################################################################
-  # Install the tekton-pipeline application
-  #############################################################################
-  echo -n "  - $APP application: "
-  if ! oc get apps -n openshift-gitops "$APP" >/dev/null 2>&1; then
-    oc apply -f "$GITOPS_DIR/$APP.yaml" --wait >/dev/null
-  fi
-  argocd app wait $APP >/dev/null
-  echo "OK"
+  install_app tekton-pipeline
 }
 
 
 install_pipelines(){
-  APP="pipelines"
-  export KUBECONFIG="$KUBECONFIG_CLUSTER"
-
-  #############################################################################
-  # Install the pipelines application
-  #############################################################################
-  echo -n "  - $APP application: "
-  if ! oc get apps -n openshift-gitops "$APP" >/dev/null 2>&1; then
-    oc apply -f "$GITOPS_DIR/$APP.yaml" --wait >/dev/null
-  fi
-  argocd app wait "$APP" >/dev/null
-  echo "OK"
+  install_app pipelines
 }
 
 
 install_triggers_crds(){
-  APP="triggers-crds"
-  export KUBECONFIG="$KUBECONFIG_CLUSTER"
-
-  #############################################################################
-  # Install triggers CRDs
-  #############################################################################
-  echo -n "  - $APP application: "
-  if ! oc get apps -n openshift-gitops "$APP" >/dev/null 2>&1; then
-    oc apply -f "$GITOPS_DIR/$APP.yaml" --wait >/dev/null
-  fi
-  argocd app wait $APP >/dev/null
-  echo "OK"
+  install_app triggers-crds
 }
 
 
 install_triggers_interceptors(){
-  APP="triggers-interceptors"
-  export KUBECONFIG="$KUBECONFIG_CLUSTER"
-
   #############################################################################
   # Create kcp-kubeconfig secrets for event listener and interceptors so that they can talk to KCP
   #############################################################################
@@ -333,41 +262,22 @@ install_triggers_interceptors(){
     KUBECONFIG=$KUBECONFIG_KCP oc create secret generic kcp-kubeconfig -n tekton-pipelines --from-file "$KUBECONFIG_KCP" >/dev/null
   fi
 
-  #############################################################################
-  # Install triggers interceptors
-  #############################################################################
-  echo -n "  - $APP application: "
-  if ! oc get apps -n openshift-gitops "$APP" >/dev/null 2>&1; then
-    oc apply -f "$GITOPS_DIR/$APP.yaml" --wait >/dev/null
-  fi
-  argocd app wait $APP >/dev/null
-  echo "OK"
+  install_app triggers-interceptors
 }
 
 install_triggers_controller(){
-  APP="triggers-controller"
-  export KUBECONFIG="$KUBECONFIG_CLUSTER"
-
   #############################################################################
   # Create kcp-kubeconfig secret for triggers controller
   #############################################################################
-  if ! oc get namespace triggers >/dev/null 2>&1; then
-    oc create namespace triggers >/dev/null
-  fi
-  if ! oc get secret ckcp-kubeconfig -n triggers >/dev/null 2>&1; then
+  oc create namespace triggers -o yaml --dry-run=client | oc apply -f- &>/dev/null
+  if ! oc get secret ckcp-kubeconfig -n triggers &>/dev/null; then
     oc create secret generic ckcp-kubeconfig -n triggers --from-file "$KUBECONFIG_KCP" >/dev/null
   fi
 
   #############################################################################
   # Install triggers controller
   #############################################################################
-  echo -n "  - $APP application: "
-
-  if ! oc get apps -n openshift-gitops "$APP" >/dev/null 2>&1; then
-    oc apply -f "$GITOPS_DIR/$APP.yaml" --wait >/dev/null
-  fi
-  argocd app wait "$APP" >/dev/null
-  echo "OK"
+  install_app triggers-controller
 }
 
 main(){
