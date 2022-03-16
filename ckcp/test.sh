@@ -40,13 +40,11 @@ else
       echo "Arg triggers passed. Running triggers tests..."
 
       echo "Simulating a Github PR through a curl request which creates a TaskRun (from tektoncd/triggers/examples)"
-      mkdir -p $SCRIPT_DIR/github-eventlistener
-      curl https://raw.githubusercontent.com/tektoncd/triggers/v0.18.0/examples/v1beta1/github/github-eventlistener-interceptor.yaml > github-eventlistener/github-eventlistener-interceptor.yaml
-      curl https://raw.githubusercontent.com/tektoncd/triggers/v0.18.0/examples/v1beta1/github/secret.yaml > github-eventlistener/secret.yaml
 
-      KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f github-eventlistener
+      KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f https://raw.githubusercontent.com/tektoncd/triggers/v0.18.0/examples/v1beta1/github/github-eventlistener-interceptor.yaml
+      KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f https://raw.githubusercontent.com/tektoncd/triggers/v0.18.0/examples/v1beta1/github/secret.yaml
+
       sleep 20
-      rm -rf $SCRIPT_DIR/github-eventlistener
 
       # Simulate the behaviour of a webhook. GitHub sends some payload and trigger a TaskRun.
       kubectl -n kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad port-forward service/el-github-listener 8089:8080 &

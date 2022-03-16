@@ -338,11 +338,9 @@ install_triggers_interceptors(){
   # Create kcp-kubeconfig secrets for event listener and interceptors so that they can talk to KCP
   #############################################################################
   if ! KUBECONFIG=$KUBECONFIG_KCP oc get secret kcp-kubeconfig >/dev/null 2>&1; then
-    echo -n "."
     KUBECONFIG=$KUBECONFIG_KCP oc create secret generic kcp-kubeconfig --from-file "$KUBECONFIG_KCP" >/dev/null
   fi
   if ! KUBECONFIG=$KUBECONFIG_KCP oc get secret kcp-kubeconfig -n tekton-pipelines >/dev/null 2>&1; then
-    echo -n "."
     KUBECONFIG=$KUBECONFIG_KCP oc create secret generic kcp-kubeconfig -n tekton-pipelines --from-file "$KUBECONFIG_KCP" >/dev/null
   fi
 
@@ -365,11 +363,9 @@ install_triggers_controller(){
   # Create kcp-kubeconfig secret for triggers controller
   #############################################################################
   if ! oc get namespace triggers >/dev/null 2>&1; then
-    echo -n "."
     oc create namespace triggers >/dev/null
   fi
   if ! oc get secret ckcp-kubeconfig -n triggers >/dev/null 2>&1; then
-    echo -n "."
     oc create secret generic ckcp-kubeconfig -n triggers --from-file "$KUBECONFIG_KCP" >/dev/null
   fi
 
