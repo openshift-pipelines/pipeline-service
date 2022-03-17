@@ -111,7 +111,7 @@ install_openshift_gitops(){
   #############################################################################
   echo -n "  - ArgoCD dashboard: "
   test_cmd="oc get route/openshift-gitops-server --ignore-not-found -n $APP -o jsonpath={.spec.host}"
-  ARGOCD_HOSTNAME="$($test_cmd})"
+  ARGOCD_HOSTNAME="$(${test_cmd})"
   until curl --fail --insecure --output /dev/null --silent "https://$ARGOCD_HOSTNAME"; do
     echo -n "."
     sleep 2
