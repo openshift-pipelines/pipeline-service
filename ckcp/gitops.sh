@@ -7,10 +7,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" >/dev/null ; pwd)"
 GITOPS_DIR="$(dirname "$SCRIPT_DIR")/gitops"
 WORK_DIR="$SCRIPT_DIR/work"
-KUBECONFIG_CLUSTER="${KUBECONFIG:-$HOME/.kube/config}"
-KUBECONFIG=${KUBECONFIG_CLUSTER}
+KUBECONFIG=${KUBECONFIG:-$HOME/.kube/config}
 KUBECONFIG_KCP="$WORK_DIR/kubeconfig/admin.kubeconfig"
-KUBECONFIG_MERGED="merged-config.kubeconfig:$KUBECONFIG_CLUSTER:$KUBECONFIG_KCP"
+KUBECONFIG_MERGED="merged-config.kubeconfig:$KUBECONFIG:$KUBECONFIG_KCP"
 
 
 usage(){
@@ -255,12 +254,8 @@ install_triggers_interceptors(){
   #############################################################################
   # Create kcp-kubeconfig secrets for event listener and interceptors so that they can talk to KCP
   #############################################################################
-  if ! KUBECONFIG=$KUBECONFIG_KCP oc get secret kcp-kubeconfig >/dev/null 2>&1; then
-    KUBECONFIG=$KUBECONFIG_KCP oc create secret generic kcp-kubeconfig --from-file "$KUBECONFIG_KCP" >/dev/null
-  fi
-  if ! KUBECONFIG=$KUBECONFIG_KCP oc get secret kcp-kubeconfig -n tekton-pipelines >/dev/null 2>&1; then
-    KUBECONFIG=$KUBECONFIG_KCP oc create secret generic kcp-kubeconfig -n tekton-pipelines --from-file "$KUBECONFIG_KCP" >/dev/null
-  fi
+  oc create secret generic kcp-kubeconfig --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | KUBECONFIG=$KUBECONFIG_KCP oc apply -f- &>/dev/null
+  oc create secret generic kcp-kubeconfig -n tekton-pipelines --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | KUBECONFIG=$KUBECONFIG_KCP oc apply -f- &>/dev/null
 
   install_app triggers-interceptors
 }
@@ -270,9 +265,7 @@ install_triggers_controller(){
   # Create kcp-kubeconfig secret for triggers controller
   #############################################################################
   oc create namespace triggers -o yaml --dry-run=client | oc apply -f- &>/dev/null
-  if ! oc get secret ckcp-kubeconfig -n triggers &>/dev/null; then
-    oc create secret generic ckcp-kubeconfig -n triggers --from-file "$KUBECONFIG_KCP" >/dev/null
-  fi
+  oc create secret generic ckcp-kubeconfig -n triggers --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | oc apply -f - &>/dev/null
 
   #############################################################################
   # Install triggers controller
