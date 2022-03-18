@@ -54,10 +54,10 @@ $ ./gitops.sh
     #installs openshift-gitops in a host cluster, install kcp in a pod (a.k.a ckcp)
     #and register the kcp cluster to the ArgoCD instance
 
-$ ./gitops.sh -a tekton-pipeline -a pipelines
+$ ./gitops.sh -a pipelines
     #installs openshift-gitops + ckcp + tekton-pipeline + pipelines controller
 
-$ ./gitops.sh -a triggers-crds -a triggers-interceptors -a triggers-controller
+$ ./gitops.sh -a triggers
     #installs openshift-gitops + ckcp + triggers crds, interceptors and controller 
 ```
 test.sh script runs certain examples from tektoncd repo for pipelines and triggers. You can run the below script only after gitops.sh is run and the required resources are up and running. 
