@@ -21,7 +21,7 @@ Setup the pipeline service on a cluster running on KCP.
 
 Optional arguments:
     -a, --app APP
-        Install APP in the cluster. APP must be in [tekton-pipeline, pipelines].
+        Install APP in the cluster. APP must be in [pipelines, triggers].
         The flag can be repeated to install multiple apps.
     --all
         Install all applications.
@@ -39,7 +39,10 @@ Example:
 
 
 parse_args(){
-  APP_LIST="openshift-gitops ckcp"
+  local default_list="openshift-gitops ckcp"
+  local pipeline_list="tekton-pipeline pipelines"
+  local trigger_list="triggers_crds triggers_interceptors triggers_controller"
+  APP_LIST="$default_list"
 
   local args
   args="$(getopt -o dha: -l "debug,help,app,all" -n "$0" -- "$@")"
@@ -47,11 +50,23 @@ parse_args(){
   while true; do
     case $1 in
       -a|--app)
-        APP_LIST="$APP_LIST $2"
         shift
+        case $1 in
+          pipelines)
+            APP_LIST="$APP_LIST $pipeline_list"
+            ;;
+          triggers)
+            APP_LIST="$APP_LIST $trigger_list"
+            ;;
+          *)
+            echo "[ERROR] Unsupported app: $1" >&2
+            usage
+            exit 1
+            ;;
+        esac
         ;;
       --all)
-        APP_LIST="openshift-gitops ckcp tekton-pipeline pipelines"
+        APP_LIST="$default_list $pipeline_list $trigger_list"
         ;;
       -d|--debug)
         set -x
