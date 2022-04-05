@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: tekton-pipeline
+  name: pipelines-crds
   namespace: openshift-gitops
 
 spec:
@@ -9,7 +9,7 @@ spec:
     name: kcp
     namespace: kube-system # not relevant yet since every object has an explicit namespace.
   source:
-    path: gitops/tekton-pipeline/overlays/patched
+    path: gitops/pipelines/pipelines-crds/overlays/patched
     repoURL: https://github.com/openshift-pipelines/pipelines-service.git
     targetRevision: main
   project: default

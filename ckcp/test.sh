@@ -6,7 +6,7 @@ set -exuo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" >/dev/null ; pwd)"
 KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
 export KUBECONFIG=$KUBECONFIG
-KUBECONFIG_KCP="$SCRIPT_DIR/work/kubeconfig/admin.kubeconfig"
+KUBECONFIG_KCP="${KUBECONFIG_KCP:-$SCRIPT_DIR/work/kubeconfig/admin.kubeconfig}"
 #install pipelines/triggers based on args
 if [ $# -eq 0 ]; then
   echo "No args passed; exiting now! ckcp is running in a pod"
