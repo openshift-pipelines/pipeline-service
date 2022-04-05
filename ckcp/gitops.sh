@@ -40,7 +40,7 @@ Example:
 
 parse_args(){
   local default_list="openshift-gitops ckcp"
-  local pipeline_list="tekton-pipeline pipelines"
+  local pipeline_list="pipelines_crds pipelines_controller"
   local trigger_list="triggers_crds triggers_interceptors triggers_controller"
   APP_LIST="$default_list"
 
@@ -148,6 +148,14 @@ install_openshift_gitops(){
   argocd_password="$(oc get secret openshift-gitops-cluster -n openshift-gitops -o jsonpath="{.data.admin\.password}" | base64 --decode --ignore-garbage)"
   argocd login "$ARGOCD_HOSTNAME" --grpc-web --insecure --username admin --password "$argocd_password" >/dev/null
   echo "OK"
+
+  # Register the host cluster as pipeline-cluster
+  local cluster_name="pipeline-cluster"
+  echo -n "  - Register cluster to ArgoCD as '$cluster_name': "
+  if ! KUBECONFIG="$KUBECONFIG_MERGED" argocd cluster get $cluster_name >/dev/null 2>&1; then
+    argocd cluster add "$(cat "$KUBECONFIG" | yq ".current-context")" --name="$cluster_name" --upsert --yes >/dev/null 2>&1
+  fi
+  echo "OK"
 }
 
 
@@ -185,12 +193,6 @@ install_ckcp(){
     echo -n "."
     sleep 2
   done
-  echo "OK"
-
-  # Create secret
-  echo -n "  - Register KCP secret to host cluster: "
-  oc create namespace pipelines --dry-run=client -o yaml | oc apply -f - &>/dev/null
-  oc create secret generic ckcp-kubeconfig -n pipelines --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | oc apply -f - &>/dev/null
   echo "OK"
 
   # Register the host cluster to KCP
@@ -250,13 +252,19 @@ secrets:
 }
 
 
-install_tekton_pipeline(){
-  install_app tekton-pipeline
+install_pipelines_crds(){
+  install_app pipelines-crds
 }
 
 
-install_pipelines(){
-  install_app pipelines
+install_pipelines_controller(){
+  # Create kcp-kubeconfig secret for pipelines controller
+  echo -n "  - Register KCP secret to host cluster: "
+  oc create namespace pipelines --dry-run=client -o yaml | oc apply -f - --wait &>/dev/null
+  oc create secret generic ckcp-kubeconfig -n pipelines --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | oc apply -f - --wait &>/dev/null
+  echo "OK"
+
+  install_app pipelines-controller
 }
 
 
@@ -266,25 +274,18 @@ install_triggers_crds(){
 
 
 install_triggers_interceptors(){
-  #############################################################################
   # Create kcp-kubeconfig secrets for event listener and interceptors so that they can talk to KCP
-  #############################################################################
-  oc create secret generic kcp-kubeconfig --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | KUBECONFIG=$KUBECONFIG_KCP oc apply -f- &>/dev/null
-  oc create secret generic kcp-kubeconfig -n tekton-pipelines --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | KUBECONFIG=$KUBECONFIG_KCP oc apply -f- &>/dev/null
+  oc create secret generic kcp-kubeconfig --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | KUBECONFIG=$KUBECONFIG_KCP oc apply -f - --wait &>/dev/null
+  oc create secret generic kcp-kubeconfig -n tekton-pipelines --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | KUBECONFIG=$KUBECONFIG_KCP oc apply -f- --wait &>/dev/null
 
   install_app triggers-interceptors
 }
 
 install_triggers_controller(){
-  #############################################################################
   # Create kcp-kubeconfig secret for triggers controller
-  #############################################################################
-  oc create namespace triggers -o yaml --dry-run=client | oc apply -f- &>/dev/null
-  oc create secret generic ckcp-kubeconfig -n triggers --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | oc apply -f - &>/dev/null
+  oc create namespace triggers -o yaml --dry-run=client | oc apply -f- --wait &>/dev/null
+  oc create secret generic ckcp-kubeconfig -n triggers --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | oc apply -f - --wait &>/dev/null
 
-  #############################################################################
-  # Install triggers controller
-  #############################################################################
   install_app triggers-controller
 }
 

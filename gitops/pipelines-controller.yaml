@@ -1,15 +1,15 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: pipelines
+  name: pipelines-controller
   namespace: openshift-gitops
 
 spec:
   destination:
+    name: pipeline-cluster
     namespace: kube-system # not relevant yet since every object has an explicit namespace.
-    server: https://kubernetes.default.svc
   source:
-    path: gitops/pipelines/base
+    path: gitops/pipelines/pipelines-controller/base
     repoURL: https://github.com/openshift-pipelines/pipelines-service.git
     targetRevision: main
   project: default
