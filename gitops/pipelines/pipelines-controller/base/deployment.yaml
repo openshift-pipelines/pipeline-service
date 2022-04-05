@@ -50,4 +50,4 @@ spec:
       volumes:
         - name: kubeconfig
           secret:
-            secretName: ckcp-kubeconfig
+            secretName: kcp-kubeconfig

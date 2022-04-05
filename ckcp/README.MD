@@ -119,5 +119,5 @@ workspaceshards                            tenancy.kcp.dev/v1alpha1             
 Configure kubectl to point to your physical cluster and run:
 
 ```
-$ kubectl get secret ckcp-kubeconfig -n ckcp  -o jsonpath="{.data['admin\.kubeconfig']}" > kubeconfig
+$ kubectl get secret kcp-kubeconfig -n ckcp  -o jsonpath="{.data['admin\.kubeconfig']}" > kubeconfig
 ```

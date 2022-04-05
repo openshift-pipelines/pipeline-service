@@ -261,7 +261,7 @@ install_pipelines_controller(){
   # Create kcp-kubeconfig secret for pipelines controller
   echo -n "  - Register KCP secret to host cluster: "
   oc create namespace pipelines --dry-run=client -o yaml | oc apply -f - --wait &>/dev/null
-  oc create secret generic ckcp-kubeconfig -n pipelines --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | oc apply -f - --wait &>/dev/null
+  oc create secret generic kcp-kubeconfig -n pipelines --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | oc apply -f - --wait &>/dev/null
   echo "OK"
 
   install_app pipelines-controller
@@ -276,15 +276,15 @@ install_triggers_crds(){
 install_triggers_interceptors(){
   # Create kcp-kubeconfig secrets for event listener and interceptors so that they can talk to KCP
   oc create secret generic kcp-kubeconfig --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | KUBECONFIG=$KUBECONFIG_KCP oc apply -f - --wait &>/dev/null
-  oc create secret generic kcp-kubeconfig -n tekton-pipelines --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | KUBECONFIG=$KUBECONFIG_KCP oc apply -f- --wait &>/dev/null
+  oc create secret generic kcp-kubeconfig -n tekton-pipelines --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | KUBECONFIG=$KUBECONFIG_KCP oc apply -f - --wait &>/dev/null
 
   install_app triggers-interceptors
 }
 
 install_triggers_controller(){
   # Create kcp-kubeconfig secret for triggers controller
-  oc create namespace triggers -o yaml --dry-run=client | oc apply -f- --wait &>/dev/null
-  oc create secret generic ckcp-kubeconfig -n triggers --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | oc apply -f - --wait &>/dev/null
+  oc create namespace triggers -o yaml --dry-run=client | oc apply -f - --wait &>/dev/null
+  oc create secret generic kcp-kubeconfig -n triggers --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | oc apply -f - --wait &>/dev/null
 
   install_app triggers-controller
 }
