@@ -36,7 +36,7 @@ do
   echo "Try again"
 done
 
-kubectl create secret generic ckcp-kubeconfig -n ckcp --from-file $KUBECONFIG_KCP
+kubectl create secret generic kcp-kubeconfig -n ckcp --from-file $KUBECONFIG_KCP
 
 KUBECONFIG=$KUBECONFIG_KCP kubectl create -f $PIPELINES_SERVICE_DIR/workspace.yaml
 
@@ -65,7 +65,7 @@ else
 
       #install pipelines controller via kustomize
       kubectl apply -k $GITOPS_DIR/pipelines/base
-      kubectl create secret generic ckcp-kubeconfig -n pipelines --from-file $KUBECONFIG_KCP --dry-run=client -o yaml | kubectl apply -f -
+      kubectl create secret generic kcp-kubeconfig -n pipelines --from-file $KUBECONFIG_KCP --dry-run=client -o yaml | kubectl apply -f -
 
       #Check if pipelines controller pod is up and running
       cplpod=$(kubectl get pods -n pipelines -o jsonpath='{.items[0].metadata.name}')
@@ -98,7 +98,7 @@ else
       #Deploy triggers controller
       kubectl apply -k $GITOPS_DIR/triggers/triggers-controller/base
       # Create secrets for triggers controller
-      kubectl create secret generic ckcp-kubeconfig -n triggers --from-file $KUBECONFIG_KCP --dry-run=client -o yaml | kubectl apply -f -
+      kubectl create secret generic kcp-kubeconfig -n triggers --from-file $KUBECONFIG_KCP --dry-run=client -o yaml | kubectl apply -f -
 
       #Check if triggers controller pod is up and running
       ctrpod=$(kubectl get pods -n triggers -o jsonpath='{.items[0].metadata.name}')
