@@ -1,5 +1,5 @@
 diff --git a/pkg/sink/sink.go b/pkg/sink/sink.go
-index c6d63bfb..633b75a2 100644
+index c6d63bfb..9113c464 100644
 --- a/pkg/sink/sink.go
 +++ b/pkg/sink/sink.go
 @@ -24,6 +24,7 @@ import (
@@ -10,12 +10,13 @@ index c6d63bfb..633b75a2 100644
  	"sync"
  
  	"github.com/tektoncd/triggers/pkg/apis/triggers"
-@@ -419,7 +420,7 @@ func (r Sink) ExecuteInterceptors(trInt []*triggersv1.TriggerInterceptor, in *ht
+@@ -419,7 +420,8 @@ func (r Sink) ExecuteInterceptors(trInt []*triggersv1.TriggerInterceptor, in *ht
  		}
  
  		// TODO: Plumb through context from EL
 -		interceptorResponse, err := interceptors.Execute(context.Background(), r.HTTPClient, &request, url.String())
-+		interceptorResponse, err := interceptors.Execute(context.Background(), r.HTTPClient, &request, strings.ReplaceAll(url.String(), ".tekton-pipelines.", ".kcpa9f18e6516b976c21e45eb38fd4291927a3c9dd86fda1b7b7c03ead1."))
++		// Target the kcp namespace running tekton-triggers-core-interceptors
++		interceptorResponse, err := interceptors.Execute(context.Background(), r.HTTPClient, &request, strings.ReplaceAll(url.String(), ".tekton-pipelines.", ".kcpdf4f8df5a88c8e8d9a7557f1ff8340801b6ad56c1540301151487523."))
  		if err != nil {
  			return nil, nil, nil, err
  		}

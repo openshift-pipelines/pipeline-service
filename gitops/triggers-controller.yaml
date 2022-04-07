@@ -6,8 +6,8 @@ metadata:
 
 spec:
   destination:
-    name: pipeline-cluster
-    namespace: kube-system # not relevant yet since every object has an explicit namespace.
+    name: plnsvc
+    namespace: default # not relevant yet since every object has an explicit namespace.
   source:
     path: gitops/triggers/triggers-controller/base
     repoURL: https://github.com/openshift-pipelines/pipelines-service.git
