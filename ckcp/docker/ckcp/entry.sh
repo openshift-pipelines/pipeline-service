@@ -6,4 +6,4 @@ rm -rf .kcp/
   --pull-mode=false \
   --run-controllers \
   --auto-publish-apis \
-  --resources-to-sync="deployments.apps,statefulsets.apps,pods,services,secrets,persistentvolumeclaims"
+  --resources-to-sync="deployments.apps,statefulsets.apps,services,secrets,persistentvolumeclaims"

@@ -10,7 +10,7 @@ resources:
 
 images:
 - name: ckcp
-  newName: quay.io/bnr/ckcp
+  newName: quay.io/rarnaud/ckcp
   newTag: 986710c754ed0dac9ae1525661de931e5dd7c0cc
 
 namespace: ckcp
