@@ -1,0 +1,6 @@
+apiVersion: workload.kcp.dev/v1alpha1
+kind: WorkloadCluster
+metadata:
+  name: us-east1
+spec:
+  kubeconfig: |
