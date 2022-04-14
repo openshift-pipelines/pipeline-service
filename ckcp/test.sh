@@ -4,9 +4,20 @@
 set -exuo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" >/dev/null ; pwd)"
+WORK_DIR="$SCRIPT_DIR/work"
 KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
-export KUBECONFIG=$KUBECONFIG
-KUBECONFIG_KCP="${KUBECONFIG_KCP:-$SCRIPT_DIR/work/kubeconfig/admin.kubeconfig}"
+KUBECONFIG_DIR="$WORK_DIR/kubeconfig"
+KUBECONFIG_KCP="$KUBECONFIG_DIR/kcp.yaml"
+KUBECONFIG_PLNSVC="$KUBECONFIG_DIR/plnsvc.clusteradmin.yaml"
+
+kcp_config() {
+  KUBECONFIG="$KUBECONFIG_KCP" "$@"
+}
+
+plnsvc_config() {
+  KUBECONFIG="$KUBECONFIG_PLNSVC" "$@"
+}
+
 #install pipelines/triggers based on args
 if [ $# -eq 0 ]; then
   echo "No args passed; exiting now! ckcp is running in a pod"
@@ -18,31 +29,31 @@ else
       echo "Running a sample TaskRun and PipelineRun which sets and uses env variables (from tektoncd/pipeline/examples)"
 
       #create taskrun and pipelinerun
-      if ! KUBECONFIG="$KUBECONFIG_KCP" kubectl get namespace default >/dev/null 2>&1; then
-        KUBECONFIG="$KUBECONFIG_KCP" kubectl create namespace default
+      if ! kcp_config  kubectl get namespace default >/dev/null 2>&1; then
+        kcp_config  kubectl create namespace default
       fi
-      if ! KUBECONFIG="$KUBECONFIG_KCP" kubectl get serviceaccount default >/dev/null 2>&1; then
-        KUBECONFIG="$KUBECONFIG_KCP" kubectl create serviceaccount default
+      if ! kcp_config  kubectl get serviceaccount default >/dev/null 2>&1; then
+        kcp_config  kubectl create serviceaccount default
       fi
       BASE_URL="https://raw.githubusercontent.com/tektoncd/pipeline/v0.32.0"
       for manifest in taskruns/custom-env.yaml pipelineruns/using_context_variables.yaml; do
         # change ubuntu image to ubi to avoid dockerhub registry pull limit
-        curl --fail --silent "$BASE_URL/examples/v1beta1/$manifest" | sed 's|ubuntu|registry.access.redhat.com/ubi8/ubi-minimal:latest|' | KUBECONFIG="$KUBECONFIG_KCP" kubectl create -f -
+        curl --fail --silent "$BASE_URL/examples/v1beta1/$manifest" | sed 's|ubuntu|registry.access.redhat.com/ubi8/ubi-minimal:latest|' | kcp_config  kubectl create -f -
       done
       sleep 20
 
       echo "Print pipelines custom resources inside kcp"
-      KUBECONFIG="$KUBECONFIG_KCP" kubectl get pods,taskruns,pipelineruns
+      kcp_config  kubectl get pods,taskruns,pipelineruns
       echo "Print kube resources in the physical cluster (Note: physical cluster will not know what taskruns or pipelinesruns are)"
-      kubectl get pods -n kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad
+      plnsvc_config kubectl get pods -n kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad
 
     elif [ $arg == "triggers" ]; then
       echo "Arg triggers passed. Running triggers tests..."
 
       echo "Simulating a Github PR through a curl request which creates a TaskRun (from tektoncd/triggers/examples)"
 
-      KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f https://raw.githubusercontent.com/tektoncd/triggers/v0.18.0/examples/v1beta1/github/github-eventlistener-interceptor.yaml
-      KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f https://raw.githubusercontent.com/tektoncd/triggers/v0.18.0/examples/v1beta1/github/secret.yaml
+      kcp_config kubectl apply -f https://raw.githubusercontent.com/tektoncd/triggers/v0.18.0/examples/v1beta1/github/github-eventlistener-interceptor.yaml
+      kcp_config kubectl apply -f https://raw.githubusercontent.com/tektoncd/triggers/v0.18.0/examples/v1beta1/github/secret.yaml
 
       sleep 20
 
@@ -60,7 +71,7 @@ else
       kill $SVC_FORWARD_PID
 
       sleep 20
-      KUBECONFIG="$KUBECONFIG_KCP" kubectl get taskruns,pipelineruns
+      kcp_config  kubectl get taskruns,pipelineruns
     else
       echo "Incorrect argument/s passed. Allowed args are 'pipelines' or 'triggers' or 'pipelines triggers'"
     fi

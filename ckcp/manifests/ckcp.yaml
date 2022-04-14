@@ -1,0 +1,101 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    app.kubernetes.io/instance: ckcp
+  name: ckcp
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: anyuid
+  namespace: ckcp
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: system:openshift:scc:anyuid
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:anyuid
+subjects:
+- kind: ServiceAccount
+  name: anyuid
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kcp-in-a-pod
+  name: ckcp
+  namespace: ckcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kcp-in-a-pod
+  template:
+    metadata:
+      labels:
+        app: kcp-in-a-pod
+    spec:
+      serviceAccountName: anyuid
+      containers:
+        - image: ghcr.io/kcp-dev/kcp:e49b807
+          name: ckcp
+          command: [
+            "/bin/sh",
+            "-c",
+            "rm -rf /tmp/workspace;
+            mkdir -p /tmp/workspace;
+            cd /tmp/workspace;
+            /kcp start \
+              --push-mode=true \
+              --pull-mode=false \
+              --run-controllers \
+              --auto-publish-apis \
+              --resources-to-sync=deployments.apps,statefulsets.apps,pods,services,secrets,persistentvolumeclaims"
+          ]
+          readinessProbe:
+            initialDelaySeconds: 20
+            periodSeconds: 3
+            exec:
+              command:
+                - grep
+                - -q
+                - " token: "
+                - /tmp/workspace/.kcp/admin.kubeconfig
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: kcp-in-a-pod
+  name: ckcp-service
+  namespace: ckcp
+spec:
+  selector:
+    app: kcp-in-a-pod
+  ports:
+  - port: 6443
+    protocol: TCP
+    targetPort: 6443
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  labels:
+    app: kcp-in-a-pod
+  name: ckcp
+  namespace: ckcp
+spec:
+  to:
+    kind: Service
+    name: ckcp-service
+  port:
+    targetPort: 6443
+  tls:
+    termination: passthrough
+  wildcardPolicy: None

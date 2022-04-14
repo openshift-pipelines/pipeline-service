@@ -29,38 +29,27 @@ Long Version:
 Before you execute the script, 
 
 1. You need to have a kubernetes/openshift cluster.
-2. You need to build the docker image for ckcp and upload it to *quay.io* and make it *Public*.
-3. You need to install [oc](https://docs.openshift.com/container-platform/4.9/cli_reference/openshift_cli/getting-started-cli.html)
-4. You need to install [argocd](https://argo-cd.readthedocs.io/en/stable/cli_installation/).
-5. You need to install [yq](http://mikefarah.github.io/yq/#install)
-
-Note: KO_DOCKER_REPO has to point to your own *quay.io* repo.
-```
-$ echo $KO_DOCKER_REPO
-quay.io/bnr
-```
-Run build.sh
-```
-$ ./build.sh
-```
+2. You need to install [oc](https://docs.openshift.com/container-platform/4.9/cli_reference/openshift_cli/getting-started-cli.html)
+3. You need to install [argocd](https://argo-cd.readthedocs.io/en/stable/cli_installation/).
+4. You need to install [yq](http://mikefarah.github.io/yq/#install)
 
 Yup that's it! Just run the script, and you're ready with a pod running kcp inside it!  
 
-You can run the gitops.sh script with or without parameters as specified below:  
+You can run the deploy.sh script with or without parameters as specified below:
 Note: Triggers requires pipelines to be running and thus running ckcp with triggers alone is not supported.
 
 ```
-$ ./gitops.sh
+$ ./deploy.sh
     #installs openshift-gitops in a host cluster, install kcp in a pod (a.k.a ckcp)
     #and register the kcp cluster to the ArgoCD instance
 
-$ ./gitops.sh -a pipelines
+$ ./deploy.sh -a pipelines
     #installs openshift-gitops + ckcp + tekton-pipeline + pipelines controller
 
-$ ./gitops.sh -a triggers
+$ ./deploy.sh -a triggers
     #installs openshift-gitops + ckcp + triggers crds, interceptors and controller 
 ```
-test.sh script runs certain examples from tektoncd repo for pipelines and triggers. You can run the below script only after gitops.sh is run and the required resources are up and running. 
+test.sh script runs certain examples from tektoncd repo for pipelines and triggers. You can run the below script only after deploy.sh has run and the required resources are up and running.
 
 ```
 $ ./test.sh pipelines
