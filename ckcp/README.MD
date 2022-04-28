@@ -29,7 +29,8 @@ Long Version:
 Before you execute the script, 
 
 1. You need to have a kubernetes/openshift cluster.
-2. You need to build the docker image for ckcp and upload it to *quay.io* and make it *Public*.
+2. You need to build the docker image for ckcp and upload it to a container registry that is accessible from your clusters.
+   Pushing to your account on *quay.io* and making the image *Public* is recommended.
 3. You need to install [oc](https://docs.openshift.com/container-platform/4.9/cli_reference/openshift_cli/getting-started-cli.html)
 4. You need to install [argocd](https://argo-cd.readthedocs.io/en/stable/cli_installation/).
 5. You need to install [yq](http://mikefarah.github.io/yq/#install)
