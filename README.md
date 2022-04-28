@@ -24,7 +24,7 @@ This approach has the great advantage of not requiring any change to the control
 
 Controllers know nothing about kcp.
 
-![Phase 1 flow](./images/phase1.png)
+![Phase 1 flow](./docs/images/phase1.png)
 
 **Demo** (5mns)
 
@@ -42,7 +42,7 @@ Tekton resource schemas are added only in kcp.
  
 Kubernetes workload clusters know nothing about Tekton. They only run resources like Deployments, Pods and Services.
 
-![Phase 2 flow](./images/phase2.png)
+![Phase 2 flow](./docs/images/phase2.png)
 
 ## How do I start?
 

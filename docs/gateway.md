@@ -8,7 +8,7 @@ The approach taken for addressing it is to introduce a gateway (an haproxy conta
 
 ## Architecture
 
-![Gateway architecture](../images/haproxy.png)
+![Gateway architecture](./images/haproxy.png)
 
 - GLB is kcp global load balancer. This is a work in progress. Currently a development version is based on an ingress-controller that automatically configures an envoy proxy.
 - Ingress, Service, Deployment and ConfigMap for the HAProxy based gateway are created in kcp, which syncs them onto the workload clusters.
