@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: haproxy-config
+data:
+  haproxy.cfg: |
+    global
+        maxconn 20000
+        nbthread 2
+
+    defaults
+        maxconn 20000
+        timeout connect 5s
+        timeout client 30s
+        timeout client-fin 1s
+        timeout server 30s
+        timeout server-fin 1s
+        timeout http-request 10s
+        timeout http-keep-alive 300s
+        timeout check 10s
+
+    frontend trigger_gateway-http
+        bind :80
+        mode http
+        tcp-request inspect-delay 5s
+        tcp-request content accept if HTTP
+
+        acl PATH_trigger path_beg -i /trigger
+        use_backend be_trigger if PATH_trigger
+
+    backend be_trigger
+        mode http
+        option redispatch
+        option forwardfor
+        timeout check 5000ms
+        server s1 httpecho.trigger.svc.cluster.local:80
