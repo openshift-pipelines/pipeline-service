@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: trigger
+spec:
+  rules:
+    - host: trigger-gateway.kcp-apps.127.0.0.1.nip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: httpecho
+                port:
+                  number: 80

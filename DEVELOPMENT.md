@@ -50,6 +50,10 @@ The script will output the location of the kubeconfig file that can be used to i
 
 The normal procedure can then be followed to create the required organisation, user workspaces, installing the Tekton controllers and registering the workload clusters.
 
+## Gateway
+
+A gateway can be installed to expose endpoints running on the workload clusters through kcp load balancer. Refer to the [gateway documentation](docs/gateway.md) for the instructions.
+
 ## Tearing down the environment
 
 As indicated by the kcp start script `ctrl-C` stops all components: kcp, ingress controller and envoy.
