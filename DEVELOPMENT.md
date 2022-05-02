@@ -20,6 +20,8 @@ Prerequisites:
 ./local/kind/setup.sh
 ```
 
+By default Argo CD is installed on the first cluster. It is possible to deactivate its installation by setting an environment variable `NO_ARGOCD=true`
+
 ---
 **_NOTE:_**  podman is used per default as container engine if available on the machine. If both podman and docker are available it is possible to force the use of docker by setting an environment variable `CONTAINER_ENGINE=docker`.
 
@@ -48,11 +50,31 @@ The script will output the location of the kubeconfig file that can be used to i
 
 ---
 
-The normal procedure can then be followed to create the required organisation, user workspaces, installing the Tekton controllers and registering the workload clusters.
-
 ## Gateway
 
 A gateway can be installed to expose endpoints running on the workload clusters through kcp load balancer. Refer to the [gateway documentation](docs/gateway.md) for the instructions.
+
+## GitOps
+
+Argo CD is by default installed on the first cluster. Alternatively it can be installed afterwards by running the following:
+
+```console
+KUBECONFIG=/path-to/config.kubeconfig ./local/argocd/setup.sh
+```
+
+Argo CD client can be downloaded from the [Argo CD release page](https://github.com/argoproj/argo-cd/releases/latest).
+
+An ingress is created so that it is possible to login as follows:
+
+```console
+argocd login argocd-server-argocd.apps.127.0.0.1.nip.io:8443
+```
+
+Argo CD web UI is accessible at https://argocd-server-argocd.apps.127.0.0.1.nip.io:8443/applications.
+
+GitOps is the preferred approach for deploying the Pipelines Service. The installed instance of ArgoCD can be leveraged for creating organisations in kcp, universal workspaces used by the infrastructure, installing the Tekton controllers and registering the workload clusters.
+
+This is currently being worked on. Automation and documentation will be added very soon.
 
 ## Tearing down the environment
 

@@ -69,6 +69,13 @@ for cluster in "${CLUSTERS[@]}"; do
         KIND_EXPERIMENTAL_PROVIDER=${KIND_EXPERIMENTAL_PROVIDER:-} ${KIND_CMD} create cluster \
             --config "${TMP_DIR}/${cluster}.config" \
             --kubeconfig "${TMP_DIR}/${cluster}.kubeconfig"
+
+	if [[  ${KIND_CMD} == "sudo kind" ]]; then
+		sudo chmod +r "${TMP_DIR}/${cluster}.kubeconfig"
+	fi
+
+	printf "Provisioning ingress router in ${cluster}\n"
+	kubectl --kubeconfig "${TMP_DIR}/${cluster}.kubeconfig" apply -f ingress-router.yaml
     fi
 
     if [[ ! -f "${TMP_DIR}/${cluster}.yaml" ]]; then
@@ -78,5 +85,10 @@ for cluster in "${CLUSTERS[@]}"; do
     fi
 
 done
+
+NO_ARGOCD="${NO_ARGOCD:-}"
+if [[ "${NO_ARGOCD,,}" != "true" ]]; then
+	KUBECONFIG="${TMP_DIR}/${CLUSTERS[0]}.kubeconfig" ../argocd/setup.sh
+fi
 
 popd
