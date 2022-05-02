@@ -7,7 +7,7 @@ metadata:
 spec:
   destination:
     name: kcp
-    namespace: kube-system # not relevant yet since every object has an explicit namespace.
+    namespace: default # not relevant yet since every object has an explicit namespace.
   source:
     path: gitops/pipelines/pipelines-crds/overlays/patched
     repoURL: https://github.com/openshift-pipelines/pipelines-service.git
