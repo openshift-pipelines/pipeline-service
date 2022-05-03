@@ -25,7 +25,11 @@ prechecks () {
     exit 1
   fi
 
-  if [[ "${CONTAINER_ENGINE}" != "docker" ]]; then
+  if [[ ${ALLOW_ROOTLESS} == "true" ]]; then
+    echo "Rootless mode enabled"
+  fi
+
+  if [[ "${CONTAINER_ENGINE}" != "docker" && "${ALLOW_ROOTLESS}" != "true" ]]; then
     KIND_CMD="sudo kind"
   else
     KIND_CMD="kind"
@@ -54,6 +58,7 @@ CLUSTERS=(
     us-west1
 )
 
+echo "Checking existing clusters"
 EXISTING_CLUSTERS=$(${KIND_CMD} get clusters 2>/dev/null)
 
 for cluster in "${CLUSTERS[@]}"; do
@@ -64,8 +69,8 @@ for cluster in "${CLUSTERS[@]}"; do
 
     # Only create the cluster if it does not exist
     if [[ -z "${clusterExists}" ]]; then
-	
-	cp ${cluster}.config "${TMP_DIR}/${cluster}.config"
+        echo "Creating kind cluster ${cluster}"
+        cp "${cluster}.config" "${TMP_DIR}/${cluster}.config"
         KIND_EXPERIMENTAL_PROVIDER=${KIND_EXPERIMENTAL_PROVIDER:-} ${KIND_CMD} create cluster \
             --config "${TMP_DIR}/${cluster}.config" \
             --kubeconfig "${TMP_DIR}/${cluster}.kubeconfig"
@@ -74,7 +79,7 @@ for cluster in "${CLUSTERS[@]}"; do
     if [[ ! -f "${TMP_DIR}/${cluster}.yaml" ]]; then
         clusterKubeconfig=$(${KIND_CMD} get kubeconfig --name "${cluster}")
         echo "${clusterKubeconfig}" | sed -e 's/^/    /' | cat "${cluster}.yaml" - > "${TMP_DIR}/${cluster}.yaml"
-	printf "Manifest for registering the cluster in kcp: ${TMP_DIR}/${cluster}.yaml\n\n"
+        printf "Manifest for registering the cluster in kcp: %s.yaml\n\n" "${TMP_DIR}/${cluster}"
     fi
 
 done
