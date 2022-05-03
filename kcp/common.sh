@@ -34,8 +34,6 @@ Example:
 }
 
 _parse_args() {
-  DEBUG=" "
-
   local args
   args="$(getopt -o dhe:k:w: -l "debug,help,environment,kcp,workspace" -n "$0" -- "$@")"
   eval set -- "$args"
@@ -47,7 +45,6 @@ _parse_args() {
       ;;
     -d | --debug)
       set -x
-      DEBUG="-d"
       ;;
     -h | --help)
       usage

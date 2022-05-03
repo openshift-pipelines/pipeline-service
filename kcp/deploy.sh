@@ -45,7 +45,6 @@ configure_pipeline_cluster() {
 
   echo "  - Service account for connecting KCP to the plnsvc cluster:"
   plnsvc_config kubectl apply -f "$SCRIPT_DIR/manifests/plnsvc/kcp-manager.yaml"
-  get_context plnsvc_config kcp plnsvc kcp-manager "$KUBECONFIG_PLNSVC_KCP"
 
   echo
 }
@@ -147,7 +146,9 @@ install_operators() {
   done
 
   echo -n "  - ArgoCD applications are healthy: "
-  argocd_local app wait $(argocd_local app list -o name) > /dev/null
+  local argocd_apps
+  argocd_apps="$(argocd_local app list -o name)"
+  argocd_local app wait "${argocd_apps[@]}" > /dev/null
   echo "OK"
 
   echo
@@ -167,7 +168,7 @@ get_context() {
     echo "[ERROR] Install jq"
     exit 1
   fi
-  mkdir -p "$(dirname $target)"
+  mkdir -p "$(dirname "$target")"
   token_secret="$($cluster_config kubectl get sa "$sa" -n "$namespace" -o json |
     jq -r '.secrets[].name | select(. | test(".*token.*"))')"
   current_cluster="$($cluster_config kubectl config view \
@@ -190,7 +191,6 @@ main() {
   KCP_ENV="kcp-unstable"
   KUBECONFIG_KCP_ARGOCD="$KUBECONFIG_DIR/kcp.argocd-manager.yaml"
   KUBECONFIG_KCP_PLNSVC="$KUBECONFIG_DIR/kcp.plnsvc-manager.yaml"
-  KUBECONFIG_PLNSVC_KCP="$KUBECONFIG_DIR/plnsvc.kcp.yaml"
 
   configure_kcp_cluster
   configure_pipeline_cluster
