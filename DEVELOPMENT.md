@@ -21,10 +21,11 @@ Prerequisites:
 ```
 
 ---
-**_NOTE:_**
+**_NOTES:_**
 
 1. Podman is used per default as container engine if available on the machine. If both podman and docker are available it is possible to force the use of docker by setting an environment variable `CONTAINER_ENGINE=docker`.
-2. Podman defaults to running as sudo (root). To run podman in rootless mode, use the environment variable `ALLOW_ROOTLESS=true`.
+2. Podman defaults to running as sudo (root). To run podman in rootless mode, use the environment variable `ALLOW_ROOTLESS=true`. See the [kind documentation](https://kind.sigs.k8s.io/docs/user/rootless/) for the prerequisites.
+ 
 ---
 
 ## kcp cluster
