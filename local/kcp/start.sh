@@ -40,7 +40,7 @@ kcp-binaries () {
     git clone https://github.com/kcp-dev/kcp.git
     KCP_DIR="${KCP_PARENT_DIR}/kcp"
     pushd kcp
-    KCP_BRANCH="${KCP_BRANCH:-release-0.3}"
+    KCP_BRANCH="${KCP_BRANCH:-release-0.4}"
     git checkout "${KCP_BRANCH}"
     make build
     popd
@@ -111,10 +111,8 @@ PARAMS="${PARAMS:-}"
 if [[ -z "${PARAMS}" ]]; then
 PARAMS="--token-auth-file ${PARENT_PATH}/kcp-tokens \
 --auto-publish-apis \
---push-mode \
 --discovery-poll-interval 3s \
 --profiler-address localhost:6060 \
---resources-to-sync ingresses.networking.k8s.io,deployments.apps,services,conditions.tekton.dev,pipelines.tekton.dev,pipelineruns.tekton.dev,pipelineresources.tekton.dev,runs.tekton.dev,tasks.tekton.dev,taskruns.tekton.dev \
 -v 2"
 fi
 
