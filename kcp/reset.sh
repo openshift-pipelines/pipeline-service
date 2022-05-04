@@ -19,7 +19,7 @@ set -o nounset
 set -o pipefail
 
 SCRIPT_DIR="$(
-  cd "$(dirname "$0")" >/dev/null
+  cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null
   pwd
 )"
 
