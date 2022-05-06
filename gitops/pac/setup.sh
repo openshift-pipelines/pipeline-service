@@ -62,7 +62,7 @@ check_params() {
 controller_install() {
     CONTROLLER_INSTALL="${CONTROLLER_INSTALL:-}"
     if [[ $(tr '[:upper:]' '[:lower:]' <<< "$CONTROLLER_INSTALL") == "true" ]]; then
-        printf "Installing controller\n"
+       printf "Installing controller\n"
        kubectl --kubeconfig ${KUBECONFIG} apply -f https://raw.githubusercontent.com/openshift-pipelines/pipelines-as-code/stable/release.k8s.yaml
     fi
 }

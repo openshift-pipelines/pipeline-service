@@ -1,0 +1,9 @@
+# This file defines the namespace where the Tekton controllers run
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tekton-pipelines
+  labels:
+    app.kubernetes.io/name: tekton-pipelines
+    kubernetes.io/metadata.name: tekton-pipelines
+
