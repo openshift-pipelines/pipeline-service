@@ -10,7 +10,7 @@ spec:
     namespace: default # not relevant yet since every object has an explicit namespace.
   source:
     path: gitops/triggers/triggers-controller/base
-    repoURL: https://github.com/openshift-pipelines/pipelines-service.git
+    repoURL: https://github.com/AndrienkoAleksandr/pipelines-service.git
     targetRevision: main
   project: default
   syncPolicy:

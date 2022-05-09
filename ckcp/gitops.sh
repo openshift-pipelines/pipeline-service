@@ -42,7 +42,7 @@ parse_args() {
   local default_list="openshift-gitops ckcp"
   local pipeline_list="pipelines_crds pipelines_controller"
   local trigger_list="triggers_crds triggers_interceptors triggers_controller"
-  local pac_list="install_pipelines_as_code_crds install_pipelines_as_code_controller"
+  local pac_list="pipelines_as_code_crds pipelines_as_code_controller"
   APP_LIST="$default_list"
 
   local args
