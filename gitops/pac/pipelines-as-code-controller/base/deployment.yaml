@@ -53,3 +53,13 @@ spec:
                   fieldPath: metadata.namespace
             - name: K_METRICS_CONFIG
               value: '{"Domain":"pipelinesascode.tekton.dev/controller","Component":"controller","PrometheusPort":0,"PrometheusHost":"","ConfigMap":{}}'
+            - name: KUBECONFIG
+              value: /workspace/kubeconfig/admin.kubeconfig
+          volumeMounts:
+            - mountPath: /workspace/kubeconfig/admin.kubeconfig
+              name: kubeconfig
+              subPath: admin.kubeconfig
+      volumes:
+        - name: kubeconfig
+          secret:
+            secretName: kcp-kubeconfig
