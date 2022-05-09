@@ -6,7 +6,7 @@ metadata:
 
 spec:
   destination:
-    name: plnsvc
+    name: kcp
     namespace: default # not relevant yet since every object has an explicit namespace.
   source:
     path: gitops/pac/pipelines-as-code-crds/base
