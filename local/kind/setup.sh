@@ -38,7 +38,7 @@ prechecks () {
 
 mk_tmpdir () {
   TMP_DIR="$(mktemp -d -t kind-pipelines-service.XXXXXXXXX)"
-  printf "Temporary directory created: ${TMP_DIR}\n"
+  printf "Temporary directory created: %s\n" "${TMP_DIR}"
 }
 
 parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
@@ -65,6 +65,7 @@ for cluster in "${CLUSTERS[@]}"; do
     clusterExists=""
     if echo "${EXISTING_CLUSTERS}" | grep "$cluster"; then
         clusterExists="1"
+        ${KIND_CMD} export kubeconfig --name "$cluster" --kubeconfig "${TMP_DIR}/${cluster}.kubeconfig"
     fi
 
     # Only create the cluster if it does not exist
@@ -79,7 +80,7 @@ for cluster in "${CLUSTERS[@]}"; do
 		sudo chmod +r "${TMP_DIR}/${cluster}.kubeconfig"
 	fi
 
-	printf "Provisioning ingress router in ${cluster}\n"
+	printf "Provisioning ingress router in %s\n" "${cluster}"
 	kubectl --kubeconfig "${TMP_DIR}/${cluster}.kubeconfig" apply -f ingress-router.yaml
     fi
 
@@ -92,7 +93,7 @@ for cluster in "${CLUSTERS[@]}"; do
 done
 
 NO_ARGOCD="${NO_ARGOCD:-}"
-if [[ "${NO_ARGOCD,,}" != "true" ]]; then
+if [[ $(tr '[:upper:]' '[:lower:]' <<< "$NO_ARGOCD") != "true" ]]; then
 	KUBECONFIG="${TMP_DIR}/${CLUSTERS[0]}.kubeconfig" ../argocd/setup.sh
 fi
 
