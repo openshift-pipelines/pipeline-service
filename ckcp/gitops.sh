@@ -42,6 +42,7 @@ parse_args() {
   local default_list="openshift-gitops ckcp"
   local pipeline_list="pipelines_crds pipelines_controller"
   local trigger_list="triggers_crds triggers_interceptors triggers_controller"
+  local pac_list="install_pipelines_as_code_crds install_pipelines_as_code_controller"
   APP_LIST="$default_list"
 
   local args
@@ -58,6 +59,9 @@ parse_args() {
       triggers)
         APP_LIST="$APP_LIST $trigger_list"
         ;;
+      pac)
+        APP_LIST="$APP_LIST $pac_list"
+        ;;
       *)
         echo "[ERROR] Unsupported app: $1" >&2
         usage
@@ -66,7 +70,7 @@ parse_args() {
       esac
       ;;
     --all)
-      APP_LIST="$default_list $pipeline_list $trigger_list"
+      APP_LIST="$default_list $pipeline_list $trigger_list $pac_list"
       ;;
     -d | --debug)
       set -x
@@ -283,6 +287,23 @@ install_triggers_controller() {
   oc create secret generic kcp-kubeconfig -n triggers --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | oc apply -f - --wait &>/dev/null
 
   install_app triggers-controller
+}
+
+install_pipelines_as_code_controller() {
+  # Create kcp-kubeconfig secret for pipelines-as-code controller
+  echo -n "  - Register KCP secret to host cluster: "
+
+  oc create secret generic kcp-kubeconfig -n pipelines --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | oc apply -f - --wait &>/dev/null
+  echo "OK"
+
+  install_app pipelines-as-code-controller
+}
+
+### Todo: Hmm... why do we call such folders with prefix -crds? These folders contains not only crds part...
+install_pipelines_as_code_crds() {
+  oc create namespace pipelines-as-code --dry-run=client -o yaml | oc apply -f - --wait &>/dev/null
+
+  install_app pipelines-as-code-crds
 }
 
 main() {
