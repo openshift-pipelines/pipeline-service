@@ -25,10 +25,10 @@ pushd "$parent_path"
 
 printf "Installing Argo CD\n"
 
-kubectl --kubeconfig ${KUBECONFIG} create namespace argocd
-kubectl --kubeconfig ${KUBECONFIG} apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl --kubeconfig "${KUBECONFIG}" create namespace argocd
+kubectl --kubeconfig "${KUBECONFIG}" apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 i=0
-while ! kubectl --kubeconfig ${KUBECONFIG} wait deployments ingress-nginx-controller -n ingress-nginx --for=jsonpath='{.status.availableReplicas}'=1 --timeout=1s; do
+while ! kubectl --kubeconfig "${KUBECONFIG}" wait deployments ingress-nginx-controller -n ingress-nginx --for=jsonpath='{.status.availableReplicas}'=1 --timeout=1s; do
 	sleep 1s
 	i=$((i+1))
 	if [ $i -gt 60 ]; then
@@ -36,7 +36,7 @@ while ! kubectl --kubeconfig ${KUBECONFIG} wait deployments ingress-nginx-contro
 		exit 1
 	fi
 done
-kubectl --kubeconfig ${KUBECONFIG} apply -f ingress.yaml
+kubectl --kubeconfig "${KUBECONFIG}" apply -f ingress.yaml
 
 printf "Argo CD installed\n"
 

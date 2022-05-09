@@ -15,17 +15,17 @@ KUBECONFIG_KCP="$SCRIPT_DIR/work/kubeconfig/admin.kubeconfig"
 
 kubectl delete --ignore-not-found namespace ckcp
 
-kubectl apply -k $GITOPS_DIR/ckcp/base/
+kubectl apply -k "$GITOPS_DIR/ckcp/base/"
 podname=$(kubectl get pods -n ckcp -l=app='kcp-in-a-pod' -o jsonpath='{.items[0].metadata.name}')
 
 #check if kcp inside pod is running or not
-kubectl wait --for=condition=Ready pod/$podname -n ckcp --timeout=300s
+kubectl wait --for=condition=Ready "pod/$podname" -n ckcp --timeout=300s
 
 #copy the kubeconfig of kcp from inside the pod onto local filesystem
-kubectl cp ckcp/$podname:/workspace/.kcp/admin.kubeconfig $KUBECONFIG_KCP
+kubectl cp "ckcp/$podname:/workspace/.kcp/admin.kubeconfig" "$KUBECONFIG_KCP"
 
 route=$(kubectl get route ckcp -n ckcp -o jsonpath='{.spec.host}')
-sed -i "s/localhost:6443/$route:443/g" $KUBECONFIG_KCP
+yq e -i "(.clusters[].cluster.server) |= sub(\"localhost:6443\", \"$route:443\")" "$KUBECONFIG_KCP"
 
 KUBECONFIG=$KUBECONFIG_KCP kubectl config set-cluster admin --insecure-skip-tls-verify=true
 
@@ -36,13 +36,13 @@ do
   echo "Try again"
 done
 
-kubectl create secret generic kcp-kubeconfig -n ckcp --from-file $KUBECONFIG_KCP
+kubectl create secret generic kcp-kubeconfig -n ckcp --from-file "$KUBECONFIG_KCP"
 
-KUBECONFIG=$KUBECONFIG_KCP kubectl create -f $PIPELINES_SERVICE_DIR/workspace.yaml
+KUBECONFIG=$KUBECONFIG_KCP kubectl create -f "$PIPELINES_SERVICE_DIR/workspace.yaml"
 
 #test the registration of a Physical Cluster
 curl https://raw.githubusercontent.com/kcp-dev/kcp/948dbe9565cc7da439c698875ca1fa78350c4530/contrib/examples/cluster.yaml > cluster.yaml
-sed -e 's/^/    /' $KUBECONFIG | cat cluster.yaml - | KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f -
+sed -e 's/^/    /' "$KUBECONFIG" | cat cluster.yaml - | KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f -
 
 echo "kcp is ready inside a pod and is synced with cluster 'local' and deployment.apps,pods,services and secrets"
 
@@ -64,18 +64,18 @@ else
       fi;
 
       #install pipelines controller via kustomize
-      kubectl apply -k $GITOPS_DIR/pipelines/base
-      kubectl create secret generic kcp-kubeconfig -n pipelines --from-file $KUBECONFIG_KCP --dry-run=client -o yaml | kubectl apply -f -
+      kubectl apply -k "$GITOPS_DIR/pipelines/base"
+      kubectl create secret generic kcp-kubeconfig -n pipelines --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | kubectl apply -f -
 
       #Check if pipelines controller pod is up and running
       cplpod=$(kubectl get pods -n pipelines -o jsonpath='{.items[0].metadata.name}')
-      kubectl wait --for=condition=Ready pod/$cplpod -n pipelines --timeout=300s
+      kubectl wait --for=condition=Ready "pod/$cplpod" -n pipelines --timeout=300s
       sleep 30
       #print the pod running pipelines controller
       KUBECONFIG=$KUBECONFIG kubectl get pods -n pipelines
 
       #install pipelines CRDs via kustomize
-      KUBECONFIG=$KUBECONFIG_KCP kubectl apply -k $GITOPS_DIR/tekton-pipeline/overlays/patched
+      KUBECONFIG=$KUBECONFIG_KCP kubectl apply -k "$GITOPS_DIR/tekton-pipeline/overlays/patched"
 
     elif [ $arg == "triggers" ]; then
       echo "Arg triggers passed. Installing triggers in ckcp"
@@ -84,25 +84,25 @@ else
       kubectl create namespace default --dry-run=client -o yaml | KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f -
 
       #create secrets for event listener and interceptors so that they can talk to KCP
-      kubectl create secret generic kcp-kubeconfig --from-file=kubeconfig=$KUBECONFIG_KCP --dry-run=client -o yaml | KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f -
-      kubectl create secret generic kcp-kubeconfig -n tekton-pipelines --from-file=kubeconfig=$KUBECONFIG_KCP --dry-run=client -o yaml | KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f -
+      kubectl create secret generic kcp-kubeconfig --from-file=kubeconfig="$KUBECONFIG_KCP" --dry-run=client -o yaml | KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f -
+      kubectl create secret generic kcp-kubeconfig -n tekton-pipelines --from-file=kubeconfig="$KUBECONFIG_KCP" --dry-run=client -o yaml | KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f -
 
       #Apply triggers crds (300-* & config-*)
-      KUBECONFIG=$KUBECONFIG_KCP kubectl apply -k $GITOPS_DIR/triggers/triggers-crds/base
+      KUBECONFIG=$KUBECONFIG_KCP kubectl apply -k "$GITOPS_DIR/triggers/triggers-crds/base"
 
       sleep 30
       #Deploy triggers interceptors
-      KUBECONFIG=$KUBECONFIG_KCP kubectl apply -k $GITOPS_DIR/triggers/triggers-crds/interceptors
+      KUBECONFIG=$KUBECONFIG_KCP kubectl apply -k "$GITOPS_DIR/triggers/triggers-crds/interceptors"
 
       #create everything using kustomize
       #Deploy triggers controller
-      kubectl apply -k $GITOPS_DIR/triggers/triggers-controller/base
+      kubectl apply -k "$GITOPS_DIR/triggers/triggers-controller/base"
       # Create secrets for triggers controller
-      kubectl create secret generic kcp-kubeconfig -n triggers --from-file $KUBECONFIG_KCP --dry-run=client -o yaml | kubectl apply -f -
+      kubectl create secret generic kcp-kubeconfig -n triggers --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | kubectl apply -f -
 
       #Check if triggers controller pod is up and running
       ctrpod=$(kubectl get pods -n triggers -o jsonpath='{.items[0].metadata.name}')
-      kubectl wait --for=condition=Ready pod/$ctrpod -n triggers --timeout=300s
+      kubectl wait --for=condition=Ready "pod/$ctrpod" -n triggers --timeout=300s
       KUBECONFIG=$KUBECONFIG kubectl get pods -n triggers
 
     else
