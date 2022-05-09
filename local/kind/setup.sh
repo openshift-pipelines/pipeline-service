@@ -66,6 +66,9 @@ for cluster in "${CLUSTERS[@]}"; do
     if echo "${EXISTING_CLUSTERS}" | grep "$cluster"; then
         clusterExists="1"
         ${KIND_CMD} export kubeconfig --name "$cluster" --kubeconfig "${TMP_DIR}/${cluster}.kubeconfig"
+	if [[  ${KIND_CMD} == "sudo kind" ]]; then
+                sudo chmod +r "${TMP_DIR}/${cluster}.kubeconfig"
+        fi
     fi
 
     # Only create the cluster if it does not exist
