@@ -5,7 +5,7 @@ namespace: pipelines-as-code
 
 resources:
 - https://raw.githubusercontent.com/openshift-pipelines/pipelines-as-code/0.7.1/config/100-namespace.yaml
-- https://raw.githubusercontent.com/openshift-pipelines/pipelines-as-code/0.7.1/config/200-role.yaml
+# - https://raw.githubusercontent.com/openshift-pipelines/pipelines-as-code/0.7.1/config/200-role.yaml
 - https://raw.githubusercontent.com/openshift-pipelines/pipelines-as-code/0.7.1/config/300-repositories.yaml
 - https://raw.githubusercontent.com/openshift-pipelines/pipelines-as-code/0.7.1/config/302-pac-configmap.yaml
 - https://raw.githubusercontent.com/openshift-pipelines/pipelines-as-code/0.7.1/config/303-pac-info-configmap.yaml

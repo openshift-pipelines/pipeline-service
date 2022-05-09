@@ -21,7 +21,7 @@ spec:
         app.kubernetes.io/part-of: pipelines-as-code
         app.kubernetes.io/version: "0.7.1"
     spec:
-      serviceAccountName: pipelines-as-code-controller
+      # serviceAccountName: pipelines-as-code-controller
       containers:
         - name: pac-controller
           image: "ghcr.io/openshift-pipelines/pipelines-as-code:0.7.1"
