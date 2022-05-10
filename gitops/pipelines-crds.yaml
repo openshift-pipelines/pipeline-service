@@ -11,7 +11,7 @@ spec:
   source:
     path: gitops/pipelines/pipelines-crds/overlays/patched
     repoURL: https://github.com/AndrienkoAleksandr/pipelines-service.git
-    targetRevision: main
+    targetRevision: work-on-pac-controller
   project: default
   syncPolicy:
 
