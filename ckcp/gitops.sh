@@ -45,10 +45,7 @@ parse_args() {
   local pac_list="pipelines_as_code_crds pipelines_as_code_controller"
   APP_LIST="$default_list"
 
-  local args
-  args="$(getopt -o dha: -l "debug,help,app,all" -n "$0" -- "$@")"
-  eval set -- "$args"
-  while true; do
+  while [[ $# -gt 0 ]]; do
     case $1 in
     -a | --app)
       shift
@@ -147,7 +144,7 @@ install_openshift_gitops() {
   # Log into ArgoCD
   echo -n "  - ArgoCD Login: "
   local argocd_password
-  argocd_password="$(oc get secret openshift-gitops-cluster -n openshift-gitops -o jsonpath="{.data.admin\.password}" | base64 --decode --ignore-garbage)"
+  argocd_password="$(oc get secret openshift-gitops-cluster -n openshift-gitops -o jsonpath="{.data.admin\.password}" | base64 --decode)"
   argocd login "$ARGOCD_HOSTNAME" --grpc-web --insecure --username admin --password "$argocd_password" >/dev/null
   echo "OK"
 
@@ -155,7 +152,7 @@ install_openshift_gitops() {
   local cluster_name="plnsvc"
   echo -n "  - Register host cluster to ArgoCD as '$cluster_name': "
   if ! KUBECONFIG="$KUBECONFIG_MERGED" argocd cluster get "$cluster_name" >/dev/null 2>&1; then
-    argocd cluster add "$(cat "$KUBECONFIG" | yq ".current-context")" --name="$cluster_name" --upsert --yes >/dev/null 2>&1
+    argocd cluster add "$(yq e ".current-context" "$KUBECONFIG")" --name="$cluster_name" --upsert --yes >/dev/null 2>&1
   fi
   echo "OK"
 }
@@ -175,7 +172,7 @@ install_ckcp() {
   # Post install
   #############################################################################
   # Copy the kubeconfig of kcp from inside the pod onto the local filesystem
-  podname="$(oc get pods --ignore-not-found -n "$ns" -l=app=kcp-in-a-pod -o jsonpath={.items[0].metadata.name})"
+  podname="$(oc get pods --ignore-not-found -n "$ns" -l=app=kcp-in-a-pod -o jsonpath='{.items[0].metadata.name}')"
   oc cp "$APP/$podname:/workspace/.kcp/admin.kubeconfig" "$KUBECONFIG_KCP" >/dev/null
 
   # Check if external ip is assigned and replace kcp's external IP in the kubeconfig file
@@ -183,7 +180,7 @@ install_ckcp() {
   if grep -q "localhost" "$KUBECONFIG_KCP"; then
     local route
     route="$(oc get route ckcp -n "$APP" -o jsonpath='{.spec.host}')"
-    sed -i "s/localhost:6443/$route:443/g" "$KUBECONFIG_KCP"
+    yq e -i "(.clusters[].cluster.server) |= sub(\"localhost:6443\", \"$route:443\")" "$KUBECONFIG_KCP"
   fi
   echo "OK"
 
@@ -233,9 +230,9 @@ metadata:
     kubernetes.io/service-account.name: $argocd_sa
 type: kubernetes.io/service-account-token
 data:
-  ca.crt: $(cat "$KUBECONFIG_KCP" | yq ".clusters.[0].cluster.certificate-authority-data")
+  ca.crt: $(yq e ".clusters.[0].cluster.certificate-authority-data" "$KUBECONFIG_KCP")
   namespace: $(echo "$argocd_ns" | base64)
-  token: $(cat "$KUBECONFIG_KCP" | yq ".users.[0].user.token" | tr -d '\n' | base64)
+  token: $(yq e ".users.[0].user.token" "$KUBECONFIG_KCP" | tr -d '\n' | base64)
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -249,7 +246,7 @@ secrets:
     rm "$argocd_yaml"
     # </workaround>
 
-    sed -i -e 's:admin$:admin_kcp:g' "$KUBECONFIG_KCP"
+    sed -i'' -e 's:admin$:admin_kcp:g' "$KUBECONFIG_KCP"
     KUBECONFIG="$KUBECONFIG_MERGED" argocd cluster add admin_kcp --name=kcp --yes >/dev/null 2>&1
   fi
   echo "OK"

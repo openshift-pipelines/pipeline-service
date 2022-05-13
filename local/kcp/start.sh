@@ -24,9 +24,9 @@ printf "KCP_BRANCH: the kcp branch to use. Mind that the script will do a git ch
 printf "PARAMS: the parameters to start kcp with\n\n"
 
 precheck() {
-  if ! command -v $1 &> /dev/null
+  if ! command -v "$1" &> /dev/null
   then
-    printf "$1 could not be found\n"
+    printf "%s could not be found\n" "$1"
     exit 1
   fi
 }
@@ -36,7 +36,7 @@ kcp-binaries () {
   if [[ -z "${KCP_DIR}" ]]; then
     precheck git
     KCP_PARENT_DIR="$(mktemp -d -t kcp.XXXXXXXXX)"
-    pushd ${KCP_PARENT_DIR}
+    pushd "${KCP_PARENT_DIR}"
     git clone https://github.com/kcp-dev/kcp.git
     KCP_DIR="${KCP_PARENT_DIR}/kcp"
     pushd kcp
@@ -50,24 +50,24 @@ kcp-binaries () {
 
 kcp-start() {
   printf "Starting KCP server ...\n"
-  (cd "${TMP_DIR}" && exec "${KCP_DIR}"/bin/kcp start $PARAMS) &> ${TMP_DIR}/kcp.log &
+  (cd "${TMP_DIR}" && exec "${KCP_DIR}"/bin/kcp start "$PARAMS") &> "${TMP_DIR}/kcp.log" &
   KCP_PID=$!
   KCP_PIDS="${KCP_PIDS} ${KCP_PID}"
-  printf "KCP server started: $KCP_PID\n"
+  printf "KCP server started: %s\n" $KCP_PID
 
   touch "${TMP_DIR}/kcp-started"
 
   wait_command "ls ${KUBECONFIG}" 30
   printf "Waiting for KCP to be ready ...\n"
   wait_command "kubectl --kubeconfig=${KUBECONFIG} get --raw /readyz" 30
-  printf "KCP ready: $?\n"
+  printf "KCP ready: %s\n" $?
 }
 
 ingress-ctrler-start() {
   printf "Starting Ingress Controller\n"
   "${KCP_DIR}"/bin/ingress-controller --kubeconfig="${KUBECONFIG}" --context=system:admin --envoy-listener-port=8181 --envoy-xds-port=18000 &> "${TMP_DIR}"/ingress-controller.log &
   INGRESS_CONTROLLER_PID=$!
-  printf "Ingress Controller started: ${INGRESS_CONTROLLER_PID}\n"
+  printf "Ingress Controller started: %s\n" "${INGRESS_CONTROLLER_PID}"
   KCP_PIDS="${KCP_PIDS} ${INGRESS_CONTROLLER_PID}"
 }
 
@@ -92,14 +92,14 @@ envoy-start() {
 kcp-binaries
 
 TMP_DIR="$(mktemp -d -t kcp-pipelines-service.XXXXXXXXX)"
-printf "Temporary directory created: ${TMP_DIR}\n"
+printf "Temporary directory created: %s\n" "${TMP_DIR}"
 
 KUBECONFIG="${TMP_DIR}/.kcp/admin.kubeconfig"
-printf "KUBECONFIG=${KUBECONFIG}\n"
+printf "KUBECONFIG=%s\n" "${KUBECONFIG}"
 
 PARENT_PATH=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 
-source ${PARENT_PATH}/../.utils
+source "${PARENT_PATH}/../.utils"
 
 detect_container_engine
 

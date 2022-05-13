@@ -19,26 +19,25 @@ set -o nounset
 set -o pipefail
 
 prechecks () {
-  if ! command -v kind &> /dev/null
-  then
-    printf "Kind could not be found\n"
-    exit 1
-  fi
+    if ! command -v kind &> /dev/null; then
+        printf "Kind could not be found\n"
+        exit 1
+    fi
 
-  if [[ ${ALLOW_ROOTLESS} == "true" ]]; then
-    echo "Rootless mode enabled"
-  fi
+    if [[ "${ALLOW_ROOTLESS}" == "true" ]]; then
+        echo "Rootless mode enabled"
+    fi
 
-  if [[ "${CONTAINER_ENGINE}" != "docker" && "${ALLOW_ROOTLESS}" != "true" ]]; then
-    KIND_CMD="sudo kind"
-  else
-    KIND_CMD="kind"
-  fi
+    if [[ "${CONTAINER_ENGINE}" != "docker" && "${ALLOW_ROOTLESS}" != "true" ]]; then
+        KIND_CMD="sudo kind"
+    else
+        KIND_CMD="kind"
+    fi
 }
 
 mk_tmpdir () {
-  TMP_DIR="$(mktemp -d -t kind-pipelines-service.XXXXXXXXX)"
-  printf "Temporary directory created: ${TMP_DIR}\n"
+    TMP_DIR="$(mktemp -d -t kind-pipelines-service.XXXXXXXXX)"
+    printf "Temporary directory created: %s\n" "${TMP_DIR}"
 }
 
 parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
@@ -65,6 +64,10 @@ for cluster in "${CLUSTERS[@]}"; do
     clusterExists=""
     if echo "${EXISTING_CLUSTERS}" | grep "$cluster"; then
         clusterExists="1"
+        ${KIND_CMD} export kubeconfig --name "$cluster" --kubeconfig "${TMP_DIR}/${cluster}.kubeconfig"
+	if [[  ${KIND_CMD} == "sudo kind" ]]; then
+                sudo chmod +r "${TMP_DIR}/${cluster}.kubeconfig"
+        fi
     fi
 
     # Only create the cluster if it does not exist
@@ -75,12 +78,12 @@ for cluster in "${CLUSTERS[@]}"; do
             --config "${TMP_DIR}/${cluster}.config" \
             --kubeconfig "${TMP_DIR}/${cluster}.kubeconfig"
 
-	if [[  ${KIND_CMD} == "sudo kind" ]]; then
-		sudo chmod +r "${TMP_DIR}/${cluster}.kubeconfig"
-	fi
+        if [[ ${KIND_CMD} == "sudo kind" ]]; then
+            sudo chmod +r "${TMP_DIR}/${cluster}.kubeconfig"
+        fi
 
-	printf "Provisioning ingress router in ${cluster}\n"
-	kubectl --kubeconfig "${TMP_DIR}/${cluster}.kubeconfig" apply -f ingress-router.yaml
+        printf "Provisioning ingress router in %s\n" "${cluster}"
+        kubectl --kubeconfig "${TMP_DIR}/${cluster}.kubeconfig" apply -f ingress-router.yaml
     fi
 
     if [[ ! -f "${TMP_DIR}/${cluster}.yaml" ]]; then
@@ -92,8 +95,8 @@ for cluster in "${CLUSTERS[@]}"; do
 done
 
 NO_ARGOCD="${NO_ARGOCD:-}"
-if [[ "${NO_ARGOCD,,}" != "true" ]]; then
-	KUBECONFIG="${TMP_DIR}/${CLUSTERS[0]}.kubeconfig" ../argocd/setup.sh
+if [[ $(tr '[:upper:]' '[:lower:]' <<< "$NO_ARGOCD") != "true" ]]; then
+    KUBECONFIG="${TMP_DIR}/${CLUSTERS[0]}.kubeconfig" ../argocd/setup.sh
 fi
 
 popd

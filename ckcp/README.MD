@@ -33,7 +33,7 @@ Before you execute the script,
    Pushing to your account on *quay.io* and making the image *Public* is recommended.
 3. You need to install [oc](https://docs.openshift.com/container-platform/4.9/cli_reference/openshift_cli/getting-started-cli.html)
 4. You need to install [argocd](https://argo-cd.readthedocs.io/en/stable/cli_installation/).
-5. You need to install [yq](http://mikefarah.github.io/yq/#install)
+5. You need to install [yq](https://mikefarah.gitbook.io/yq/#install)
 
 Note: KO_DOCKER_REPO has to point to your own *quay.io* repo.
 ```

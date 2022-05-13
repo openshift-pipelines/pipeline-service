@@ -88,3 +88,18 @@ Files in /tmp are usually cleared by reboot and depending on the operating syste
 
 Workload clusters created with kind can be removed with the usual kind command for the purpose `kind delete clusters us-east1 us-west1`
 Files for the kind clusters are stored in a directory located in /tmp as well if `$TMPDIR` has not been set to another location.
+
+## Troubleshooting
+
+### Ingress router pods crashloop - "too many open files"
+
+Depending on your machine's configuration, the ingress router and ArgoCD pods may crashloop with a "too many open files" error.
+This is likely due to the Linux kernel limiting the number of file watches.
+
+On Fedora, this can be fixed by adding a `.conf` file to `/etc/sysctl.d/ increasing the number of file watches and instances:
+
+```sh
+# /etc/sysctl.d/98_fs_inotify_increase_watches.conf
+fs.inotify.max_user_watches=2097152
+fs.inotify.max_user_instances=256
+```
