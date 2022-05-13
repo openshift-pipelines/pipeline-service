@@ -10,4 +10,3 @@ resources:
 - https://raw.githubusercontent.com/openshift-pipelines/pipelines-as-code/0.7.1/config/302-pac-configmap.yaml
 - https://raw.githubusercontent.com/openshift-pipelines/pipelines-as-code/0.7.1/config/303-pac-info-configmap.yaml
 - https://raw.githubusercontent.com/openshift-pipelines/pipelines-as-code/0.7.1/config/401-controller-service.yaml
-# - https://raw.githubusercontent.com/openshift-pipelines/pipelines-as-code/0.7.1/config/openshift/10-routes.yaml

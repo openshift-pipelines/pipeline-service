@@ -290,7 +290,7 @@ install_pipelines_as_code_controller() {
   # Create kcp-kubeconfig secret for pipelines-as-code controller
   echo -n "  - Register KCP secret to host cluster: "
 
-  oc create secret generic kcp-kubeconfig -n pipelines --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | oc apply -f - --wait &>/dev/null
+  oc create secret generic kcp-kubeconfig -n pipelines-as-code --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | oc apply -f - --wait &>/dev/null
   echo "OK"
 
   install_app pipelines-as-code-controller

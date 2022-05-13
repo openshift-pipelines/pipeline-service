@@ -1,0 +1,28 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pipelines-as-code-controller
+  namespace: pipelines-as-code
+  labels:
+    kcp.dev/cluster: local
+spec:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/version: "0.7.1"
+    spec:
+      containers:
+        - name: pac-controller
+          image: "ghcr.io/openshift-pipelines/pipelines-as-code:0.7.1"
+          env:
+            - name: KUBECONFIG
+              value: /workspace/kubeconfig/admin.kubeconfig
+          volumeMounts:
+            - mountPath: /workspace/kubeconfig/admin.kubeconfig
+              name: kubeconfig
+              subPath: admin.kubeconfig
+      volumes:
+        - name: kubeconfig
+          secret:
+            secretName: kcp-kubeconfig

@@ -1,0 +1,10 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pipelines-as-code-controller
+  namespace: pipelines-as-code
+spec:
+  template:
+    spec:
+      serviceAccountName: null
