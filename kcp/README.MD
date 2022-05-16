@@ -1,22 +1,18 @@
 # Pipeline Services on managed KCP
 
 ## Clusters access
-The `login.sh -e staging` script will log you in into the various systems:
-1. KCP
-2. KCP workspace
-3. pipeline cluster
-4. ArgoCD
+Create a directory with the following files:
+* `argocd.yaml`: kubeconfig with the active context connecting to the argocd instance;
+* `kcp.yaml`: kubeconfig with the active context connecting to your KCP workspace;
+* `plnsvc.yaml`: the kubeconfig with with the active context connecting to the Pipeline
+  Service cluster.
 
-The script will create various config files in `kcp/work`.
+This directory will be referenced as `KUBECONFIG_DIR`.
 
-Some tokens have a limited lifetime. If you haven't login for a while, you might start
-seeing errors related to authentication/permissions. Running the script again will
-refresh the required credentials.
-
-See `login.sh --help` for available options.
-
-### ArgoCD
-No setup is required.
+The first time one of the deploy/test/reset script is run, use `-k $KUBECONFIG_DIR`.
+This will create a local copy of those files in `kcp/work/kubeconfig`. Those files will
+then be used by default for every command, until you overwrite their value by specifying
+a new `-k $KUBECONFIG_DIR` parameter.
 
 ## Clusters configuration
 The `deploy.sh -e staging` script will configure the various systems in the staging
@@ -49,12 +45,11 @@ test-pipelinerun-52gkh-task1-pod     0/3     Completed   0          96s
 ```
 
 ### Script summary
-1. Log into the KCP workspace, the plnsvc cluster and ArgoCD.
-2. Connect the plnsvc cluster and KCP to ArgoCD.
-3. Deploy the various gitops applications to the appropriate clusters.
+1. Connect the plnsvc cluster and KCP to ArgoCD.
+2. Deploy the various gitops applications to the appropriate clusters.
 
 ### Pre-requisites
 1. You need to be able to log into the clusters (see the `Cluster access` section).
-2. You need to install [oc](https://docs.openshift.com/container-platform/4.10/cli_reference/openshift_cli/getting-started-cli.html)
+2. You need to install [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)
 3. You need to install [argocd](https://argo-cd.readthedocs.io/en/stable/cli_installation/).
 4. You need to install [yq](http://mikefarah.github.io/yq/#install)
