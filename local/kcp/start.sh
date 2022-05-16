@@ -50,7 +50,7 @@ kcp-binaries () {
 
 kcp-start() {
   printf "Starting KCP server ...\n"
-  (cd "${TMP_DIR}" && exec "${KCP_DIR}"/bin/kcp start "$PARAMS") &> "${TMP_DIR}/kcp.log" &
+  (cd "${TMP_DIR}" && exec "${KCP_DIR}"/bin/kcp start ${PARAMS}) &> "${TMP_DIR}/kcp.log" &
   KCP_PID=$!
   KCP_PIDS="${KCP_PIDS} ${KCP_PID}"
   printf "KCP server started: %s\n" $KCP_PID
