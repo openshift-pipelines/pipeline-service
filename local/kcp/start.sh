@@ -50,7 +50,7 @@ kcp-binaries () {
 
 kcp-start() {
   printf "Starting KCP server ...\n"
-  (cd "${TMP_DIR}" && exec "${KCP_DIR}"/bin/kcp start "$PARAMS") &> "${TMP_DIR}/kcp.log" &
+  (cd "${TMP_DIR}" && exec "${KCP_DIR}"/bin/kcp start ${PARAMS}) &> "${TMP_DIR}/kcp.log" &
   KCP_PID=$!
   KCP_PIDS="${KCP_PIDS} ${KCP_PID}"
   printf "KCP server started: %s\n" $KCP_PID
@@ -110,7 +110,6 @@ KCP_CIDS=""
 PARAMS="${PARAMS:-}"
 if [[ -z "${PARAMS}" ]]; then
 PARAMS="--token-auth-file ${PARENT_PATH}/kcp-tokens \
---auto-publish-apis \
 --discovery-poll-interval 3s \
 --profiler-address localhost:6060 \
 -v 2"
