@@ -9,6 +9,8 @@ spec:
   selector:
     matchLabels:
       app: kcp-in-a-pod
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
@@ -16,12 +18,66 @@ spec:
     spec:
       serviceAccountName: anyuid
       containers:
-        - image: ckcp
-          name: ckcp
-          readinessProbe:
-            initialDelaySeconds: 20
-            periodSeconds: 3
-            exec:
-              command:
-                - ls
-                - /workspace/.kcp/admin.kubeconfig
+      - name: kcp
+        image: ghcr.io/kcp-dev/kcp:release-0.4
+        ports:
+        - containerPort: 6443
+        command:
+        - /kcp
+        args:
+        - start
+        - --tls-private-key-file=/etc/kcp/tls/server/tls.key
+        - --tls-cert-file=/etc/kcp/tls/server/tls.crt
+        - --requestheader-client-ca-file=/etc/kcp/tls/requestheader-client/ca.crt
+        - --requestheader-username-headers=X-Remote-User
+        - --requestheader-group-headers=X-Remote-Group
+        - --root-directory=/etc/kcp/config
+        - --run-virtual-workspaces=true # this allows the virtual-workspaces api-server in a process.
+        - --external-hostname=$(EXTERNAL_HOSTNAME):443
+        - --v=2
+        env:
+        - name: EXTERNAL_HOSTNAME
+          value: kcp-kcp.apps.hacbs-build-08.hosted.upshift.rdu2.redhat.com 
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: livez
+            port: 6443
+            scheme: HTTPS
+          initialDelaySeconds: 45
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 10
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: readyz
+            port: 6443
+            scheme: HTTPS
+        resources:
+          limits:
+            cpu: '2'
+            memory: 2Gi
+          requests:
+            cpu: '1'
+            memory: 1Gi
+        volumeMounts:
+        - name: kcp-certs
+          mountPath: /etc/kcp/tls/server
+        - name: kcp-requestheader-client-ca
+          mountPath: /etc/kcp/tls/requestheader-client
+        - name: kubeconfig
+          mountPath: /etc/kcp/config
+      volumes:
+      - name: kcp-certs
+        secret:
+          secretName: kcp-cert
+      - name: kcp-requestheader-client-ca
+        secret:
+          secretName: kcp-requestheader-client-ca
+          items:
+          - key: ca.crt
+            path: ca.crt
+      - name: kubeconfig
+        persistentVolumeClaim:
+          claimName: kcp
