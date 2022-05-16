@@ -110,7 +110,6 @@ KCP_CIDS=""
 PARAMS="${PARAMS:-}"
 if [[ -z "${PARAMS}" ]]; then
 PARAMS="--token-auth-file ${PARENT_PATH}/kcp-tokens \
---auto-publish-apis \
 --discovery-poll-interval 3s \
 --profiler-address localhost:6060 \
 -v 2"
