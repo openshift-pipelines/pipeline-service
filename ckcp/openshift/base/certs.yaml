@@ -73,8 +73,6 @@ spec:
   usages:
     - server auth
   dnsNames:
-    - kcp-kcp.apps.hacbs-build-08.hosted.upshift.rdu2.redhat.com 
     - localhost
   issuerRef:
     name: kcp-server-issuer
----

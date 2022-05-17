@@ -1,62 +1,43 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: ckcp
   labels:
     app: kcp-in-a-pod
-  name: ckcp
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: kcp-in-a-pod
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
         app: kcp-in-a-pod
     spec:
-      serviceAccountName: anyuid
       containers:
       - name: kcp
-        image: ghcr.io/kcp-dev/kcp:release-0.4
+        image: kcp
         ports:
         - containerPort: 6443
         command:
         - /kcp
         args:
         - start
+        - --auto-publish-apis=true
         - --tls-private-key-file=/etc/kcp/tls/server/tls.key
         - --tls-cert-file=/etc/kcp/tls/server/tls.crt
         - --requestheader-client-ca-file=/etc/kcp/tls/requestheader-client/ca.crt
         - --requestheader-username-headers=X-Remote-User
         - --requestheader-group-headers=X-Remote-Group
         - --root-directory=/etc/kcp/config
-        - --run-virtual-workspaces=true # this allows the virtual-workspaces api-server in a process.
+        - --run-virtual-workspaces=true
         - --external-hostname=$(EXTERNAL_HOSTNAME):443
         - --v=2
         env:
         - name: EXTERNAL_HOSTNAME
-          value: kcp-kcp.apps.hacbs-build-08.hosted.upshift.rdu2.redhat.com 
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: livez
-            port: 6443
-            scheme: HTTPS
-          initialDelaySeconds: 45
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 10
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: readyz
-            port: 6443
-            scheme: HTTPS
+          value: ckcp-ckcp.apps.domain.org
         resources:
           limits:
-            cpu: '2'
             memory: 2Gi
           requests:
             cpu: '1'

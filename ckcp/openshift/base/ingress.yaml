@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ckcp
+  annotations:
+    route.openshift.io/termination: "passthrough"
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          service:
+            name: ckcp-service
+            port:
+              number: 6443
+        path: ''
+        pathType: ImplementationSpecific
