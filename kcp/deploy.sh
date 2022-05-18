@@ -60,7 +60,7 @@ configure_kcp_cluster() {
   # Check if this can be deprecated when ArgoCD runs on KCP instead of the Pipeline cluster
   echo "  - Service account for connecting KCP to ArgoCD: "
   kcp_config kubectl apply -f "$SCRIPT_DIR/manifests/kcp/argocd-manager.yaml"
-  get_context kcp_config "$KCP_ENV-argocd" kube-system argocd-manager "$KUBECONFIG_KCP_ARGOCD"
+  get_context kcp_config "$KCP_ENV-argocd" argocd argocd-manager "$KUBECONFIG_KCP_ARGOCD"
 
   echo -n "  - Create plnsvc workloadcluster: "
   local manifests_dir="$WORK_DIR/manifests"
@@ -86,7 +86,10 @@ register_clusters() {
   echo -n "  - Register pipelines-cluster to ArgoCD as '$CLUSTER_NAME': "
   KUBECONFIG="$KUBECONFIG_PLNSVC" argocd_local cluster add \
     "$(yq ".current-context" <"$KUBECONFIG_PLNSVC")" \
-    --service-account argocd-manager --name="$CLUSTER_NAME" --upsert --yes >/dev/null
+    --name="$CLUSTER_NAME" \
+    --service-account argocd-manager \
+    --system-namespace argocd \
+    --upsert --yes >/dev/null
   echo "OK"
 
   # Register the KCP cluster to ArgoCD
@@ -94,7 +97,10 @@ register_clusters() {
   local argcocd_cluster_name="kcp"
   echo -n "  - Register KCP cluster to ArgoCD as '$argcocd_cluster_name': "
   KUBECONFIG="$KUBECONFIG_KCP_ARGOCD" argocd_local cluster add "$KCP_ENV-argocd" \
-    --name="$argcocd_cluster_name" --service-account argocd-manager --upsert --yes >/dev/null
+    --name="$argcocd_cluster_name" \
+    --service-account argocd-manager \
+    --system-namespace argocd \
+    --upsert --yes >/dev/null
   echo "OK"
 
   echo

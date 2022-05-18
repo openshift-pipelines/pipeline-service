@@ -215,7 +215,7 @@ install_ckcp() {
     # Manually create the serviceaccount and secret on the KCP cluster for ArgoCD to use
     local argocd_yaml="$kube_dir/argocd_kcp.yaml"
     local argocd_sa="argocd-manager"
-    local argocd_ns="kube-system"
+    local argocd_ns="argocd"
     echo "---
 apiVersion: v1
 kind: Secret

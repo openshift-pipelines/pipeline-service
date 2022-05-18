@@ -2,13 +2,13 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: kube-system
+  name: argocd
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: argocd-manager
-  namespace: kube-system
+  namespace: argocd
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -189,4 +189,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: argocd-manager
-    namespace: kube-system
+    namespace: argocd
