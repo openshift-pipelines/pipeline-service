@@ -2,25 +2,25 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: argocd
+  name: plnsvc
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: argocd-manager
-  namespace: argocd
+  name: plnsvc-manager
+  namespace: plnsvc
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: crd-admin
+  name: plnsvc-admin
 rules:
   - apiGroups:
       - ""
     resources:
-      - "events"
+      - "configmaps"
       - "limitranges"
-      - "resourcequotas"
+      - "namespaces"
       - "secrets"
       - "serviceaccounts"
     verbs:
@@ -30,8 +30,8 @@ rules:
   - apiGroups:
       - ""
     resources:
-      - "configmaps"
-      - "namespaces"
+      - "events"
+      - "persistentvolumeclaims"
       - "pods"
       - "services"
     verbs:
@@ -55,9 +55,9 @@ rules:
       - "patch"
       - "delete"
   - apiGroups:
-      - "apiextensions.k8s.io"
+      - "coordination.k8s.io"
     resources:
-      - "customresourcedefinitions"
+      - "leases"
     verbs:
       - "get"
       - "list"
@@ -67,48 +67,12 @@ rules:
       - "patch"
       - "delete"
   - apiGroups:
-      - "apiresource.kcp.dev"
+      - "tekton.dev"
     resources:
-      - "apiresourceimports"
-      - "negotiatedapiresources"
-    verbs:
-      - "get"
-      - "list"
-      - "watch"
-  - apiGroups:
-      - "apis.kcp.dev"
-    resources:
-      - "apibindings"
-      - "apiexports"
-      - "apiresourceschemas"
-    verbs:
-      - "get"
-      - "list"
-      - "watch"
-  - apiGroups:
-      - "certificates.k8s.io"
-    resources:
-      - "certificatesigningrequests"
-    verbs:
-      - "get"
-      - "list"
-      - "watch"
-  - apiGroups:
-      - "flowcontrol.apiserver.k8s.io"
-    resources:
-      - "flowschemas"
-      - "prioritylevelconfigurations"
-    verbs:
-      - "get"
-      - "list"
-      - "watch"
-  - apiGroups:
-      - "rbac.authorization.k8s.io"
-    resources:
-      - "clusterroles"
-      - "clusterrolebindings"
-      - "roles"
-      - "rolebindings"
+      - "conditions"
+      - "pipelineresources"
+      - "runs"
+      - "taskruns"
     verbs:
       - "get"
       - "list"
@@ -116,19 +80,23 @@ rules:
   - apiGroups:
       - "tekton.dev"
     resources:
-      - "conditions"
-      - "pipelineresources"
-      - "runs"
+      - "pipelineruns"
+      - "pipelineruns/status"
+      - "taskruns"
+      - "taskruns/status"
     verbs:
       - "get"
       - "list"
       - "watch"
+      - "create"
+      - "update"
+      - "patch"
+      - "delete"
   - apiGroups:
       - "triggers.tekton.dev"
     resources:
-      - "clustertriggerbindings"
+      - "clusterinterceptors"
       - "eventlisteners"
-      - "triggers"
       - "triggerbindings"
       - "triggertemplates"
     verbs:
@@ -138,7 +106,8 @@ rules:
   - apiGroups:
       - "triggers.tekton.dev"
     resources:
-      - "clusterinterceptors"
+      - "clusterinterceptors/status"
+      - "eventlisteners/status"
     verbs:
       - "get"
       - "list"
@@ -147,24 +116,16 @@ rules:
       - "update"
       - "patch"
       - "delete"
-  - apiGroups:
-      - "workload.kcp.dev"
-    resources:
-      - "workloadclusters"
-    verbs:
-      - "get"
-      - "list"
-      - "watch"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: "argocd-manager-crd-admin-binding"
+  name: "plnsvc-admin-binding"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: crd-admin
+  name: plnsvc-admin
 subjects:
   - kind: ServiceAccount
-    name: argocd-manager
-    namespace: argocd
+    name: plnsvc-manager
+    namespace: plnsvc
