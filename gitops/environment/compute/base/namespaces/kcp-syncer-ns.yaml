@@ -1,0 +1,9 @@
+# This file defines the namespace where the syncer runs
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kcp-syncer
+  labels:
+    app.kubernetes.io/name: kcp-syncer
+    kubernetes.io/metadata.name: kcp-syncer
+
