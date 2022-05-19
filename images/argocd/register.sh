@@ -110,9 +110,9 @@ registration() {
             # Split between namespace creation and application of rbac policies:
             # - `argocd cluster add` requires the namespaces to exist
             # - `argocd cluster add` applies default rbac that may differ from what is desired
-            KUBECONFIG=${DATA_DIR}/gitops/credentials/kubeconfig/compute/${kubeconfigs[$i]} kubectl apply -k ${DATA_DIR}/gitops/environment/compute/${clusters[$i]}/namespaces
+            KUBECONFIG=${DATA_DIR}/gitops/credentials/kubeconfig/compute/${kubeconfigs[$i]} kubectl --context "${contexts[$i]}" apply -k ${DATA_DIR}/gitops/environment/compute/${clusters[$i]}/namespaces
             KUBECONFIG=${DATA_DIR}/gitops/credentials/kubeconfig/compute/${kubeconfigs[$i]} argocd -y ${insecure} cluster add "${contexts[$i]}" --system-namespace argocd-management --namespace=tekton-pipelines --namespace=kcp-syncer
-            KUBECONFIG=${DATA_DIR}/gitops/credentials/kubeconfig/compute/${kubeconfigs[$i]} kubectl apply -k ${DATA_DIR}/gitops/environment/compute/${clusters[$i]}/argocd-rbac
+            KUBECONFIG=${DATA_DIR}/gitops/credentials/kubeconfig/compute/${kubeconfigs[$i]} kubectl --context "${contexts[$i]}" apply -k ${DATA_DIR}/gitops/environment/compute/${clusters[$i]}/argocd-rbac
         fi
     done
 }
