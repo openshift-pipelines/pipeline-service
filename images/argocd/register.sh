@@ -17,6 +17,7 @@
 set -o errexit
 set -o nounset
 set -o pipefail
+# set -x
 
 usage() {
 
@@ -82,7 +83,7 @@ get_clusters() {
         subs=($(KUBECONFIG=${DATA_DIR}/gitops/credentials/kubeconfig/compute/${kubeconfig} kubectl config view -o jsonpath='{range .contexts[*]}{.name}{","}{.context.cluster}{"\n"}{end}'))
         for sub in "${subs[@]}"; do
             context=$(echo -n ${sub} | cut -d ',' -f 1)
-            cluster=$(echo -n ${sub} | cut -d ',' -f 2)
+            cluster=$(echo -n ${sub} | cut -d ',' -f 2 | cut -d ':' -f 1)
 	    if ! (echo "${clusters[@]}" | grep "${cluster}"); then
                 clusters+=( ${cluster} )
                 contexts+=( ${context} )
@@ -111,7 +112,7 @@ registration() {
             # - `argocd cluster add` requires the namespaces to exist
             # - `argocd cluster add` applies default rbac that may differ from what is desired
             KUBECONFIG=${DATA_DIR}/gitops/credentials/kubeconfig/compute/${kubeconfigs[$i]} kubectl --context "${contexts[$i]}" apply -k ${DATA_DIR}/gitops/environment/compute/${clusters[$i]}/namespaces
-            KUBECONFIG=${DATA_DIR}/gitops/credentials/kubeconfig/compute/${kubeconfigs[$i]} argocd -y ${insecure} cluster add "${contexts[$i]}" --system-namespace argocd-management --namespace=tekton-pipelines --namespace=kcp-syncer
+            KUBECONFIG=${DATA_DIR}/gitops/credentials/kubeconfig/compute/${kubeconfigs[$i]} argocd -y ${insecure} cluster add "${contexts[$i]}" --name "${clusters[$i]}" --system-namespace argocd-management --namespace=tekton-pipelines --namespace=kcp-syncer
             KUBECONFIG=${DATA_DIR}/gitops/credentials/kubeconfig/compute/${kubeconfigs[$i]} kubectl --context "${contexts[$i]}" apply -k ${DATA_DIR}/gitops/environment/compute/${clusters[$i]}/argocd-rbac
         fi
     done
