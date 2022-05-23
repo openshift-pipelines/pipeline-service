@@ -30,14 +30,31 @@ prechecks () {
 
     if [[ "${CONTAINER_ENGINE}" != "docker" && "${ALLOW_ROOTLESS}" != "true" ]]; then
         KIND_CMD="sudo kind"
+	PODMAN_CMD="sudo podman"
     else
         KIND_CMD="kind"
+	if [[ "${CONTAINER_ENGINE}" == "docker" ]]; then
+	    PODMAN_CMD="docker"
+	fi
     fi
 }
 
 mk_tmpdir () {
     TMP_DIR="$(mktemp -d -t kind-pipelines-service.XXXXXXXXX)"
     printf "Temporary directory created: %s\n" "${TMP_DIR}"
+}
+
+# Generate a kubeconfig using the IP address of the KinD container instead of localhost
+# This IP is accessible from localhost and other containers part of the same container network (bridge)
+# This can be used for instance to register the cluster to an Argo CD server installed on a KinD cluster
+ip_kubeconfig () {
+    container=$(${PODMAN_CMD} ps | grep ${cluster} | cut -d ' ' -f 1)
+    containerip=$(${PODMAN_CMD} inspect ${container} | jq '.[].NetworkSettings.Networks.kind.IPAddress' | sed 's/"//g')
+    ${KIND_CMD} get kubeconfig --internal --name ${cluster} | sed "s/${cluster}-control-plane/${containerip}/g" > ${TMP_DIR}/${cluster}_ip.kubeconfig
+    printf "kubeconfig created for accessing the cluster API of %s from the KinD/container network: %s\n" ${cluster}  ${TMP_DIR}/${cluster}_ip.kubeconfig 
+    if [[ ${KIND_CMD} == "sudo kind" ]]; then
+        sudo chmod +r "${TMP_DIR}/${cluster}_ip.kubeconfig"
+    fi
 }
 
 parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
@@ -68,6 +85,7 @@ for cluster in "${CLUSTERS[@]}"; do
 	if [[  ${KIND_CMD} == "sudo kind" ]]; then
                 sudo chmod +r "${TMP_DIR}/${cluster}.kubeconfig"
         fi
+	ip_kubeconfig
     fi
 
     # Only create the cluster if it does not exist
@@ -82,14 +100,10 @@ for cluster in "${CLUSTERS[@]}"; do
             sudo chmod +r "${TMP_DIR}/${cluster}.kubeconfig"
         fi
 
+        ip_kubeconfig
+
         printf "Provisioning ingress router in %s\n" "${cluster}"
         kubectl --kubeconfig "${TMP_DIR}/${cluster}.kubeconfig" apply -f ingress-router.yaml
-    fi
-
-    if [[ ! -f "${TMP_DIR}/${cluster}.yaml" ]]; then
-        clusterKubeconfig=$(${KIND_CMD} get kubeconfig --name "${cluster}")
-        echo "${clusterKubeconfig}" | sed -e 's/^/    /' | cat "${cluster}.yaml" - > "${TMP_DIR}/${cluster}.yaml"
-        printf "Manifest for registering the cluster in kcp: %s.yaml\n\n" "${TMP_DIR}/${cluster}"
     fi
 
 done
