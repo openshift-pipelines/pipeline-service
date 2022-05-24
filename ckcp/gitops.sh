@@ -8,7 +8,7 @@ SCRIPT_DIR="$(
   cd "$(dirname "$0")" >/dev/null
   pwd
 )"
-GITOPS_DIR="$(dirname "$SCRIPT_DIR")/gitops"
+GITOPS_DIR="$(dirname "$SCRIPT_DIR")/gitops/argocd/argocd-apps"
 WORK_DIR="$SCRIPT_DIR/work"
 KUBECONFIG=${KUBECONFIG:-$HOME/.kube/config}
 KUBECONFIG_KCP="$WORK_DIR/kubeconfig/admin.kubeconfig"

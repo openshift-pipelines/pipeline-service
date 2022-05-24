@@ -1,21 +1,21 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: triggers-controller
+  name: pipelines-crds
   namespace: openshift-gitops
 
 spec:
   destination:
-    name: plnsvc
+    name: kcp
     namespace: default # not relevant yet since every object has an explicit namespace.
   source:
-    path: gitops/triggers/triggers-controller/base
+    path: gitops/argocd/pipelines/pipelines-crds/overlays/patched
     repoURL: https://github.com/openshift-pipelines/pipelines-service.git
     targetRevision: main
   project: default
   syncPolicy:
 
-    # Comment this out if you want to manually trigger deployments (using the
+    # Comment this out if you want to manually trigger deployments (using the 
     # Argo CD Web UI or Argo CD CLI), rather than automatically deploying on
     # every new Git commit to your directory.
     automated:
@@ -23,7 +23,7 @@ spec:
       selfHeal: true
 
     syncOptions:
-      - CreateNamespace=true
+    - CreateNamespace=true
 
     retry:
       limit: -1 # number of failed sync attempt retries; unlimited number of attempts if less than 0
