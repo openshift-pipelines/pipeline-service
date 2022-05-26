@@ -2,6 +2,11 @@
 
 This directory and sub-directories' purpose is to contain the kubeconfig files used for registering the clusters to Argo CD.
 
+The name of the kubeconfig file must match the name of the
+cluster configuration directory. E.g. if the configuration
+directory is `environment/compute/some/path/my-cluster`, then the
+kubeconfig should be `credentials/kubeconfig/compute/my-cluster.yaml`.
+
 ---
 **_NOTES:_**
 

@@ -1,9 +1,0 @@
-# This file defines the namespace for the ServiceAccount used by Argo CD
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: argocd-management
-  labels:
-    app.kubernetes.io/name: argocd-management
-    kubernetes.io/metadata.name: argocd-management
-

@@ -6,13 +6,9 @@ COPY ./register.sh /usr/local/bin/register.sh
 RUN JQ_VERSION=1.6 &&\
     curl -sSL -o /usr/local/bin/jq https://github.com/stedolan/jq/releases/download/jq-$JQ_VERSION/jq-linux64 && \
     chmod +x /usr/local/bin/jq
-RUN ARGO_VERSION=v2.3.3 && \
-    curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/download/$ARGO_VERSION/argocd-linux-amd64 && \
-    chmod +x /usr/local/bin/argocd
 RUN KUBE_VERSION=v1.24.0 && \
     curl -L -o /usr/local/bin/kubectl "https://dl.k8s.io/release/$KUBE_VERSION/bin/linux/amd64/kubectl" && \
     chmod +x /usr/local/bin/kubectl
-USER 65532:65532
+RUN microdnf install findutils git
 VOLUME /workspace
 WORKDIR /workspace
-ENTRYPOINT ["/usr/local/bin/register.sh"]
