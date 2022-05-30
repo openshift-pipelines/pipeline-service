@@ -1,6 +1,6 @@
 # Argo CD registration
 
-The [images/argocd directory](../images/argocd) directory contains the logic used for registering the clusters to Argo CD.
+The [images/argocd-registrar directory](../images/argocd-registrar) directory contains the logic used for registering the clusters to Argo CD.
 
 ## Run
 
