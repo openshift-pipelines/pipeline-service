@@ -77,6 +77,8 @@ CLUSTERS=(
 echo "Checking existing clusters"
 EXISTING_CLUSTERS=$(${KIND_CMD} get clusters 2>/dev/null)
 
+NO_ARGOCD="${NO_ARGOCD:-}"
+
 for cluster in "${CLUSTERS[@]}"; do
     clusterExists=""
     if echo "${EXISTING_CLUSTERS}" | grep "$cluster"; then
@@ -103,14 +105,12 @@ for cluster in "${CLUSTERS[@]}"; do
         ip_kubeconfig
 
         printf "Provisioning ingress router in %s\n" "${cluster}"
-        kubectl --kubeconfig "${TMP_DIR}/${cluster}.kubeconfig" apply -f ingress-router.yaml
+        kubectl --kubeconfig "${TMP_DIR}/${cluster}.kubeconfig" apply -f ingress-router-${cluster}.yaml
+
+	if [[ $(tr '[:upper:]' '[:lower:]' <<< "$NO_ARGOCD") != "true" ]]; then
+            KUBECONFIG="${TMP_DIR}/${cluster}.kubeconfig" ../argocd/setup.sh
+        fi
     fi
-
 done
-
-NO_ARGOCD="${NO_ARGOCD:-}"
-if [[ $(tr '[:upper:]' '[:lower:]' <<< "$NO_ARGOCD") != "true" ]]; then
-    KUBECONFIG="${TMP_DIR}/${CLUSTERS[0]}.kubeconfig" ../argocd/setup.sh
-fi
 
 popd

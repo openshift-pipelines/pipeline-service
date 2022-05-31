@@ -1,6 +1,8 @@
 # Argo CD registration
 
-The [images/argocd-registrar directory](../images/argocd-registrar) directory contains the logic used for registering the clusters to Argo CD.
+When using a central instance or service for Argo CD, external clusters need to get registered to it.
+
+The [images/argocd-registrar directory](../images/argocd-registrar) directory contains the logic used for that.
 
 ## Run
 
@@ -41,3 +43,16 @@ kubectl create secret generic argocd-credentials \
   --from-literal=user='admin' \
   --from-literal=pwd='xxxxxxxxx'
 ~~~
+
+## Development
+
+In a development environment a few network and name resolution aspects need to be taken into consideration:
+- argocd-server-argocd.apps.127.0.0.1.nip.io is resolved to 127.0.0.1, which is not suitable for communication between containers. When running the argocd container for registration `--add-host argocd-server-argocd.apps.127.0.0.1.nip.io:<kind-cluster-ip-address>` can help with name resolution. The IP address of the kind cluster can be retrieved by inspecting the kind container and taking the value of IPAddress for the kind network.
+- certificates may not have been signed for the argocd-server-argocd.apps.127.0.0.1.nip.io route. `--env INSECURE='true'` can be used for working around this point.
+- make sure that iptables/firewalld are not preventing the communication between the localhost and the containers.
+
+Here is an example for running the registration image in a development environment:
+~~~
+podman run --add-host argocd-server-argocd.apps.127.0.0.1.nip.io:10.89.0.26 --env INSECURE='true' --env ARGO_URL='argocd-server-argocd.apps.127.0.0.1.nip.io:443' --env ARGO_USER='admin' --env ARGO_PWD='xxxxxxxx' --env DATA_DIR='/workspace' --privileged --volume /home/myusername/plnsvc:/workspace quay.io/myuser/pipelines-argocd
+~~~
+
