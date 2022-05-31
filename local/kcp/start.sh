@@ -87,6 +87,12 @@ envoy-start() {
   KCP_CIDS="${KCP_CIDS}  ${ENVOY_CID}"
 }
 
+create-org() {
+  printf "Creating organization\n"
+  kubectl --kubeconfig="${KUBECONFIG}" config use-context root
+  kubectl --kubeconfig="${KUBECONFIG}" create -f "${PARENT_PATH}"/pipelines-service-org.yaml
+}
+
 # Execution
 
 kcp-binaries
@@ -118,6 +124,7 @@ fi
 kcp-start
 ingress-ctrler-start
 envoy-start
+create-org
 
 touch "${TMP_DIR}/servers-ready"
 
