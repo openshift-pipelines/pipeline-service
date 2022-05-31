@@ -14,7 +14,7 @@ Prerequisites:
 
 ## Workload clusters with kind
 
-[./local/kind/setup.sh](./local/kind/setup.sh) will create two kind clusters and the files to register them so that it is straightforward to add them to the kcp cluster. Kind will also output the kubeconfig files that can be used to interact with the Kubernetes clusters. Simply run:
+[./local/kind/setup.sh](./local/kind/setup.sh) will create two kind clusters and output the kubeconfig files that can be used to interact with the Kubernetes clusters. An amended version of the kubeconfig file with the suffix '_ip' can be used for registering the clusters to Argo CD. A routable IP is used instead of localhost. Simply run:
 
 ```console
 ./local/kind/setup.sh
@@ -52,6 +52,25 @@ The script will output the location of the kubeconfig file that can be used to i
 **_NOTE:_**  podman is used per default as container engine if available on the machine. If both podman and docker are available it is possible to force the use of docker by setting an environment variable `CONTAINER_ENGINE=docker`.
 
 ---
+
+[The kcp registration page](./docs/kcp-registration.md) provides instructions to register workload clusters to kcp.
+
+Here is an example for running the registration image in a development environment:
+~~~
+podman run --env KCP_ORG='root:pipelines-service' --env KCP_WORKSPACE='compute' --env DATA_DIR='/workspace' --privileged --volume /home/myusername/plnsvc:/workspace quay.io/myuser/pipelines-kcp
+~~~
+
+Make sure that iptables/firewalld are not preventing the communication (tcp initiated from the kind clusters) between the containers running on the kind network and the kcp process on the host.
+
+To check iptables rules:
+~~~
+sudo iptables -L -n -v
+~~~
+
+The following command can be used to insert a new rule allowing the podman network `10.88.0.1/24` to access the port `6443` of the kcp API server running on a host with IP `192.168.0.121`:
+~~~
+sudo iptables -I INPUT -p tcp --src 10.88.0.1/24 --dport 6443 --dst 192.168.0.121 -j ACCEPT
+~~~
 
 ## Gateway
 

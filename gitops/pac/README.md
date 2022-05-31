@@ -37,4 +37,4 @@ KUBECONFIG="/pathto/kubeconfig" GITOPS_REPO="https://gitops.org.com/org/pipeline
 
 ## Pipelines
 
-A pipeline for the registration of new clusters to kcp will shortly be made available.
+Pipelines for the registration of new clusters via ArgoCD and kcp are available.
