@@ -9,7 +9,7 @@ spec:
     namespace: ckcp
     server: https://kubernetes.default.svc
   source:
-    path: gitops/ckcp/base
+    path: gitops/argocd/ckcp/base
     repoURL: https://github.com/openshift-pipelines/pipelines-service.git
     targetRevision: main
   project: default

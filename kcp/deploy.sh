@@ -104,7 +104,7 @@ install_operators() {
   echo "[Install operators]"
   local gitops_path
   gitops_path="$(
-    cd "$SCRIPT_DIR/../gitops"
+    cd "$SCRIPT_DIR/../gitops/argocd/argocd-apps"
     pwd
   )"
 

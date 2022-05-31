@@ -27,10 +27,10 @@ Kubectl should point to your kcp organisation.
 
 ~~~
 kubectl kcp workspace create infra --enter
-kubectl create -f ./gitops/triggers/gateway/haproxy-cfg-cm.yaml
-kubectl create -f ./gitops/triggers/gateway/haproxy-deployment.yaml
-kubectl create -f ./gitops/triggers/gateway/haproxy-service.yaml
-kubectl create -f ./gitops/triggers/gateway/haproxy-ingress.yaml
+kubectl create -f ./gitops/argocd/triggers/gateway/haproxy-cfg-cm.yaml
+kubectl create -f ./gitops/argocd/triggers/gateway/haproxy-deployment.yaml
+kubectl create -f ./gitops/argocd/triggers/gateway/haproxy-service.yaml
+kubectl create -f ./gitops/argocd/triggers/gateway/haproxy-ingress.yaml
 ~~~
 
 HAProxy configuration can be amended through the ConfigMap. See the section below.

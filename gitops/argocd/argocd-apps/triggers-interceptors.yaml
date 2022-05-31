@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: triggers-crds
+  name: triggers-interceptors
   namespace: openshift-gitops
 
 spec:
@@ -9,7 +9,7 @@ spec:
     name: kcp
     namespace: default # not relevant yet since every object has an explicit namespace.
   source:
-    path: gitops/triggers/triggers-crds/base
+    path: gitops/argocd/triggers/triggers-crds/interceptors
     repoURL: https://github.com/openshift-pipelines/pipelines-service.git
     targetRevision: main
   project: default

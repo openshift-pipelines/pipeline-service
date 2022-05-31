@@ -13,10 +13,10 @@ ARGO_URL="https://argoserver.com" ARGO_USER="user" ARGO_PWD="xxxxxxxxx" DATA_DIR
 ```
 
 DATA_DIR should point to a directory with a fork of this repository including
-- the kubeconfig files of the clusters to register in `gitops/credentials/kubeconfig/compute`
+- the kubeconfig files of the clusters to register in `gitops/sre/credentials/kubeconfig/compute`
 - two kustomization files for each cluster under two folders:
-  - `gitops/environment/compute/$cluster/namespaces/kustomization.yaml` using `gitops/environment/compute/base/namespaces` as base and any desired customization.
-  - `gitops/environment/compute/$cluster/argocd-rbac/kustomization.yaml` using `gitops/environment/compute/base/argocd-rbac` as base and any desired customization.
+  - `gitops/sre/environment/compute/$cluster/namespaces/kustomization.yaml` using `gitops/sre/environment/compute/base/namespaces` as base and any desired customization.
+  - `gitops/sre/environment/compute/$cluster/argocd-rbac/kustomization.yaml` using `gitops/sre/environment/compute/base/argocd-rbac` as base and any desired customization.
 
 ~~~
 cat <<EOF > kustomization.yaml
