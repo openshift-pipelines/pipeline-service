@@ -20,7 +20,7 @@ Prerequisites:
 ./local/kind/setup.sh
 ```
 
-By default Argo CD is installed on the first cluster. It is possible to deactivate its installation by setting an environment variable `NO_ARGOCD=true`
+By default Argo CD is installed on both clusters. It is possible to deactivate its installation by setting an environment variable `NO_ARGOCD=true`
 
 ---
 **_NOTES:_**
@@ -78,7 +78,7 @@ A gateway can be installed to expose endpoints running on the workload clusters 
 
 ## GitOps
 
-Argo CD is by default installed on the first cluster. Alternatively it can be installed afterwards by running the following:
+Argo CD is by default installed on both clusters. Alternatively it can be installed afterwards by running the following:
 
 ```console
 KUBECONFIG=/path-to/config.kubeconfig ./local/argocd/setup.sh
@@ -86,7 +86,7 @@ KUBECONFIG=/path-to/config.kubeconfig ./local/argocd/setup.sh
 
 Argo CD client can be downloaded from the [Argo CD release page](https://github.com/argoproj/argo-cd/releases/latest).
 
-An ingress is created so that it is possible to login as follows:
+An ingress is created so that it is possible to login as follows for the first cluster. The port needs to be changed to access the instance on the second cluster:
 
 ```console
 argocd login argocd-server-argocd.apps.127.0.0.1.nip.io:8443
@@ -94,19 +94,9 @@ argocd login argocd-server-argocd.apps.127.0.0.1.nip.io:8443
 
 Argo CD web UI is accessible at https://argocd-server-argocd.apps.127.0.0.1.nip.io:8443/applications.
 
-GitOps is the preferred approach for deploying the Pipelines Service. The installed instance of ArgoCD can be leveraged for creating organisations in kcp, universal workspaces used by the infrastructure, installing the Tekton controllers and registering the workload clusters.
+GitOps is the preferred approach for deploying the Pipelines Service. The installed instances of ArgoCD can be leveraged for creating organisations in kcp, universal workspaces used by the infrastructure, installing the Tekton controllers and registering the workload clusters.
 
-[The Argo CD page](./docs/argocd.md) provides instructions to register workload clusters to Argo CD.
-
-In a development environment a few network and name resolution aspects need to be taken into consideration:
-- argocd-server-argocd.apps.127.0.0.1.nip.io is resolved to 127.0.0.1, which is not suitable for communication between containers. When running the argocd container for registration `--add-host argocd-server-argocd.apps.127.0.0.1.nip.io:<kind-cluster-ip-address>` can help with name resolution. The IP address of the kind cluster can be retrieved by inspecting the kind container and taking the value of IPAddress for the kind network.
-- certificates may not have been signed for the argocd-server-argocd.apps.127.0.0.1.nip.io route. `--env INSECURE='true'` can be used for working around this point.
-- make sure that iptables/firewalld are not preventing the communication between the localhost and the containers.
-
-Here is an example for running the registration image in a development environment:
-~~~
-podman run --add-host argocd-server-argocd.apps.127.0.0.1.nip.io:10.89.0.26 --env INSECURE='true' --env ARGO_URL='argocd-server-argocd.apps.127.0.0.1.nip.io:443' --env ARGO_USER='admin' --env ARGO_PWD='xxxxxxxx' --env DATA_DIR='/workspace' --privileged --volume /home/myusername/plnsvc:/workspace quay.io/myuser/pipelines-argocd
-~~~
+The cluster where Argo CD runs is automatically registered to Argo CD.
 
 ## Tearing down the environment
 

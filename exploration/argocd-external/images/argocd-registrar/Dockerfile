@@ -1,4 +1,19 @@
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6
+LABEL build-date= \
+      com.redhat.build-host= \
+      description="This image provides binaries and a script to easily register clusters to Argo CD." \
+      distribution-scope="public" \
+      io.k8s.description="This image provides binaries and a script to easily register clusters to Argo CD." \
+      io.k8s.display-name="Argo CD register" \
+      maintainer="Pipelines Service" \
+      name="argocd-registrar" \
+      release="0.1" \
+      summary="Provides the latest release of argocd-registrar image." \
+      url="https://github.com/openshift-pipelines/pipelines-service/tree/main/images/argocd-registrar" \
+      vcs-ref=  \
+      vcs-type="git" \
+      vendor="Pipelines Service" \
+      version="0.1"
 WORKDIR /
 RUN mkdir /workspace && chmod 777 /workspace && chown 65532:65532 /workspace
 # Select desired TAG from https://github.com/argoproj/argo-cd/releases

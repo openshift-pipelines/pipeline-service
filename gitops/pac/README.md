@@ -2,7 +2,7 @@
 
 ## Goal
 
-[Pipelines as Code](https://pipelinesascode.com/) can be leveraged for automating the registration of new clusters to Argo CD and kcp following a GitOps approach.
+[Pipelines as Code](https://pipelinesascode.com/) can be leveraged for automating the registration of new clusters to kcp following a GitOps approach.
 When a kubeconfig file gets added to a GitOps repository Pipelines as Code triggers a pipeline for the purpose. It is similar in this respect to GitHub actions and a git provider independent alternative to it.
 
 ---
@@ -37,4 +37,4 @@ KUBECONFIG="/pathto/kubeconfig" GITOPS_REPO="https://gitops.org.com/org/pipeline
 
 ## Pipelines
 
-Pipelines for the registration of new clusters to ArgoCD and kcp are available.
+Pipelines for the registration of new clusters via ArgoCD and kcp are available.

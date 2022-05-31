@@ -28,8 +28,8 @@ printf "Installing Argo CD\n"
 kubectl --kubeconfig "${KUBECONFIG}" create namespace argocd
 kubectl --kubeconfig "${KUBECONFIG}" apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 i=0
-while ! kubectl --kubeconfig "${KUBECONFIG}" wait deployments ingress-nginx-controller -n ingress-nginx --for=jsonpath='{.status.availableReplicas}'=1 --timeout=1s; do
-	sleep 1
+while ! kubectl --kubeconfig "${KUBECONFIG}" wait deployments ingress-nginx-controller -n ingress-nginx --for=jsonpath='{.status.availableReplicas}'=1 --timeout=5s; do
+	sleep 5
 	i=$((i+1))
 	if [ $i -gt 60 ]; then
 		printf "Ingress deployment not ready in time\n"
