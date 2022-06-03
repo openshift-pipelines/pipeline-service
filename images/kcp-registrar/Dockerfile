@@ -25,7 +25,9 @@ LABEL build-date= \
       vendor="Pipelines Service" \
       version="0.1"
 WORKDIR /
+ENV HOME /tmp/home
 RUN mkdir /workspace && chmod 777 /workspace && chown 65532:65532 /workspace
+RUN mkdir $HOME && chmod 777 $HOME
 COPY --from=builder workspace/kcp/bin/kubectl-kcp /usr/local/bin/kubectl-kcp
 RUN chmod 755 /usr/local/bin/kubectl-kcp
 COPY ./register.sh /usr/local/bin/register.sh

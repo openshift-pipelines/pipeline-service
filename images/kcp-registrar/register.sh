@@ -58,13 +58,13 @@ prechecks () {
 kcp_kubeconfig() {
     if files=($(ls $DATA_DIR/gitops/credentials/kubeconfig/kcp/*.kubeconfig 2>/dev/null)); then
         if [ ${#files[@]} -ne 1 ]; then
-            printf "A single kubeconfig file is expected at %s" "$DATA_DIR/gitops/credentials/kubeconfig/kcp\n"
+            printf "A single kubeconfig file is expected at %s\n" "$DATA_DIR/gitops/credentials/kubeconfig/kcp"
             usage
             exit 1
         fi
         kcp_kcfg="${files[0]}"
     else
-        printf "A single kubeconfig file is expected at %s" "$DATA_DIR/gitops/credentials/kubeconfig/kcp\n"
+        printf "A single kubeconfig file is expected at %s\n" "$DATA_DIR/gitops/credentials/kubeconfig/kcp"
         usage
         exit 1
     fi
