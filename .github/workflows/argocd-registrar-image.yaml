@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "exploration/argocd-external/images/argocd-registrar/**"
+  workflow_dispatch:
 
 jobs:
   build-push:
