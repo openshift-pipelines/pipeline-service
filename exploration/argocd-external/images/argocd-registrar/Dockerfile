@@ -15,7 +15,9 @@ LABEL build-date= \
       vendor="Pipelines Service" \
       version="0.1"
 WORKDIR /
+ENV HOME /tmp/home
 RUN mkdir /workspace && chmod 777 /workspace && chown 65532:65532 /workspace
+RUN mkdir $HOME && chmod 777 $HOME
 # Select desired TAG from https://github.com/argoproj/argo-cd/releases
 COPY ./register.sh /usr/local/bin/register.sh
 RUN JQ_VERSION=1.6 &&\
