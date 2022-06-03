@@ -1,21 +1,21 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  name: tektoncd
   namespace: openshift-gitops
-  name: ckcp
 
 spec:
   destination:
-    namespace: ckcp
+    namespace: openshift-gitops
     server: https://kubernetes.default.svc
   source:
-    path: gitops/argocd/ckcp/base
+    path: gitops/argocd/tektoncd
     repoURL: https://github.com/openshift-pipelines/pipelines-service.git
     targetRevision: main
   project: default
   syncPolicy:
 
-    # Comment this out if you want to manually trigger deployments (using the 
+    # Comment this out if you want to manually trigger deployments (using the
     # Argo CD Web UI or Argo CD CLI), rather than automatically deploying on
     # every new Git commit to your directory.
     automated:
@@ -23,7 +23,7 @@ spec:
       selfHeal: true
 
     syncOptions:
-    - CreateNamespace=true
+      - CreateNamespace=true
 
     retry:
       limit: -1 # number of failed sync attempt retries; unlimited number of attempts if less than 0

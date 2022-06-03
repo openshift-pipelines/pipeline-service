@@ -1,15 +1,15 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: triggers-controller
+  name: pipelines-service
   namespace: openshift-gitops
 
 spec:
   destination:
-    name: plnsvc
-    namespace: default # not relevant yet since every object has an explicit namespace.
+    namespace: openshift-gitops
+    server: https://kubernetes.default.svc
   source:
-    path: gitops/argocd/triggers/triggers-controller/base
+    path: gitops/argocd/argo-apps
     repoURL: https://github.com/openshift-pipelines/pipelines-service.git
     targetRevision: main
   project: default
