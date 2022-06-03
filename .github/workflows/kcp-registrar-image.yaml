@@ -6,7 +6,8 @@ on:
       - main
     paths:
       - "images/kcp-registrar/**"
-
+  workflow_dispatch:
+  
 jobs:
   build-push:
 
