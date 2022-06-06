@@ -161,7 +161,7 @@ install_cert_manager() {
   kubectl apply -f "$CKCP_DIR/argocd-apps/$APP.yaml" >/dev/null 2>&1
   argocd app wait "$APP" >/dev/null 2>&1
   # Check cert manager pods until they are ready
-  while [ "$(kubectl -n openshift-cert-manager get pods --field-selector=status.phase=Running | grep -c cert-manager)" != 3 ]
+  while [ "$(kubectl -n openshift-cert-manager get pods --field-selector=status.phase=Running 2>/dev/null | grep -c cert-manager)" != 3 ]
   do
     echo -n "."
     sleep 5
@@ -221,12 +221,14 @@ patches:
         description: This value refers to the hostAddress defined in the Route.
         value: $ckcp_route " >> $ckcp_temp_dir/kustomization.yaml
 
+  echo -n "  - kcp: "
   kubectl apply -k $ckcp_temp_dir >/dev/null 2>&1
   # Check if ckcp pod status is Ready
   while [[ $(kubectl -n $ns  get pods -l=app=kcp-in-a-pod -o 'jsonpath={.items[0].status.conditions[?(@.type=="Ready")].status}') != "True" ]]; do 
     echo -n "."
     sleep 5
-  done  
+  done
+  echo "OK"
 
   rm -rf $ckcp_temp_dir
 
@@ -235,6 +237,7 @@ patches:
   #############################################################################
   # Copy the kubeconfig of kcp from inside the pod onto the local filesystem
   podname="$(kubectl get pods --ignore-not-found -n "$ns" -l=app=kcp-in-a-pod -o jsonpath='{.items[0].metadata.name}')"
+  mkdir -p "$(dirname "$KUBECONFIG_KCP")"
   kubectl cp "$APP/$podname:etc/kcp/config/admin.kubeconfig" "$KUBECONFIG_KCP" >/dev/null
 
   # Check if external ip is assigned and replace kcp's external IP in the kubeconfig file
