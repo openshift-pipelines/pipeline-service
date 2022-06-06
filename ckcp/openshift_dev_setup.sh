@@ -9,7 +9,7 @@ SCRIPT_DIR="$(
   pwd
 )"
 
-GITOPS_DIR="$(dirname "$SCRIPT_DIR")/gitops/argocd/argocd-apps"
+GITOPS_DIR="$(dirname "$SCRIPT_DIR")/gitops"
 CKCP_DIR="$(dirname "$SCRIPT_DIR")/ckcp"
 WORK_DIR="$SCRIPT_DIR/work"
 KUBECONFIG=${KUBECONFIG:-$HOME/.kube/config}
@@ -25,7 +25,7 @@ Setup the pipeline service on a cluster running on KCP.
 
 Optional arguments:
     -a, --app APP
-        Install APP in the cluster. APP must be in [pipelines, triggers].
+        Install APP in the cluster. APP must be pipelines.
         The flag can be repeated to install multiple apps.
     --all
         Install all applications.
@@ -42,8 +42,7 @@ Example:
 
 parse_args() {
   local default_list="openshift-gitops ckcp"
-  local pipeline_list="pipelines_crds pipelines_controller"
-  local trigger_list="triggers_crds triggers_interceptors triggers_controller"
+  local pipeline_list="openshfit-pipeline"
   APP_LIST="$default_list"
   cluster_type="openshift"
 
@@ -55,9 +54,6 @@ parse_args() {
       pipelines)
         APP_LIST="$APP_LIST $pipeline_list"
         ;;
-      triggers)
-        APP_LIST="$APP_LIST $trigger_list"
-        ;;
       *)
         echo "[ERROR] Unsupported app: $1" >&2
         usage
@@ -66,7 +62,7 @@ parse_args() {
       esac
       ;;
     --all)
-      APP_LIST="$default_list $pipeline_list $trigger_list"
+      APP_LIST="$default_list $pipeline_list"
       ;;
     -d | --debug)
       set -x
@@ -153,19 +149,15 @@ install_openshift_gitops() {
 }
 
 install_cert_manager() {
-  local APP="cert-manager"
+  local APP="cert-manager-operator"
   # #############################################################################
   # # Install the cert manager operator
   # #############################################################################
   echo -n "  - openshift-cert-manager-operator: "
   kubectl apply -f "$CKCP_DIR/argocd-apps/$APP.yaml" >/dev/null 2>&1
   argocd app wait "$APP" >/dev/null 2>&1
-  # Check cert manager pods until they are ready
-  while [ "$(kubectl -n openshift-cert-manager get pods --field-selector=status.phase=Running 2>/dev/null | grep -c cert-manager)" != 3 ]
-  do
-    echo -n "."
-    sleep 5
-  done
+  # Wait until cert manager is ready
+  kubectl cert-manager check api --wait=5m  >/dev/null 2>&1
   echo "OK"
 }
 
@@ -224,12 +216,9 @@ patches:
   echo -n "  - kcp: "
   kubectl apply -k $ckcp_temp_dir >/dev/null 2>&1
   # Check if ckcp pod status is Ready
-  while [[ $(kubectl -n $ns  get pods -l=app=kcp-in-a-pod -o 'jsonpath={.items[0].status.conditions[?(@.type=="Ready")].status}') != "True" ]]; do 
-    echo -n "."
-    sleep 5
-  done
+  kubectl wait --for=condition=Ready -n $ns pod -l=app=kcp-in-a-pod --timeout=90s
   echo "OK"
-
+  # Clean up kustomize temp dir
   rm -rf $ckcp_temp_dir
 
   #############################################################################
@@ -251,15 +240,27 @@ patches:
   echo -n "  - Workspace: "
   # It's not allowed to create WorkloadCluster resource in a non-universal workspace
   if ! KUBECONFIG="$KUBECONFIG_KCP" kubectl get workspaces demo >/dev/null 2>&1; then
-    KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspaces create demo --enter &>/dev/null
+    KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspaces create demo --enter >/dev/null 2>&1
+    # Check if workspace demo is ready
+    KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspaces ..
+    while [[ $(KUBECONFIG="$KUBECONFIG_KCP" kubectl get workspace -o jsonpath='{.items[0].status.phase}') != "Ready" ]]; do
+      echo -n "."
+      sleep 5
+    done
+    KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspaces use demo
   fi
   echo "OK"
 
   echo -n "  - Workloadcluster pipeline-cluster registration: "
   if ! KUBECONFIG="$KUBECONFIG_KCP" kubectl get WorkloadCluster local >/dev/null 2>&1; then
     (
-      KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workload sync local  --syncer-image ghcr.io/kcp-dev/kcp/syncer:release-0.4  > "$kube_dir/syncer.yaml"
+      KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workload sync local \
+      --syncer-image ghcr.io/kcp-dev/kcp/syncer:release-0.4 \
+      --resources conditions.tekton.dev,pipelines.tekton.dev,pipelineruns.tekton.dev,pipelineresources.tekton.dev,runs.tekton.dev,tasks.tekton.dev,taskruns.tekton.dev > "$kube_dir/syncer.yaml"
       kubectl apply -f "$kube_dir/syncer.yaml" >/dev/null 2>&1
+      # Wait until Syncer pod is available
+      SYNCER_NS_ID="$(kubectl get ns -l workload.kcp.io/workload-cluster=local -o json | jq -r '.items[0].metadata.name')" 
+      kubectl rollout status deployment/kcp-syncer -n $SYNCER_NS_ID --timeout=90s >/dev/null 2>&1
       rm -rf "$kube_dir/syncer.yaml"
     )
   fi
@@ -273,38 +274,20 @@ patches:
   echo "OK"
 }
 
-install_pipelines_crds() {
-  install_app pipelines-crds
-}
+install_openshfit_pipeline() {
+  APP="argocd"
 
-install_pipelines_controller() {
-  # Create kcp-kubeconfig secret for pipelines controller
-  echo -n "  - Register KCP secret to host cluster: "
-  kubectl create namespace pipelines --dry-run=client -o yaml | kubectl apply -f - --wait &>/dev/null
-  kubectl create secret generic kcp-kubeconfig -n pipelines --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | kubectl apply -f - --wait &>/dev/null 2>&1
+  echo -n "  - openshift-pipeline application: "
+  kubectl apply -f "$GITOPS_DIR/$APP/$APP.yaml" --wait >/dev/null 2>&1
+  argocd app wait pipelines-service tektoncd --timeout=90 >/dev/null 2>&1
+
+  # Wait until CRDs are synced to KCP
+  while [ "$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources | grep -c tekton.dev)" != 7 ]
+  do
+    echo -n "."
+    sleep 5
+  done
   echo "OK"
-
-  install_app pipelines-controller
-}
-
-install_triggers_crds() {
-  install_app triggers-crds
-}
-
-install_triggers_interceptors() {
-  # Create kcp-kubeconfig secrets for event listener and interceptors so that they can talk to KCP
-  kubectl create secret generic kcp-kubeconfig --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | KUBECONFIG="$KUBECONFIG_KCP" kubectl apply -f - --wait &>/dev/null
-  kubectl create secret generic kcp-kubeconfig -n tekton-pipelines --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | KUBECONFIG="$KUBECONFIG_KCP" kubectl apply -f - --wait &>/dev/null
-
-  install_app triggers-interceptors
-}
-
-install_triggers_controller() {
-  # Create kcp-kubeconfig secret for triggers controller
-  kubectl create namespace triggers -o yaml --dry-run=client | kubectl apply -f - --wait &>/dev/null
-  kubectl create secret generic kcp-kubeconfig -n triggers --from-file "$KUBECONFIG_KCP" --dry-run=client -o yaml | kubectl apply -f - --wait &>/dev/null
-
-  install_app triggers-controller
 }
 
 main() {

@@ -1,0 +1,118 @@
+
+
+# KCP in Openshift!
+## and we call it _ckcp_ : containerized-kcp
+
+###
+### Description
+
+This script essentially does this :  
+
+Short Version:
+1. Run kcp in a container in an Openshift cluster.
+2. Add the current cluster as a physical cluster when running KCP in k8s.
+3. Install pipelines and/or triggers (optional)
+
+Long Version:
+1. Create ns, sa, and add appropriate scc.
+2. Create deployment and service resources.
+3. Copy kube config from inside the pod to local system.
+4. Update route of kcp-service in the just copied admin.kubeconfig file.
+5. Copy a physical cluster's kubeconfig inside a pod.
+6. Add a physical cluster to kcp running inside the pod.  
+   ***(optional)***
+7. Apply patches to pipelines repo and run the controller.
+8. Run some example TaskRuns and PipelineRuns.
+9. Apply patches to triggers repo and run the controller, interceptor and eventlistener.
+
+### Pre-requisites
+Before you execute the script, 
+
+1. You need to have a kubernetes/openshift cluster.
+3. You need to install [oc](https://docs.openshift.com/container-platform/4.9/cli_reference/openshift_cli/getting-started-cli.html)
+4. You need to install [argocd](https://argo-cd.readthedocs.io/en/stable/cli_installation/).
+5. You need to install [yq](https://mikefarah.gitbook.io/yq/#install)
+6. You need to install [kubectl cert-manager plugin](https://cert-manager.io/docs/usage/kubectl-plugin/#installation)
+7. You need to install [kubectl kcp plugin](https://github.com/kcp-dev/kcp/blob/main/docs/kubectl-kcp-plugin.md)
+
+You can run the openshift_dev_setup.sh script with or without parameters as specified below:  
+Note: Triggers requires pipelines to be running and thus running ckcp with triggers alone is not supported.
+
+```
+$ ./openshift_dev_setup.sh
+    #installs openshift-gitops in a host cluster, install kcp in a pod (a.k.a ckcp)
+    #and register the kcp cluster to the ArgoCD instance
+
+$ ./openshift_dev_setup.sh -a pipelines
+    #installs openshift-gitops + ckcp + openshift-pipeline
+```
+test.sh script runs certain examples from tektoncd repo for pipelines and triggers. You can run the below script only after openshift_dev_setup.sh is run and the required resources are up and running. 
+
+```
+$ ./test.sh pipelines
+    #Runs TaskRun and PipelineRun which sets and uses some env variables respectively.
+    #https://github.com/tektoncd/pipeline/blob/main/examples/v1beta1/taskruns/custom-env.yaml
+    #https://github.com/tektoncd/pipeline/blob/main/examples/v1beta1/pipelineruns/using_context_variables.yaml
+
+$ ./test.sh triggers
+    #Simulates a webhook for a Github PR which triggers a TaskRun
+    #https://github.com/tektoncd/triggers/tree/main/examples/v1beta1/github
+
+$ ./test.sh pipelines triggers
+    #Runs both tests
+```
+
+Once the script is done executing, notice that the 7 CRDs(marked in bold as below) we specified when we started kcp are synced after we registered our physical cluster with kcp.
+
+<pre>
+ $ KUBECONFIG=work/kubeconfig/admin.kubeconfig kubectl api-resources
+NAME                          SHORTNAMES   APIVERSION                             NAMESPACED   KIND
+configmaps                        cm           v1                                     true         ConfigMap
+events                            ev           v1                                     true         Event
+limitranges                       limits       v1                                     true         LimitRange
+namespaces                        ns           v1                                     false        Namespace
+resourcequotas                    quota        v1                                     true         ResourceQuota
+secrets                                        v1                                     true         Secret
+serviceaccounts                   sa           v1                                     true         ServiceAccount
+services                          svc          v1                                     true         Service
+mutatingwebhookconfigurations                  admissionregistration.k8s.io/v1        false        MutatingWebhookConfiguration
+validatingwebhookconfigurations                admissionregistration.k8s.io/v1        false        ValidatingWebhookConfiguration
+customresourcedefinitions         crd,crds     apiextensions.k8s.io/v1                false        CustomResourceDefinition
+apiresourceimports                             apiresource.kcp.dev/v1alpha1           false        APIResourceImport
+negotiatedapiresources                         apiresource.kcp.dev/v1alpha1           false        NegotiatedAPIResource
+apibindings                                    apis.kcp.dev/v1alpha1                  false        APIBinding
+apiexports                                     apis.kcp.dev/v1alpha1                  false        APIExport
+apiresourceschemas                             apis.kcp.dev/v1alpha1                  false        APIResourceSchema
+deployments                       deploy       apps/v1                                true         Deployment
+tokenreviews                                   authentication.k8s.io/v1               false        TokenReview
+localsubjectaccessreviews                      authorization.k8s.io/v1                true         LocalSubjectAccessReview
+selfsubjectaccessreviews                       authorization.k8s.io/v1                false        SelfSubjectAccessReview
+selfsubjectrulesreviews                        authorization.k8s.io/v1                false        SelfSubjectRulesReview
+subjectaccessreviews                           authorization.k8s.io/v1                false        SubjectAccessReview
+certificatesigningrequests        csr          certificates.k8s.io/v1                 false        CertificateSigningRequest
+leases                                         coordination.k8s.io/v1                 true         Lease
+events                            ev           events.k8s.io/v1                       true         Event
+flowschemas                                    flowcontrol.apiserver.k8s.io/v1beta1   false        FlowSchema
+prioritylevelconfigurations                    flowcontrol.apiserver.k8s.io/v1beta1   false        PriorityLevelConfiguration
+ingresses                         ing          networking.k8s.io/v1                   true         Ingress
+clusterrolebindings                            rbac.authorization.k8s.io/v1           false        ClusterRoleBinding
+clusterroles                                   rbac.authorization.k8s.io/v1           false        ClusterRole
+rolebindings                                   rbac.authorization.k8s.io/v1           true         RoleBinding
+roles                                          rbac.authorization.k8s.io/v1           true         Role
+<b>conditions                                     tekton.dev/v1alpha1                    true         Condition<
+pipelineresources                              tekton.dev/v1alpha1                    true         PipelineResource
+pipelineruns                      pr,prs       tekton.dev/v1beta1                     true         PipelineRun
+pipelines                                      tekton.dev/v1beta1                     true         Pipeline<
+runs                                           tekton.dev/v1alpha1                    true         Run
+taskruns                          tr,trs       tekton.dev/v1beta1                     true         TaskRun
+tasks                                          tekton.dev/v1beta1                     true         Task</b>
+workloadclusters                               workload.kcp.dev/v1alpha1              false        WorkloadCluster
+</pre>
+
+### How to get access on an already setup cluster
+
+Configure kubectl to point to your physical cluster and run:
+
+```
+$ kubectl get secret kcp-kubeconfig -n ckcp  -o jsonpath="{.data['admin\.kubeconfig']}" > kubeconfig
+```
