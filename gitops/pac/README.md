@@ -36,4 +36,8 @@ KUBECONFIG="/pathto/kubeconfig" GITOPS_REPO="https://gitops.org.com/org/pipeline
 
 ## Pipelines
 
-Pipelines for the registration of new clusters via ArgoCD and kcp are available.
+Pipelines are available for:
+
+- the registration of new workload clusters to kcp
+- the installation of the Tekton components on the workload cluster leveraging Argo CD
+- the deployment of the gateway through kcp
