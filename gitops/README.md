@@ -29,7 +29,7 @@ b. Merge a PR with the kubeconfigs and overlay kustomization to trigger a Pipeli
 
     a. To install pipelines and triggers 
     ```
-    DATA_DIR=/home/workspace/pipelines-service ../images/cluster-setup/install.sh  
+    WORKSPACE_DIR=/home/workspace/pipelines-service ../images/cluster-setup/install.sh
     ```
     
     b. To access and setup kcp
