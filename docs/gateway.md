@@ -41,23 +41,23 @@ HAProxy configuration can be amended through the ConfigMap. See the section belo
 Connection settings, support for https can be configured by amending the HAProxy configuration contained in the ConfigMap.
 This will get streamlined with the automation of the installation of Tekton triggers.
 
-The first use case for the gateway is to forward requests to the listeners of Tekton triggers. This may also be used to proxy other services.
+The first use case for the gateway is to forward requests to the EventListener for Pipelines as Code. This may also be used to proxy other services.
 Therefore, additional frontends can be configured so that queries with other paths are forwarded to other backend servers.
 
 Path-based routing is configured in this snippet:
 
 ```bash
-acl PATH_trigger path_beg -i /trigger
-use_backend be_trigger if PATH_trigger
+acl PATH_pac path_beg -i /pac/
+use_backend be_el_pac if PATH_pac
 ```
 
 The backend in charge of processing the query can be specified in the referenced section:
 
 ```bash
-server s1 httpecho.trigger.svc.cluster.local:80
+server el-pac el-pipelines-as-code-interceptor.openshift-pipelines.svc.cluster.local:8080
 ```
 
-here the backend is the service `httpecho` in the `trigger` namespace listening to port 80.
+here the backend is the service `el-pipelines-as-code-interceptor` in the `openshift-pipelines` namespace listening to port 8080.
 
 ## Demo
 
@@ -70,3 +70,10 @@ here the backend is the service `httpecho` in the `trigger` namespace listening 
 **_NOTE:_**  This is only needed for phase 1. This component will get removed when we move to phase 2 and have the event listeners provisioned through kcp.
 
 ---
+
+## Limitations
+
+- There is currently no controller watching EventListeners to configure the gateway dynamically. This means that the gateway would work for Pipelines as Code, which offers a stable entrypoint but not for pure Tekton Triggers.
+- PipelineRuns are not visible in any kcp workspace.
+- Ingress is currently broken with kcp 0.5 and may not get fixed before 0.7
+

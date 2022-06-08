@@ -19,18 +19,18 @@ data:
         timeout http-keep-alive 300s
         timeout check 10s
 
-    frontend trigger_gateway-http
-        bind :80
+    frontend fe_el_pac_http
+        bind :8080
         mode http
         tcp-request inspect-delay 5s
         tcp-request content accept if HTTP
 
-        acl PATH_trigger path_beg -i /trigger
-        use_backend be_trigger if PATH_trigger
+        acl PATH_pac path_beg -i /pac/
+        use_backend be_el_pac if PATH_pac
 
-    backend be_trigger
+    backend be_el_pac
         mode http
         option redispatch
         option forwardfor
         timeout check 5000ms
-        server s1 httpecho.trigger.svc.cluster.local:80
+        server el-pac el-pipelines-as-code-interceptor.openshift-pipelines.svc.cluster.local:8080

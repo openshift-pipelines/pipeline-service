@@ -39,7 +39,7 @@ prechecks () {
         exit 1
     fi
 
-    KCP_ORG=${KCP_WORKSPACE:-}
+    KCP_WORKSPACE=${KCP_WORKSPACE:-}
     if [[ -z "${KCP_WORKSPACE}" ]]; then
         printf "KCP_WORKSPACE not set\n\n"
         usage

@@ -17,10 +17,14 @@ spec:
       containers:
         - name: gateway
           image: docker.io/haproxytech/haproxy-debian@sha256:7086aaf61dfe7f07fa36eafd4bb567a60564f7dd6fcf7cdafdfbbab19c01f0ba
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
           ports:
             - name: http-port
               protocol: TCP
-              containerPort: 80
+              containerPort: 8080
           volumeMounts:
             - name: config
               mountPath: /usr/local/etc/haproxy/haproxy.cfg
