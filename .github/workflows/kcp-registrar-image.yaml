@@ -35,6 +35,8 @@ jobs:
           tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
           containerfiles: |
             ./images/kcp-registrar/Dockerfile
+          build-args: |
+            KCP_BRANCH=release-0.5
 
       - name: Push to ghcr.io
         id: push-to-ghcr

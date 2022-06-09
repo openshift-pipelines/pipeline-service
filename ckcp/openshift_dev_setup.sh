@@ -85,6 +85,19 @@ parse_args() {
   done
 }
 
+# To ensure that dependencies are satisfied
+precheck() {
+  if [ $(kubectl plugin list | grep -c "kubectl-kcp") -eq 0 ]  ; then
+    printf "kcp plugin could not be found\n"
+    exit 1
+  fi
+
+  if [ $(kubectl plugin list | grep -c "kubectl-cert_manager") -eq 0 ]; then
+    printf "cert_manager plugin could not be found\n"
+    exit 1
+  fi
+}
+
 check_cluster_role() {
   if [ "$(kubectl auth can-i '*' '*' --all-namespaces)" != "yes" ]; then
     echo
@@ -154,10 +167,12 @@ install_cert_manager() {
   # # Install the cert manager operator
   # #############################################################################
   echo -n "  - openshift-cert-manager-operator: "
-  kubectl apply -f "$CKCP_DIR/argocd-apps/$APP.yaml" >/dev/null 2>&1
-  argocd app wait "$APP" >/dev/null 2>&1
-  # Wait until cert manager is ready
-  kubectl cert-manager check api --wait=5m  >/dev/null 2>&1
+  if kubectl cert-manager check api | grep -q "Not ready" >/dev/null 2>&1; then
+    kubectl apply -f "$CKCP_DIR/argocd-apps/$APP.yaml" >/dev/null 2>&1
+    argocd app wait "$APP" >/dev/null 2>&1
+    # Wait until cert manager is ready
+    kubectl cert-manager check api --wait=5m  >/dev/null 2>&1
+  fi
   echo "OK"
 }
 
@@ -216,8 +231,7 @@ patches:
   echo -n "  - kcp: "
   kubectl apply -k $ckcp_temp_dir >/dev/null 2>&1
   # Check if ckcp pod status is Ready
-  kubectl wait --for=condition=Ready -n $ns pod -l=app=kcp-in-a-pod --timeout=90s
-  echo "OK"
+  kubectl wait --for=condition=Ready -n $ns pod -l=app=kcp-in-a-pod --timeout=90s >/dev/null 2>&1
   # Clean up kustomize temp dir
   rm -rf $ckcp_temp_dir
 
@@ -227,7 +241,13 @@ patches:
   # Copy the kubeconfig of kcp from inside the pod onto the local filesystem
   podname="$(kubectl get pods --ignore-not-found -n "$ns" -l=app=kcp-in-a-pod -o jsonpath='{.items[0].metadata.name}')"
   mkdir -p "$(dirname "$KUBECONFIG_KCP")"
-  kubectl cp "$APP/$podname:etc/kcp/config/admin.kubeconfig" "$KUBECONFIG_KCP" >/dev/null
+  # Wait until admin.kubeconfig file is generated inside ckcp pod
+  while [[ $(kubectl exec -n $APP $podname -- ls /etc/kcp/config/admin.kubeconfig >/dev/null 2>&1; echo $?) -ne 0 ]];do
+    echo -n "."
+    sleep 5
+  done
+  kubectl cp "$APP/$podname:/etc/kcp/config/admin.kubeconfig" "$KUBECONFIG_KCP" >/dev/null 2>&1
+  echo "OK"
 
   # Check if external ip is assigned and replace kcp's external IP in the kubeconfig file
   echo -n "  - Route: "
@@ -238,25 +258,26 @@ patches:
 
   # Register the host cluster to KCP
   echo -n "  - Workspace: "
-  # It's not allowed to create WorkloadCluster resource in a non-universal workspace
+  # To ensure we are in demo's parent workspace to manipulate demo workspace
+  KUBECONFIG="$KUBECONFIG_KCP"  kubectl kcp ws use root:default >/dev/null 2>&1
   if ! KUBECONFIG="$KUBECONFIG_KCP" kubectl get workspaces demo >/dev/null 2>&1; then
-    KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspaces create demo --enter >/dev/null 2>&1
-    # Check if workspace demo is ready
-    KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspaces ..
+    KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspaces create demo >/dev/null 2>&1
+    # Check if workspace "demo" is ready. This is a workaround, because commands executed directly after creating workspace with "--enter" option occasionally fail
     while [[ $(KUBECONFIG="$KUBECONFIG_KCP" kubectl get workspace -o jsonpath='{.items[0].status.phase}') != "Ready" ]]; do
       echo -n "."
       sleep 5
     done
-    KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspaces use demo
   fi
+  KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspaces use demo >/dev/null 2>&1
   echo "OK"
 
   echo -n "  - Workloadcluster pipeline-cluster registration: "
   if ! KUBECONFIG="$KUBECONFIG_KCP" kubectl get WorkloadCluster local >/dev/null 2>&1; then
     (
+      kcp_image_tag="$(yq -e '.images[0].newTag' "$ckcp_dev_dir"/kustomization.yaml)"
       KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workload sync local \
-      --syncer-image ghcr.io/kcp-dev/kcp/syncer:release-0.4 \
-      --resources conditions.tekton.dev,pipelines.tekton.dev,pipelineruns.tekton.dev,pipelineresources.tekton.dev,runs.tekton.dev,tasks.tekton.dev,taskruns.tekton.dev > "$kube_dir/syncer.yaml"
+      --syncer-image ghcr.io/kcp-dev/kcp/syncer:$kcp_image_tag \
+      --resources conditions.tekton.dev,pipelines.tekton.dev,pipelineruns.tekton.dev,pipelineresources.tekton.dev,runs.tekton.dev,tasks.tekton.dev,taskruns.tekton.dev,repositories.pipelinesascode.tekton.dev > "$kube_dir/syncer.yaml"
       kubectl apply -f "$kube_dir/syncer.yaml" >/dev/null 2>&1
       # Wait until Syncer pod is available
       SYNCER_NS_ID="$(kubectl get ns -l workload.kcp.io/workload-cluster=local -o json | jq -r '.items[0].metadata.name')" 
@@ -282,7 +303,7 @@ install_openshfit_pipeline() {
   argocd app wait pipelines-service tektoncd --timeout=90 >/dev/null 2>&1
 
   # Wait until CRDs are synced to KCP
-  while [ "$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources | grep -c tekton.dev)" != 7 ]
+  while [ "$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources | grep -c tekton.dev)" != 8 ]
   do
     echo -n "."
     sleep 5
@@ -292,6 +313,8 @@ install_openshfit_pipeline() {
 
 main() {
   parse_args "$@"
+
+  precheck
 
   check_cluster_role
   for APP in $APP_LIST; do

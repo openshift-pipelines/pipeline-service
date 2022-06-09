@@ -26,6 +26,8 @@ Controllers know nothing about kcp.
 
 ![Phase 1 flow](./docs/images/phase1.png)
 
+**[Limitations](./docs/phase1_limitations.md)**
+
 **Demo** (5mns)
 
 [![asciicast](https://asciinema.org/a/duvHbVhNXvX1AeISR2sGBpvAY.svg)](https://asciinema.org/a/duvHbVhNXvX1AeISR2sGBpvAY)
