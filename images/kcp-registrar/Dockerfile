@@ -1,11 +1,14 @@
 # Build the binary
 FROM golang:1.17 AS builder
 
+ARG KCP_BRANCH
+ENV KCP_TAG=${KCP_BRANCH}
+
 WORKDIR /workspace
 USER 0
 RUN apt-get update && apt-get install -y jq && mkdir bin
 RUN git clone https://github.com/kcp-dev/kcp.git && cd kcp && \
-    BRANCH=release-0.4 && git checkout $BRANCH && \
+    BRANCH=$KCP_BRANCH && git checkout $BRANCH && \
     CGO_ENABLED=0 make
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6

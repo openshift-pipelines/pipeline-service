@@ -32,7 +32,7 @@ precheck() {
 }
 
 KCP_DIR="${KCP_DIR:-}"
-kcp-binaries () {
+kcp-binaries() {
   if [[ -z "${KCP_DIR}" ]]; then
     precheck git
     KCP_PARENT_DIR="$(mktemp -d -t kcp.XXXXXXXXX)"
@@ -40,7 +40,7 @@ kcp-binaries () {
     git clone https://github.com/kcp-dev/kcp.git
     KCP_DIR="${KCP_PARENT_DIR}/kcp"
     pushd kcp
-    KCP_BRANCH="${KCP_BRANCH:-release-0.4}"
+    KCP_BRANCH="${KCP_BRANCH:-release-0.5}"
     git checkout "${KCP_BRANCH}"
     make build
     popd
@@ -94,6 +94,7 @@ create-org() {
 }
 
 # Execution
+PARENT_PATH=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 
 kcp-binaries
 
@@ -102,8 +103,6 @@ printf "Temporary directory created: %s\n" "${TMP_DIR}"
 
 KUBECONFIG="${TMP_DIR}/.kcp/admin.kubeconfig"
 printf "KUBECONFIG=%s\n" "${KUBECONFIG}"
-
-PARENT_PATH=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 
 source "${PARENT_PATH}/../.utils"
 

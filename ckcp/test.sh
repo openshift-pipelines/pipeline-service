@@ -7,6 +7,24 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" >/dev/null ; pwd)"
 KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
 export KUBECONFIG=$KUBECONFIG
 KUBECONFIG_KCP="${KUBECONFIG_KCP:-$SCRIPT_DIR/work/kubeconfig/admin.kubeconfig}"
+
+get_namespace() {
+  # Retrieve the KCP namespace id
+  local ns_locator="{\"logical-cluster\":\"$(
+    KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspace current | cut -d\" -f2
+  )\",\"namespace\":\"default\"}"
+  # Loop is necessary as it takes KCP time to create the namespace
+  while ! kubectl get ns -o yaml | grep -q "$ns_locator"; do
+    sleep 2
+  done
+  local KCP_NS_NAME="$(kubectl get ns -l internal.workload.kcp.dev/cluster=local -o json \
+    | jq -r '.items[].metadata | select(.annotations."kcp.dev/namespace-locator" 
+    | contains("\"namespace\":\"default\"")) | .name'
+  )"
+  echo $KCP_NS_NAME
+}
+
+
 #install pipelines/triggers based on args
 if [ $# -eq 0 ]; then
   echo "No args passed; exiting now! ckcp is running in a pod"
@@ -27,7 +45,7 @@ else
       BASE_URL="https://raw.githubusercontent.com/tektoncd/pipeline/v0.32.0"
       for manifest in taskruns/custom-env.yaml pipelineruns/using_context_variables.yaml; do
         # change ubuntu image to ubi to avoid dockerhub registry pull limit
-        curl --fail --silent "$BASE_URL/examples/v1beta1/$manifest" | sed 's|ubuntu|registry.access.redhat.com/ubi8/ubi-minimal:latest|' | KUBECONFIG="$KUBECONFIG_KCP" kubectl create -f -
+        curl --fail --silent "$BASE_URL/examples/v1beta1/$manifest" | sed 's|ubuntu|registry.access.redhat.com/ubi8/ubi-minimal:latest|' | sed '/serviceAccountName/d' | KUBECONFIG="$KUBECONFIG_KCP" kubectl create -f -
       done
       sleep 20
 
@@ -36,19 +54,8 @@ else
       KUBECONFIG="$KUBECONFIG_KCP" kubectl get taskruns,pipelineruns
       echo "Print kube resources in the physical cluster (Note: physical cluster will not know what taskruns or pipelinesruns are)"
       
-      # Retrieve the KCP namespace id
-      ns_locator="{\"logical-cluster\":\"$(
-        KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspace current | cut -d\" -f2
-      )\",\"namespace\":\"default\"}"
-      # Loop is necessary as it takes KCP time to create the namespace
-      while ! kubectl get ns -o yaml | grep -q "$ns_locator"; do
-        sleep 2
-      done
-      KCP_NS_ID="$(kubectl get ns -l workloads.kcp.dev/cluster=local -o json \
-        | jq -r '.items[].metadata | select(.annotations."kcp.dev/namespace-locator" 
-        | contains("\"namespace\":\"default\"")) | .name'
-      )"
-      kubectl get pods -n $KCP_NS_ID
+      KCP_NS_NAME="$(get_namespace)"
+      kubectl get pods -n $KCP_NS_NAME
 
     elif [ $arg == "triggers" ]; then
       echo "Arg triggers passed. Running triggers tests..."
@@ -61,7 +68,7 @@ else
       sleep 20
 
       # Simulate the behaviour of a webhook. GitHub sends some payload and trigger a TaskRun.
-      kubectl -n kcpe2cca7df639571aaea31e2a733771938dc381f7762ff7a077100ffad port-forward service/el-github-listener 8089:8080 &
+      kubectl -n "$(get_namespace)" port-forward service/el-github-listener 8089:8080 &
       SVC_FORWARD_PID=$!
 
       sleep 10
