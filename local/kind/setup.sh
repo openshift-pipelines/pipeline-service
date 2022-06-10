@@ -30,7 +30,7 @@ prechecks () {
 
     if [[ "${CONTAINER_ENGINE}" != "docker" && "${ALLOW_ROOTLESS}" != "true" ]]; then
         KIND_CMD="sudo kind"
-	PODMAN_CMD="sudo podman"
+        PODMAN_CMD="sudo podman"
     else
         KIND_CMD="kind"
 	if [[ "${CONTAINER_ENGINE}" == "docker" ]]; then
@@ -78,6 +78,7 @@ echo "Checking existing clusters"
 EXISTING_CLUSTERS=$(${KIND_CMD} get clusters 2>/dev/null)
 
 NO_ARGOCD="${NO_ARGOCD:-}"
+PODMAN_CMD="${PODMAN_CMD:-podman}"
 
 for cluster in "${CLUSTERS[@]}"; do
     clusterExists=""
