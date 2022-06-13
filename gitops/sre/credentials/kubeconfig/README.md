@@ -1,6 +1,6 @@
-# Clusters credentials 
+# Clusters credentials
 
-This directory and sub-directories' purpose is to contain the kubeconfig files used for registering the clusters to Argo CD.
+This directory and subdirectories' purpose is to contain the kubeconfig files used for registering the clusters to Argo CD.
 
 ---
 **_NOTES:_**

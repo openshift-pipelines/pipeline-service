@@ -1,7 +1,9 @@
 # Pipeline Services on managed KCP
 
 ## Clusters access
+
 Create a directory with the following files:
+
 * `argocd.yaml`: kubeconfig with the active context connecting to the argocd instance;
 * `kcp.yaml`: kubeconfig with the active context connecting to your KCP workspace;
 * `plnsvc.yaml`: the kubeconfig with with the active context connecting to the Pipeline
@@ -15,13 +17,14 @@ then be used by default for every command, until you overwrite their value by sp
 a new `-k $KUBECONFIG_DIR` parameter.
 
 ## Clusters configuration
+
 The `deploy.sh -e staging` script will configure the various systems in the staging
 environment.
 
 The `test.sh -e staging` script will run a quick pipeline/trigger test on the staging
 environment. The expected output looks like this:
 
-```
+```bash
   - Resources in kcp
 NAME                                   READY   STATUS      RESTARTS   AGE
 pod/custom-env-gxrkk-pod               0/1     Completed   0          96s
@@ -45,10 +48,12 @@ test-pipelinerun-52gkh-task1-pod     0/3     Completed   0          96s
 ```
 
 ### Script summary
+
 1. Connect the plnsvc cluster and KCP to ArgoCD.
 2. Deploy the various gitops applications to the appropriate clusters.
 
 ### Pre-requisites
+
 1. You need to be able to log into the clusters (see the `Cluster access` section).
 2. You need to install [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)
 3. You need to install [argocd](https://argo-cd.readthedocs.io/en/stable/cli_installation/).
