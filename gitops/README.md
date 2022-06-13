@@ -31,7 +31,7 @@ b. Merge a PR with the kubeconfigs and overlay kustomization to trigger a Pipeli
     ```
     WORKSPACE_DIR=/home/workspace/pipelines-service ../images/cluster-setup/install.sh
     ```
-    
+
     b. To access and setup kcp
     ```
     KCP_ORG="root:pipelines-service" KCP_WORKSPACE="compute" DATA_DIR="/home/workspace/pipelines-service" ../images/kcp-registrar/register.sh
