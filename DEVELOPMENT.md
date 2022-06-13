@@ -116,7 +116,7 @@ Files for the kind clusters are stored in a directory located in /tmp as well if
 
 ### Ingress router pods crashloop - "too many open files"
 
-Depending on your machine's configuration, the ingress router and ArgoCD pods may crashloop with a "too many open files" error.
+Depending on your machine's configuration, the ingress router and Argo CD pods may crashloop with a "too many open files" error.
 This is likely due to the Linux kernel limiting the number of file watches.
 
 On Fedora, this can be fixed by adding a `.conf` file to `/etc/sysctl.d/ increasing the number of file watches and instances:
@@ -162,3 +162,4 @@ Install kind to any of the root enabled paths i.e `/usr/local/bin` or create a s
 ```bash
 sudo ln -s $(which kind) /usr/local/bin/kind
 ```
+
