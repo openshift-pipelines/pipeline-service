@@ -25,18 +25,21 @@ prechecks () {
     fi
 
     if [[ "${ALLOW_ROOTLESS}" == "true" ]]; then
-        echo "Rootless mode enabled"
+        printf "Rootless mode enabled\n"
     fi
 
     if [[ "${CONTAINER_ENGINE}" != "docker" && "${ALLOW_ROOTLESS}" != "true" ]]; then
-        KIND_CMD="sudo kind"
-        PODMAN_CMD="sudo podman"
+        KIND_CMD="sudo KIND_EXPERIMENTAL_PROVIDER=podman kind"
     else
-        KIND_CMD="kind"
-	if [[ "${CONTAINER_ENGINE}" == "docker" ]]; then
-	    PODMAN_CMD="docker"
+	if [[ "${CONTAINER_ENGINE}" != "docker" ]]; then
+            KIND_CMD="KIND_EXPERIMENTAL_PROVIDER=podman kind"
+	else
+    	    KIND_CMD="kind"
 	fi
     fi
+    printf "OS: %s\n" "${OSTYPE}"
+    printf "Container engine: %s\n" "${CONTAINER_ENGINE}"
+    printf "Using kind command: %s\n" "${KIND_CMD}"
 }
 
 mk_tmpdir () {
@@ -48,11 +51,11 @@ mk_tmpdir () {
 # This IP is accessible from localhost and other containers part of the same container network (bridge)
 # This can be used for instance to register the cluster to an Argo CD server installed on a KinD cluster
 ip_kubeconfig () {
-    container=$(${PODMAN_CMD} ps | grep ${cluster} | cut -d ' ' -f 1)
-    containerip=$(${PODMAN_CMD} inspect ${container} | jq '.[].NetworkSettings.Networks.kind.IPAddress' | sed 's/"//g')
+    container=$(${CONTAINER_ENGINE} ps | grep ${cluster} | cut -d ' ' -f 1)
+    containerip=$(${CONTAINER_ENGINE} inspect ${container} | jq '.[].NetworkSettings.Networks.kind.IPAddress' | sed 's/"//g')
     ${KIND_CMD} get kubeconfig --internal --name ${cluster} | sed "s/${cluster}-control-plane/${containerip}/g" > ${TMP_DIR}/${cluster}_ip.kubeconfig
     printf "kubeconfig created for accessing the cluster API of %s from the KinD/container network: %s\n" ${cluster}  ${TMP_DIR}/${cluster}_ip.kubeconfig 
-    if [[ ${KIND_CMD} == "sudo kind" ]]; then
+    if [[ ${KIND_CMD} == "sudo KIND_EXPERIMENTAL_PROVIDER=podman kind" ]]; then
         sudo chmod +r "${TMP_DIR}/${cluster}_ip.kubeconfig"
     fi
 }
@@ -78,14 +81,13 @@ echo "Checking existing clusters"
 EXISTING_CLUSTERS=$(${KIND_CMD} get clusters 2>/dev/null)
 
 NO_ARGOCD="${NO_ARGOCD:-}"
-PODMAN_CMD="${PODMAN_CMD:-podman}"
 
 for cluster in "${CLUSTERS[@]}"; do
     clusterExists=""
     if echo "${EXISTING_CLUSTERS}" | grep "$cluster"; then
         clusterExists="1"
         ${KIND_CMD} export kubeconfig --name "$cluster" --kubeconfig "${TMP_DIR}/${cluster}.kubeconfig"
-	if [[  ${KIND_CMD} == "sudo kind" ]]; then
+	if [[  ${KIND_CMD} == "sudo KIND_EXPERIMENTAL_PROVIDER=podman kind" ]]; then
                 sudo chmod +r "${TMP_DIR}/${cluster}.kubeconfig"
         fi
 	ip_kubeconfig
@@ -95,11 +97,11 @@ for cluster in "${CLUSTERS[@]}"; do
     if [[ -z "${clusterExists}" ]]; then
         echo "Creating kind cluster ${cluster}"
         cp "${cluster}.config" "${TMP_DIR}/${cluster}.config"
-        KIND_EXPERIMENTAL_PROVIDER=${KIND_EXPERIMENTAL_PROVIDER:-} ${KIND_CMD} create cluster \
+        ${KIND_CMD} create cluster \
             --config "${TMP_DIR}/${cluster}.config" \
             --kubeconfig "${TMP_DIR}/${cluster}.kubeconfig"
 
-        if [[ ${KIND_CMD} == "sudo kind" ]]; then
+        if [[ ${KIND_CMD} == "sudo KIND_EXPERIMENTAL_PROVIDER=podman kind" ]]; then
             sudo chmod +r "${TMP_DIR}/${cluster}.kubeconfig"
         fi
 
