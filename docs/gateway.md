@@ -14,6 +14,7 @@ The approach taken for addressing it is to introduce a gateway (an haproxy conta
 - Ingress, Service, Deployment and ConfigMap for the HAProxy based gateway are created in kcp, which syncs them onto the workload clusters.
 
 The request flow is as follows:
+
 1. An external system, GitHub for instance, triggers an http call.
 2. The GLB forwards the call to the ingress router running on a workload cluster.
 3. The ingress router forwards the call to its backend the HAProxy container.
@@ -25,13 +26,13 @@ The request flow is as follows:
 
 Kubectl should point to your kcp organisation.
 
-~~~
+```bash
 kubectl kcp workspace create infra --enter
 kubectl create -f ./gitops/argocd/triggers/gateway/haproxy-cfg-cm.yaml
 kubectl create -f ./gitops/argocd/triggers/gateway/haproxy-deployment.yaml
 kubectl create -f ./gitops/argocd/triggers/gateway/haproxy-service.yaml
 kubectl create -f ./gitops/argocd/triggers/gateway/haproxy-ingress.yaml
-~~~
+```
 
 HAProxy configuration can be amended through the ConfigMap. See the section below.
 
@@ -45,16 +46,17 @@ Therefore, additional frontends can be configured so that queries with other pat
 
 Path-based routing is configured in this snippet:
 
-~~~
+```bash
 acl PATH_trigger path_beg -i /trigger
 use_backend be_trigger if PATH_trigger
-~~~
+```
 
 The backend in charge of processing the query can be specified in the referenced section:
 
-~~~
+```bash
 server s1 httpecho.trigger.svc.cluster.local:80
-~~~
+```
+
 here the backend is the service `httpecho` in the `trigger` namespace listening to port 80.
 
 ## Demo
@@ -64,7 +66,7 @@ here the backend is the service `httpecho` in the `trigger` namespace listening 
 [![asciicast](https://asciinema.org/a/098vFj4chE51xa6xIKbNzAOdl.svg)](https://asciinema.org/a/098vFj4chE51xa6xIKbNzAOdl)
 
 ---
+
 **_NOTE:_**  This is only needed for phase 1. This component will get removed when we move to phase 2 and have the event listeners provisioned through kcp.
 
 ---
-

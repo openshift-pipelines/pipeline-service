@@ -8,7 +8,7 @@ The registration is meant to be triggered from [Pipelines as Code](https://pipel
 
 Alternatively the registration can be performed by manually calling the registration script in the image directory:
 
-```console
+```bash
 KCP_ORG="root:pipelines-service" KCP_WORKSPACE="compute" DATA_DIR="/workspace" ./register.sh
 ```
 
