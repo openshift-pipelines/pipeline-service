@@ -1,0 +1,12 @@
+resources:
+  - ../../base
+
+patches:
+- patch: |-
+    - op: replace
+      path: /spec/source/targetRevision
+      value: unstable
+  target:
+    kind: Application
+    name: tektoncd
+    namespace: openshift-gitops

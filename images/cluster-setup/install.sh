@@ -83,10 +83,10 @@ get_clusters() {
     contexts=()
     kubeconfigs=()
     printf "Extracting files under the kubeconfig dir and reading the content in each file \n"
-    files=("$(ls "$WORKSPACE_DIR/gitops/sre/credentials/kubeconfig/compute")")
+    files=("$(ls "$WORKSPACE_DIR/credentials/kubeconfig/compute")")
     for kubeconfig in "${files[@]}"; do
         printf "  - %s\n" "$kubeconfig"
-        subs=("$(KUBECONFIG=${WORKSPACE_DIR}/gitops/sre/credentials/kubeconfig/compute/${kubeconfig} kubectl config view -o jsonpath='{range .contexts[*]}{.name}{","}{.context.cluster}{"\n"}{end}')")
+        subs=("$(KUBECONFIG=${WORKSPACE_DIR}/credentials/kubeconfig/compute/${kubeconfig} kubectl config view -o jsonpath='{range .contexts[*]}{.name}{","}{.context.cluster}{"\n"}{end}')")
         for sub in "${subs[@]}"; do
             context=$(echo -n "${sub}" | cut -d ',' -f 1)
             cluster=$(echo -n "${sub}" | cut -d ',' -f 2 | cut -d ':' -f 1)
@@ -104,7 +104,7 @@ get_clusters() {
 switch_cluster() {
   # Sometimes the workspace is read-only, preventing the context switch
   export KUBECONFIG="/tmp/cluster.kubeconfig"
-  cp "${WORKSPACE_DIR}/gitops/sre/credentials/kubeconfig/compute/${kubeconfigs[$i]}" "$KUBECONFIG"
+  cp "${WORKSPACE_DIR}/credentials/kubeconfig/compute/${kubeconfigs[$i]}" "$KUBECONFIG"
 
   if ! kubectl config use-context "${contexts[$i]}" >/dev/null; then
     exit_error "\nCannot use '${contexts[$i]}' context in '$KUBECONFIG'."
@@ -116,7 +116,7 @@ install_tektoncd() {
   for i in "${!clusters[@]}"; do
     printf "  - %s:\n" "${clusters[$i]}"
     switch_cluster
-    CONFIG_DIR=$(find "${WORKSPACE_DIR}/gitops/sre/environment/compute" -type d -name "${clusters[$i]}")
+    CONFIG_DIR=$(find "${WORKSPACE_DIR}/environment/compute" -type d -name "${clusters[$i]}")
     kubectl apply -k "$CONFIG_DIR"
   done
   printf "\n"
