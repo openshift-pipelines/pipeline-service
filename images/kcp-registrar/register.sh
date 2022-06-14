@@ -27,8 +27,8 @@ usage() {
     printf "KCP_ORG: the organistation for which the workload clusters need to be registered, i.e.: root:pipelines-service\n"
     printf "KCP_WORKSPACE: the name of the workspace where the workload clusters get registered (created if it does not exist), i.e: compute\n"
     printf "DATA_DIR: the location of the cluster files\n"
-    printf "          a single file with extension kubeconfig is expected in the subdirectory: gitops/credentials/kubeconfig/kcp\n"
-    printf "          kubeconfig files for compute clusters are expected in the subdirectory: gitops/credentials/kubeconfig/compute \n\n"
+    printf "          a single file with extension kubeconfig is expected in the subdirectory: credentials/kubeconfig/kcp\n"
+    printf "          kubeconfig files for compute clusters are expected in the subdirectory: credentials/kubeconfig/compute \n\n"
 }
 
 prechecks () {
@@ -56,15 +56,15 @@ prechecks () {
 
 # populate kcp_kcfg with the location of the kubeconfig for connecting to kcp
 kcp_kubeconfig() {
-    if files=($(ls $DATA_DIR/gitops/credentials/kubeconfig/kcp/*.kubeconfig 2>/dev/null)); then
+    if files=($(ls $DATA_DIR/credentials/kubeconfig/kcp/*.kubeconfig 2>/dev/null)); then
         if [ ${#files[@]} -ne 1 ]; then
-            printf "A single kubeconfig file is expected at %s\n" "$DATA_DIR/gitops/credentials/kubeconfig/kcp"
+            printf "A single kubeconfig file is expected at %s\n" "$DATA_DIR/credentials/kubeconfig/kcp"
             usage
             exit 1
         fi
         kcp_kcfg="${files[0]}"
     else
-        printf "A single kubeconfig file is expected at %s\n" "$DATA_DIR/gitops/credentials/kubeconfig/kcp"
+        printf "A single kubeconfig file is expected at %s\n" "$DATA_DIR/credentials/kubeconfig/kcp"
         usage
         exit 1
     fi
@@ -78,12 +78,12 @@ get_clusters() {
     clusters=()
     contexts=()
     kubeconfigs=()
-    files=($(ls $DATA_DIR/gitops/credentials/kubeconfig/compute))
+    files=($(ls $DATA_DIR/credentials/kubeconfig/compute))
     for kubeconfig in "${files[@]}"; do
-        subs=($(KUBECONFIG=${DATA_DIR}/gitops/credentials/kubeconfig/compute/${kubeconfig} kubectl config view -o jsonpath='{range .contexts[*]}{.name}{","}{.context.cluster}{"\n"}{end}'))
+        subs=($(KUBECONFIG=${DATA_DIR}/credentials/kubeconfig/compute/${kubeconfig} kubectl config view -o jsonpath='{range .contexts[*]}{.name}{","}{.context.cluster}{"\n"}{end}'))
         for sub in "${subs[@]}"; do
             context=$(echo -n ${sub} | cut -d ',' -f 1)
-            cluster=$(echo -n ${sub} | cut -d ',' -f 2)
+	    cluster=$(echo -n ${sub} | cut -d ',' -f 2 | cut -d ':' -f 1)
 	    if ! (echo "${clusters[@]}" | grep "${cluster}"); then
                 clusters+=( ${cluster} )
                 contexts+=( ${context} )
@@ -126,7 +126,7 @@ register() {
             KUBECONFIG=${kcp_kcfg} kubectl kcp workload sync "${clusters[$i]}" \
                  --syncer-image ghcr.io/kcp-dev/kcp/syncer:release-0.4 \
 		 --resources deployments.apps,services,ingresses.networking.k8s.io,conditions.tekton.dev,pipelines.tekton.dev,pipelineruns.tekton.dev,pipelineresources.tekton.dev,runs.tekton.dev,tasks.tekton.dev,taskruns.tekton.dev > /tmp/syncer-${clusters[$i]}.yaml
-            KUBECONFIG=${DATA_DIR}/gitops/credentials/kubeconfig/compute/${kubeconfigs[$i]} kubectl apply --context ${contexts[$i]} -f /tmp/syncer-${clusters[$i]}.yaml 
+            KUBECONFIG=${DATA_DIR}/credentials/kubeconfig/compute/${kubeconfigs[$i]} kubectl apply --context ${contexts[$i]} -f /tmp/syncer-${clusters[$i]}.yaml 
         fi
     done
 }
