@@ -21,12 +21,12 @@ Prerequisites:
 ./local/kind/setup.sh
 ```
 
-By default Argo CD is installed on both clusters. It is possible to deactivate its installation by setting an environment variable `NO_ARGOCD=true`
+By default, Argo CD is installed on both clusters. It is possible to deactivate its installation by setting an environment variable `NO_ARGOCD=true`
 
 ---
 **_NOTES:_**
 
-1. Podman is used per default as container engine if available on the machine. If both podman and docker are available it is possible to force the use of docker by setting an environment variable `CONTAINER_ENGINE=docker`.
+1. Podman is used as the default container engine, if available on the machine. If both podman and docker are available it is possible to force the use of docker by setting an environment variable `CONTAINER_ENGINE=docker`.
 2. Podman defaults to running as sudo (root). To run podman in rootless mode, use the environment variable `ALLOW_ROOTLESS=true`. See the [kind documentation](https://kind.sigs.k8s.io/docs/user/rootless/) for the prerequisites.
 
 ---
@@ -50,7 +50,7 @@ The script will output the location of the kubeconfig file that can be used to i
 ```
 
 ---
-**_NOTE:_**  podman is used per default as container engine if available on the machine. If both podman and docker are available it is possible to force the use of docker by setting an environment variable `CONTAINER_ENGINE=docker`.
+**_NOTE:_** Podman is used as the default container engine, if available on the machine. If both podman and docker are available it is possible to force the use of docker by setting an environment variable `CONTAINER_ENGINE=docker`.
 
 ---
 
@@ -62,7 +62,7 @@ Here is an example for running the registration image in a development environme
 podman run --env KCP_ORG='root:pipelines-service' --env KCP_WORKSPACE='compute' --env DATA_DIR='/workspace' --privileged --volume /home/myusername/plnsvc:/workspace quay.io/myuser/pipelines-kcp
 ```
 
-Make sure that iptables/firewalld are not preventing the communication (tcp initiated from the kind clusters) between the containers running on the kind network and the kcp process on the host.
+Make sure that iptables/firewalld is not preventing the communication (tcp initiated from the kind clusters) between the containers running on the kind network and the kcp process on the host.
 
 To check iptables rules:
 
@@ -82,7 +82,7 @@ A gateway can be installed to expose endpoints running on the workload clusters 
 
 ## GitOps
 
-Argo CD is by default installed on both clusters. Alternatively it can be installed afterwards by running the following:
+Argo CD is by default installed on both clusters. Alternatively, it can be installed afterward by running the following:
 
 ```bash
 KUBECONFIG=/path-to/config.kubeconfig ./local/argocd/setup.sh
@@ -107,7 +107,7 @@ The cluster where Argo CD runs is automatically registered to Argo CD.
 As indicated by the kcp start script `ctrl-C` stops all components: kcp, ingress controller and envoy.
 
 The files used by kcp are stored in the directory that was created, whose path was printed out by the script, for example: `/tmp/kcp-pipelines-service.uD5nOWUtU/`
-Files in /tmp are usually cleared by reboot and depending on the operating system may be cleansed when they have not been accessed for 10 days or another elapse of time.
+Files in /tmp are usually cleared by a reboot and depending on the operating system may be cleansed when they have not been accessed for 10 days or another elapse of time.
 
 Workload clusters created with kind can be removed with the usual kind command for the purpose `kind delete clusters us-east1 us-west1`
 Files for the kind clusters are stored in a directory located in /tmp as well if `$TMPDIR` has not been set to another location.
@@ -125,4 +125,40 @@ On Fedora, this can be fixed by adding a `.conf` file to `/etc/sysctl.d/ increas
 # /etc/sysctl.d/98_fs_inotify_increase_watches.conf
 fs.inotify.max_user_watches=2097152
 fs.inotify.max_user_instances=256
+```
+
+### Error: can only create exec sessions on running containers: container state improper
+
+This may happen when the kind containers have stopped because they are ephemeral and do not survive the reboot of the host. This can be fixed by deleting the already created clusters and starting the script again.
+
+```bash
+sudo kind delete clusters us-east1 us-west1
+```
+
+### Failed to create kind cluster - "Reached target ._Multi-User System._|detected cgroup v1"
+
+This is happening probably due to [Docker Desktop 4.3.0+ using Cgroups v2](https://kind.sigs.k8s.io/docs/user/known-issues/#failure-to-create-cluster-with-docker-desktop-as-container-runtime).
+
+To fix this issue, please ensure that the `KIND_EXPERIMENTAL_PROVIDER=podman` is set properly. You should be able to see _enabling experimental podman provider_ while running kind commands or the scripts. If the issue remains even after this, please try to disable docker and try again.
+
+A final fix is to uninstall docker and use podman only.
+
+### Looping with "error: availableReplicas is not found"
+
+This is _not an issue_, few lines like this are expected as the script checks for the ingress controller to be ready before creating the ingress object for it. You can wait for a few minutes or if you don't need Argo CD you can pass `NO_ARGOCD=true` before running the script.
+
+If it is too long and the ingress controller is still not ready, that is probably due to the scarcity of file monitors on the system. In that case, increasing `fs`.inotify.max_user_instances` may help. This can be done either by the solution described [above](#ingress-router-pods-crashloop---too-many-open-files) or by running the following command.
+
+```bash
+sudo sysctl -w fs.inotify.max_user_instances=256
+```
+
+### "Kind could not be found" when running with sudo
+
+This issue may occur if kind was installed using `go install`. This way kind executable is placed in `GOBIN` (in the home directory) and thus not available to root.
+
+Install kind to any of the root enabled paths i.e `/usr/local/bin` or create a symlink in `/usr/local/bin` pointing to your kind installation. It can be done using the following command.
+
+```bash
+sudo ln -s $(which kind) /usr/local/bin/kind
 ```
