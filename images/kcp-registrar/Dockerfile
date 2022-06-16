@@ -1,4 +1,5 @@
 # Build the binary
+# cf https://github.com/kcp-dev/kcp/issues/1092
 FROM golang:1.17 AS builder
 
 ARG KCP_BRANCH
@@ -33,14 +34,14 @@ RUN mkdir /workspace && chmod 777 /workspace && chown 65532:65532 /workspace
 RUN mkdir $HOME && chmod 777 $HOME
 COPY --from=builder workspace/kcp/bin/kubectl-kcp /usr/local/bin/kubectl-kcp
 RUN chmod 755 /usr/local/bin/kubectl-kcp
-COPY ./register.sh /usr/local/bin/register.sh
-RUN chmod 755 /usr/local/bin/register.sh
 RUN JQ_VERSION=1.6 && \
-    curl -sSL -o /usr/local/bin/jq https://github.com/stedolan/jq/releases/download/jq-$JQ_VERSION/jq-linux64 && \
+    curl --fail -sSL -o /usr/local/bin/jq https://github.com/stedolan/jq/releases/download/jq-$JQ_VERSION/jq-linux64 && \
     chmod 755 /usr/local/bin/jq
 RUN KUBE_VERSION=v1.24.0 && \
-    curl -L -o /usr/local/bin/kubectl "https://dl.k8s.io/release/$KUBE_VERSION/bin/linux/amd64/kubectl" && \
+    curl --fail -L -o /usr/local/bin/kubectl "https://dl.k8s.io/release/$KUBE_VERSION/bin/linux/amd64/kubectl" && \
     chmod 755 /usr/local/bin/kubectl
+COPY ./register.sh /usr/local/bin/register.sh
+RUN chmod 755 /usr/local/bin/register.sh
 USER 65532:65532
 VOLUME /workspace
 WORKDIR /workspace
