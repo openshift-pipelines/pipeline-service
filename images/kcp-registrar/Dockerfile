@@ -3,7 +3,6 @@
 FROM golang:1.17 AS builder
 
 ARG KCP_BRANCH
-ENV KCP_TAG=${KCP_BRANCH}
 
 WORKDIR /workspace
 USER 0
@@ -29,6 +28,8 @@ LABEL build-date= \
       vendor="Pipelines Service" \
       version="0.1"
 WORKDIR /
+ARG KCP_BRANCH
+ENV KCP_SYNC_TAG=${KCP_BRANCH}
 ENV HOME /tmp/home
 RUN mkdir /workspace && chmod 777 /workspace && chown 65532:65532 /workspace
 RUN mkdir $HOME && chmod 777 $HOME
