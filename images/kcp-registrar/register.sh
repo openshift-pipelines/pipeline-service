@@ -20,12 +20,13 @@ set -o pipefail
 
 usage() {
 
-    printf "Usage: KCP_ORG="root:pipelines-service" KCP_WORKSPACE="compute" DATA_DIR="/workspace" ./register.sh\n\n"
+    printf "Usage: KCP_ORG="root:pipelines-service" KCP_WORKSPACE="compute" KCP_SYNC_TAG="release-0.5" DATA_DIR="/workspace" ./register.sh\n\n"
 
     # Parameters
     printf "The following parameters need to be passed to the script:\n"
     printf "KCP_ORG: the organization for which the workload clusters need to be registered, i.e.: root:pipelines-service\n"
     printf "KCP_WORKSPACE: the name of the workspace where the workload clusters get registered (created if it does not exist), i.e: compute\n"
+    printf "KCP_SYNC_TAG: the tag of the kcp syncer image to use (preset in the container image at build time and leveraged by the PipelineRun)\n"
     printf "DATA_DIR: the location of the cluster files\n"
     printf "          a single file with extension kubeconfig is expected in the subdirectory: credentials/kubeconfig/kcp\n"
     printf "          kubeconfig files for compute clusters are expected in the subdirectory: credentials/kubeconfig/compute \n\n"
@@ -46,6 +47,11 @@ prechecks() {
     KCP_WORKSPACE=${KCP_WORKSPACE:-}
     if [[ -z "${KCP_WORKSPACE}" ]]; then
         exit_error "KCP_WORKSPACE not set\n\n"
+    fi
+
+    KCP_SYNC_TAG=${KCP_SYNC_TAG:-}
+    if [[ -z "${KCP_SYNC_TAG}" ]]; then
+        exit_error "KCP_SYNC_TAG not set\n\n"
     fi
 
     DATA_DIR=${DATA_DIR:-}
@@ -102,7 +108,6 @@ switch_org() {
 }
 
 switch_ws() {
-    KCP_WORKSPACE="$KCP_ORG:$KCP_WORKSPACE"
     if KUBECONFIG="$kcp_kcfg" kubectl kcp workspace use "${KCP_WORKSPACE}" >/dev/null 2>&1; then
         printf "  - Use existing workspace\n"
     else
@@ -124,7 +129,7 @@ register() {
             printf "Registering cluster\n"
             syncer_manifest="/tmp/syncer-${clusters[$i]}.yaml"
             KUBECONFIG=${kcp_kcfg} kubectl kcp workload sync "${clusters[$i]}" \
-                --syncer-image ghcr.io/kcp-dev/kcp/syncer:$KCP_TAG \
+                --syncer-image ghcr.io/kcp-dev/kcp/syncer:$KCP_SYNC_TAG \
                 --resources deployments.apps,services,ingresses.networking.k8s.io,conditions.tekton.dev,pipelines.tekton.dev,pipelineruns.tekton.dev,pipelineresources.tekton.dev,runs.tekton.dev,tasks.tekton.dev,taskruns.tekton.dev \
                 >"$syncer_manifest"
             KUBECONFIG=${DATA_DIR}/credentials/kubeconfig/compute/${kubeconfigs[$i]} kubectl apply --context ${contexts[$i]} -f "$syncer_manifest"

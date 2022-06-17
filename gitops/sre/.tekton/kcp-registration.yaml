@@ -50,6 +50,8 @@ spec:
                   value: $(workspaces.source.path)
                 - name: KCP_ORG
                   value: "pipelines-service"
+                - name: KCP_WORKSPACE
+                  value: "compute"
   workspaces:
     - name: source
       volumeClaimTemplate:
