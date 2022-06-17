@@ -52,3 +52,69 @@ The PR should have:
 
 - kubeconfig/s of the OpenShift clusters to be placed under gitops/credentials/kubeconfig/compute
 - overlay/kustomization.yaml to be created under `gitops/environment/compute/<clustername>/overlay/kustomization.yaml`
+
+
+## Next steps
+
+Once you have completed the above process, you can start creating PipelineRuns in a user workspace in kcp.
+To take advantage of the workload cluster, users should now create an APIBinding in their own workspaces to the APIExport created by kcp upon the addition of a workload cluster (via the sync command). This mechanism of APIExport and APIBindings makes it possible to use the same compute (workload cluster) with multiple workspaces.
+
+Below snippet shows the default APIExport CR named 'kubernetes' created in a workspace named 'compute'. 
+
+```
+$ KUBECONFIG=kcpinstance.kubeconfig kubectl ws
+Current workspace is "root:${ORG_ID}:compute".
+
+#Below apiexport CR named 'kubernetes' is created automatically once we sync the workload cluster to the workspace 
+$ KUBECONFIG=kcpinstance.kubeconfig kubectl get apiexports
+NAME         AGE
+kubernetes   46h
+ 
+$ KUBECONFIG=kcpinstance.kubeconfig kubectl get apiexports/kubernetes -o yaml _(truncated output shown below)_
+apiVersion: apis.kcp.dev/v1alpha1
+kind: APIExport
+metadata:
+  name: kubernetes
+spec:
+  identity:
+    secretRef:
+      name: kubernetes
+      namespace: kcp-system
+  latestResourceSchemas:
+  - rev-158351.deployments.apps
+
+```
+
+Below snippet shows the APIBinding used in a new workspace named 'user'.
+
+```
+$ KUBECONFIG=kcpinstance.kubeconfig kubectl ws use user
+Current workspace is "root:${ORG_ID}:user" (type "Universal").
+
+echo "apiVersion: apis.kcp.dev/v1alpha1
+kind: APIBinding
+metadata:
+  name: cluster-workspace
+spec:
+  reference:
+    workspace:
+      path: root:${ORG_ID}:compute
+      exportName: kubernetes" | kubectl create -f -
+
+ 
+$ KUBECONFIG=kcpinstance.kubeconfig kubectl get apibinding
+NAME                AGE
+cluster-workspace   45h
+ 
+$ KUBECONFIG=kcpinstance.kubeconfig kubectl get apibinding/cluster-workspace -o yaml _(truncated output shown below)_
+apiVersion: apis.kcp.dev/v1alpha1
+kind: APIBinding
+metadata:
+  name: cluster-workspace
+spec:
+  reference:
+    workspace:
+      exportName: kubernetes
+      path: root:${ORG_ID}:compute
+
+```
