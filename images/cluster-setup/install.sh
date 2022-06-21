@@ -114,29 +114,12 @@ switch_cluster() {
 install_tektoncd() {
   printf "Installing tektoncd components on the cluster via Openshift GitOps... \n"
   for i in "${!clusters[@]}"; do
-    printf "  - %s:\n" "${clusters[$i]}"
+    printf "    - %s:\n" "${clusters[$i]}"
     switch_cluster
     CONFIG_DIR=$(find "${WORKSPACE_DIR}/environment/compute" -type d -name "${clusters[$i]}")
     kubectl apply -k "$CONFIG_DIR"
   done
   printf "\n"
-}
-
-wait_for_resource() {
-  args=( "$@" )
-  while ! kubectl get "${args[@]}" >/dev/null 2>/dev/null; do
-    sleep 10
-  done
-}
-
-wait_for_pod() {
-  args=( "$@" )
-  export -f wait_for_resource
-  if ! timeout 20s bash -c "wait_for_resource pods ${args[*]}"; then
-      exit_error "Pod not found."
-  fi
-  podname="$(kubectl get pods "${args[@]}" -o jsonpath='{.items[0].metadata.name}')"
-  kubectl wait --for=condition=Ready "pod/$podname" -n openshift-pipelines --timeout=60s >/dev/null
 }
 
 postchecks() {
@@ -145,10 +128,22 @@ postchecks() {
   for i in "${!clusters[@]}"; do
     switch_cluster
     printf "  - %s:\n" "${clusters[$i]}"
-    for pod in tekton-pipelines-controller tekton-triggers-controller tekton-triggers-core-interceptors; do
-      printf "    - %s: " "$pod"
-      wait_for_pod -n openshift-pipelines -l=app="$pod"
-      printf "OK\n"
+    for deploy in tekton-pipelines-controller tekton-triggers-controller tekton-triggers-core-interceptors; do
+      printf "    Checking the status of %s: " "$deploy"
+
+      #a loop to check if the deployment exists
+      if ! timeout 300s bash -c "while ! kubectl get deployment/$deploy -n openshift-pipelines >/dev/null 2>/dev/null; do printf '       - Deployed: '; sleep 10; done"; then
+        exit_error "Not found. Something is wrong.\n"
+      else
+        printf "\nExists\n"
+      fi
+
+      #a loop to check if the deployment is Available and Ready
+      if kubectl wait --for=condition=Available=true deployment/$deploy -n openshift-pipelines --timeout=100s >/dev/null 2>/dev/null; then
+        printf "Ready\n"
+      else
+        exit_error "Not ready\n"
+      fi
     done
   done
 }
