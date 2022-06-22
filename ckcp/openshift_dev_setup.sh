@@ -15,6 +15,16 @@ WORK_DIR="$SCRIPT_DIR/work"
 KUBECONFIG=${KUBECONFIG:-$HOME/.kube/config}
 KUBECONFIG_KCP="$WORK_DIR/kubeconfig/admin.kubeconfig"
 KUBECONFIG_MERGED="merged-config.kubeconfig:$KUBECONFIG:$KUBECONFIG_KCP"
+CR_TOSYNC=(
+            conditions.tekton.dev
+            pipelines.tekton.dev
+            pipelineruns.tekton.dev
+            pipelineresources.tekton.dev
+            runs.tekton.dev
+            tasks.tekton.dev
+            taskruns.tekton.dev
+            repositories.pipelinesascode.tekton.dev
+          )
 
 usage() {
   echo "
@@ -87,12 +97,12 @@ parse_args() {
 
 # To ensure that dependencies are satisfied
 precheck() {
-  if [ $(kubectl plugin list | grep -c "kubectl-kcp") -eq 0 ]  ; then
+  if [ "$(kubectl plugin list | grep -c 'kubectl-kcp')" -eq 0 ]  ; then
     printf "kcp plugin could not be found\n"
     exit 1
   fi
 
-  if [ $(kubectl plugin list | grep -c "kubectl-cert_manager") -eq 0 ]; then
+  if [ "$(kubectl plugin list | grep -c 'kubectl-cert_manager')" -eq 0 ]; then
     printf "cert_manager plugin could not be found\n"
     exit 1
   fi
@@ -167,7 +177,7 @@ install_cert_manager() {
   # # Install the cert manager operator
   # #############################################################################
   echo -n "  - openshift-cert-manager-operator: "
-  if [ $(kubectl cert-manager check api 2>&1 | grep -c "Not ready") -eq 1 ]; then
+  if [ "$(kubectl cert-manager check api 2>&1 | grep -c "Not ready")" -eq 1 ]; then
     kubectl apply -f "$CKCP_DIR/argocd-apps/$APP.yaml" >/dev/null 2>&1
     argocd app wait "$APP" >/dev/null 2>&1
     # Wait until cert manager is ready
@@ -194,13 +204,13 @@ install_ckcp() {
 
   # To ensure kustomization.yaml file under overlays/temp won't be changed, remove the dirctory overlays/temp if it exists
   if [ -d "$ckcp_temp_dir" ]; then
-    rm -rf $ckcp_temp_dir
+    rm -rf "$ckcp_temp_dir"
   fi
-  cp -rf $ckcp_dev_dir $ckcp_temp_dir
+  cp -rf "$ckcp_dev_dir" "$ckcp_temp_dir"
 
   local ckcp_route
   domain_name="$(kubectl get ingresses.config/cluster -o jsonpath='{.spec.domain}')"
-  ckcp_route="$(echo ckcp-ckcp.$domain_name)"
+  ckcp_route="ckcp-ckcp.$domain_name"
   echo "
 patches:
   - target:
@@ -226,14 +236,14 @@ patches:
       - op: add
         path: /spec/dnsNames/-
         description: This value refers to the hostAddress defined in the Route.
-        value: $ckcp_route " >> $ckcp_temp_dir/kustomization.yaml
+        value: $ckcp_route " >> "$ckcp_temp_dir/kustomization.yaml"
 
   echo -n "  - kcp: "
-  kubectl apply -k $ckcp_temp_dir >/dev/null 2>&1
+  kubectl apply -k "$ckcp_temp_dir" >/dev/null 2>&1
   # Check if ckcp pod status is Ready
   kubectl wait --for=condition=Ready -n $ns pod -l=app=kcp-in-a-pod --timeout=90s >/dev/null 2>&1
   # Clean up kustomize temp dir
-  rm -rf $ckcp_temp_dir
+  rm -rf "$ckcp_temp_dir"
 
   #############################################################################
   # Post install
@@ -242,7 +252,7 @@ patches:
   podname="$(kubectl get pods --ignore-not-found -n "$ns" -l=app=kcp-in-a-pod -o jsonpath='{.items[0].metadata.name}')"
   mkdir -p "$(dirname "$KUBECONFIG_KCP")"
   # Wait until admin.kubeconfig file is generated inside ckcp pod
-  while [[ $(kubectl exec -n $APP $podname -- ls /etc/kcp/config/admin.kubeconfig >/dev/null 2>&1; echo $?) -ne 0 ]];do
+  while [[ $(kubectl exec -n $APP "$podname" -- ls /etc/kcp/config/admin.kubeconfig >/dev/null 2>&1; echo $?) -ne 0 ]];do
     echo -n "."
     sleep 5
   done
@@ -275,13 +285,14 @@ patches:
   if ! KUBECONFIG="$KUBECONFIG_KCP" kubectl get WorkloadCluster local >/dev/null 2>&1; then
     (
       kcp_image_tag="$(yq -e '.images[0].newTag' "$ckcp_dev_dir"/kustomization.yaml)"
+      cr_string="$(IFS=,; echo "${CR_TOSYNC[*]}")"
       KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workload sync local \
-      --syncer-image ghcr.io/kcp-dev/kcp/syncer:$kcp_image_tag \
-      --resources conditions.tekton.dev,pipelines.tekton.dev,pipelineruns.tekton.dev,pipelineresources.tekton.dev,runs.tekton.dev,tasks.tekton.dev,taskruns.tekton.dev,repositories.pipelinesascode.tekton.dev > "$kube_dir/syncer.yaml"
+      --syncer-image ghcr.io/kcp-dev/kcp/syncer:"$kcp_image_tag" \
+      --resources "$cr_string" > "$kube_dir/syncer.yaml"
       kubectl apply -f "$kube_dir/syncer.yaml" >/dev/null 2>&1
       # Wait until Syncer pod is available
       SYNCER_NS_ID="$(kubectl get ns -l workload.kcp.io/workload-cluster=local -o json | jq -r '.items[0].metadata.name')" 
-      kubectl rollout status deployment/kcp-syncer -n $SYNCER_NS_ID --timeout=90s >/dev/null 2>&1
+      kubectl rollout status deployment/kcp-syncer -n "$SYNCER_NS_ID" --timeout=90s >/dev/null 2>&1
       rm -rf "$kube_dir/syncer.yaml"
     )
   fi
@@ -301,12 +312,33 @@ install_openshfit_pipeline() {
   echo -n "  - openshift-pipeline application: "
   kubectl apply -f "$GITOPS_DIR/$APP/$APP.yaml" --wait >/dev/null 2>&1
   argocd app wait pipelines-service tektoncd --timeout=90 >/dev/null 2>&1
+  echo "OK"
 
+  check_cr_sync
+}
+
+check_cr_sync() {
   # Wait until CRDs are synced to KCP
-  while [ "$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources | grep -c tekton.dev)" != 8 ]
+  echo -n "  - Sync CRDs to KCP: "
+  local cr_regexp
+  cr_regexp="$(IFS=\|; echo "${CR_TOSYNC[*]}")"
+  local  wait_period=0
+  while [[ "$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources -o name  2>&1 | grep -Ewc "$cr_regexp")" -ne ${#CR_TOSYNC[@]} ]]
   do
+    wait_period=$((wait_period+10))
+    #when timeout, print out the CR resoures that is not synced to KCP
+    if [ $wait_period -gt 300 ];then
+      echo "Failed to sync following resources to KCP: "
+      cr_synced=$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources -o name)
+      for cr in "${CR_TOSYNC[@]}"; do
+        if [ "$(echo "$cr_synced" | grep -wc "$cr")" -eq 0 ]; then
+          echo "    * $cr"
+        fi
+      done
+      exit 1
+    fi
     echo -n "."
-    sleep 5
+    sleep 10
   done
   echo "OK"
 }
