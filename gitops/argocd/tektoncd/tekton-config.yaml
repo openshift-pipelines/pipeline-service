@@ -1,0 +1,13 @@
+apiVersion: operator.tekton.dev/v1alpha1
+kind: TektonConfig
+metadata:
+  name: config
+spec:
+  profile: all
+  targetNamespace: openshift-pipelines
+  pruner:
+    resources:
+      - taskrun
+    keep: 100
+    # Run the TaskRun pruner every day at 0800 Hrs (8:00 AM) system time. Refer <https://en.wikipedia.org/wiki/Cron> for detailed Cron format.
+    schedule: "0 8 * * *"

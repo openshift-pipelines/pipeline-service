@@ -22,7 +22,7 @@ Long Version:
 6. Add a physical cluster to kcp running inside the pod.  
    **_(optional)_**
 7. Apply patches to the pipelines repo and run the controller.
-8. Run some examples TaskRuns and PipelineRuns.
+8. Run some examples PipelineRuns.
 9. Apply patches to the triggers repo and run the controller, interceptor and eventlistener.
 
 ### Pre-requisites
@@ -53,8 +53,7 @@ The test.sh script runs certain examples from tektoncd repo for pipelines and tr
 
 ```bash
 ./test.sh pipelines
-    #Runs TaskRun and PipelineRun which sets and uses some env variables respectively.
-    #https://github.com/tektoncd/pipeline/blob/main/examples/v1beta1/taskruns/custom-env.yaml
+    #Runs PipelineRun which sets and uses some env variables respectively.
     #https://github.com/tektoncd/pipeline/blob/main/examples/v1beta1/pipelineruns/using_context_variables.yaml
 
 ./test.sh triggers
@@ -70,7 +69,7 @@ Once the script is done executing, notice that the 7 CRDs(marked in bold as belo
 <pre>
 KUBECONFIG=work/kubeconfig/admin.kubeconfig kubectl api-resources
 
-NAME                          SHORTNAMES   APIVERSION                             NAMESPACED   KIND
+NAME                              SHORTNAMES   APIVERSION                             NAMESPACED   KIND
 configmaps                        cm           v1                                     true         ConfigMap
 events                            ev           v1                                     true         Event
 limitranges                       limits       v1                                     true         LimitRange
@@ -78,7 +77,6 @@ namespaces                        ns           v1                               
 resourcequotas                    quota        v1                                     true         ResourceQuota
 secrets                                        v1                                     true         Secret
 serviceaccounts                   sa           v1                                     true         ServiceAccount
-services                          svc          v1                                     true         Service
 mutatingwebhookconfigurations                  admissionregistration.k8s.io/v1        false        MutatingWebhookConfiguration
 validatingwebhookconfigurations                admissionregistration.k8s.io/v1        false        ValidatingWebhookConfiguration
 customresourcedefinitions         crd,crds     apiextensions.k8s.io/v1                false        CustomResourceDefinition
@@ -98,17 +96,17 @@ leases                                         coordination.k8s.io/v1           
 events                            ev           events.k8s.io/v1                       true         Event
 flowschemas                                    flowcontrol.apiserver.k8s.io/v1beta1   false        FlowSchema
 prioritylevelconfigurations                    flowcontrol.apiserver.k8s.io/v1beta1   false        PriorityLevelConfiguration
-ingresses                         ing          networking.k8s.io/v1                   true         Ingress
+<b>repositories                      repo         pipelinesascode.tekton.dev/v1alpha1    true         Repository</b>
 clusterrolebindings                            rbac.authorization.k8s.io/v1           false        ClusterRoleBinding
 clusterroles                                   rbac.authorization.k8s.io/v1           false        ClusterRole
 rolebindings                                   rbac.authorization.k8s.io/v1           true         RoleBinding
 roles                                          rbac.authorization.k8s.io/v1           true         Role
-<b>conditions                                     tekton.dev/v1alpha1                    true         Condition<
+locations                                      scheduling.kcp.dev/v1alpha1            false        Location
+<b>conditions                                     tekton.dev/v1alpha1                    true         Condition
 pipelineresources                              tekton.dev/v1alpha1                    true         PipelineResource
 pipelineruns                      pr,prs       tekton.dev/v1beta1                     true         PipelineRun
-pipelines                                      tekton.dev/v1beta1                     true         Pipeline<
+pipelines                                      tekton.dev/v1beta1                     true         Pipeline
 runs                                           tekton.dev/v1alpha1                    true         Run
-taskruns                          tr,trs       tekton.dev/v1beta1                     true         TaskRun
 tasks                                          tekton.dev/v1beta1                     true         Task</b>
 workloadclusters                               workload.kcp.dev/v1alpha1              false        WorkloadCluster
 </pre>

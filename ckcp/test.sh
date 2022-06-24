@@ -33,9 +33,9 @@ else
   do
     if [ $arg == "pipelines" ]; then
       echo "Arg $arg passed. Running pipelines tests..."
-      echo "Running a sample TaskRun and PipelineRun which sets and uses env variables (from tektoncd/pipeline/examples)"
+      echo "Running a sample PipelineRun which sets and uses env variables (from tektoncd/pipeline/examples)"
 
-      #create taskrun and pipelinerun
+      # create pipelinerun
       if ! KUBECONFIG="$KUBECONFIG_KCP" kubectl get namespace default >/dev/null 2>&1; then
         KUBECONFIG="$KUBECONFIG_KCP" kubectl create namespace default
       fi
@@ -43,16 +43,16 @@ else
         KUBECONFIG="$KUBECONFIG_KCP" kubectl create serviceaccount default
       fi
       BASE_URL="https://raw.githubusercontent.com/tektoncd/pipeline/v0.32.0"
-      for manifest in taskruns/custom-env.yaml pipelineruns/using_context_variables.yaml; do
-        # change ubuntu image to ubi to avoid dockerhub registry pull limit
-        curl --fail --silent "$BASE_URL/examples/v1beta1/$manifest" | sed 's|ubuntu|registry.access.redhat.com/ubi8/ubi-minimal:latest|' | sed '/serviceAccountName/d' | KUBECONFIG="$KUBECONFIG_KCP" kubectl create -f -
-      done
+      manifest="pipelineruns/using_context_variables.yaml"
+      # change ubuntu image to ubi to avoid dockerhub registry pull limit
+      curl --fail --silent "$BASE_URL/examples/v1beta1/$manifest" | sed 's|ubuntu|registry.access.redhat.com/ubi8/ubi-minimal:latest|' | sed '/serviceAccountName/d' | KUBECONFIG="$KUBECONFIG_KCP" kubectl create -f -
+      
       sleep 20
 
       echo "Print pipelines custom resources inside kcp"
-      # KUBECONFIG="$KUBECONFIG_KCP" kubectl get pods,taskruns,pipelineruns
-      KUBECONFIG="$KUBECONFIG_KCP" kubectl get taskruns,pipelineruns
-      echo "Print kube resources in the physical cluster (Note: physical cluster will not know what taskruns or pipelinesruns are)"
+      # KUBECONFIG="$KUBECONFIG_KCP" kubectl get pods,pipelineruns
+      KUBECONFIG="$KUBECONFIG_KCP" kubectl get pipelineruns
+      echo "Print kube resources in the physical cluster (Note: physical cluster will not know what pipelinesruns are)"
       
       KCP_NS_NAME="$(get_namespace)"
       kubectl get pods -n $KCP_NS_NAME
@@ -81,7 +81,7 @@ else
       kill $SVC_FORWARD_PID
 
       sleep 20
-      KUBECONFIG="$KUBECONFIG_KCP" kubectl get taskruns,pipelineruns
+      KUBECONFIG="$KUBECONFIG_KCP" kubectl get pipelineruns
     else
       echo "Incorrect argument/s passed. Allowed args are 'pipelines' or 'triggers' or 'pipelines triggers'"
     fi

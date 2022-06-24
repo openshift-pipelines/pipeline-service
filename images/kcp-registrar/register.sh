@@ -130,7 +130,7 @@ register() {
             syncer_manifest="/tmp/syncer-${clusters[$i]}.yaml"
             KUBECONFIG=${kcp_kcfg} kubectl kcp workload sync "${clusters[$i]}" \
                 --syncer-image ghcr.io/kcp-dev/kcp/syncer:$KCP_SYNC_TAG \
-                --resources deployments.apps,services,ingresses.networking.k8s.io,conditions.tekton.dev,pipelines.tekton.dev,pipelineruns.tekton.dev,pipelineresources.tekton.dev,runs.tekton.dev,tasks.tekton.dev,taskruns.tekton.dev \
+                --resources deployments.apps,services,ingresses.networking.k8s.io,conditions.tekton.dev,pipelines.tekton.dev,pipelineruns.tekton.dev,pipelineresources.tekton.dev,tasks.tekton.dev,runs.tekton.dev \
                 >"$syncer_manifest"
             KUBECONFIG=${DATA_DIR}/credentials/kubeconfig/compute/${kubeconfigs[$i]} kubectl apply --context ${contexts[$i]} -f "$syncer_manifest"
         fi
