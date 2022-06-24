@@ -22,7 +22,6 @@ CR_TOSYNC=(
             pipelineresources.tekton.dev
             runs.tekton.dev
             tasks.tekton.dev
-            taskruns.tekton.dev
             repositories.pipelinesascode.tekton.dev
           )
 
