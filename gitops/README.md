@@ -6,10 +6,12 @@ This directory contains the manifests used to automate the installation of opera
 
 We want to make the onboarding experience to use Pipelines-service as easy and customizable as possible. With that in mind, Pipelines-service is built around the principles of GitOps. Using kustomize, users will be able to set up, modify and update cluster resources without having to disrupt their existing setup. We provide base kustomization.yaml files to help get started, so that users can then add their customizations in the overlay/kustomization.yaml files.
 
-## Pre-requisites
+## Prerequisites
 
-- Openshift cluster
-- Openshift GitOps operator installed (instructions [here](https://docs.openshift.com/container-platform/4.10/cicd/gitops/installing-openshift-gitops.html))
+- OpenShift cluster
+- OpenShift Pipelines Operator installed (instructions [here](https://docs.openshift.com/container-platform/4.10/cicd/pipelines/installing-pipelines.html))
+  Note: To be installed *only* for the first cluster
+- OpenShift GitOps operator installed (instructions [here](https://docs.openshift.com/container-platform/4.10/cicd/gitops/installing-openshift-gitops.html))
 - Pipelines as Code installed and set up to talk to this repo  (instructions [here](./pac/README.md) and [here](https://pipelinesascode.com/docs/install/installation/))
 
 ## Components
@@ -23,36 +25,122 @@ Post this, a user will be able to log in to kcp workspace and start creating Pip
 
 ## How to run
 
-Currently, we support two ways to get the cluster set up and ready to start creating PipelineRuns:  
-a. Run the script manually
-b. Merge a PR with the kubeconfigs and overlay kustomization to trigger a PipelineRun to automate the process.
+Currently, we support two ways to get the cluster set up and ready to start creating PipelineRuns. The process to set up the cluster involves the following steps:
 
-1. Run scripts
+1. Prepare repository
+2. Generate kubeconfigs 
+3. <br />
+   Option 1 : Run manual scripts <br />
+   Option 2 : Pipelines as Code (PaC) <br />
+   &nbsp;&nbsp; a. Install and setup Pipelines As Code <br />
+   &nbsp;&nbsp; b. Create and merge a PR
 
-    a. To install pipelines and triggers
 
-    ```bash
-    WORKSPACE_DIR=/home/workspace/pipelines-service ../images/cluster-setup/install.sh
+### Prepare repository
+
+Create a new Git repo that would have the following structure. You can also use our [sre folder](./sre) or one of the folders from our [examples](../docs/sre/examples).
+
+```
+- .tekton
+  - kcp-registration.yaml
+  - cluster-setup.yaml
+- credentials
+  - kubeconfig
+    - compute
+    - kcp
+- environment
+  - compute
+```
+
+### Generate kubeconfigs
+
+In order to generate the kubeconfig for the cluster and kcp instance with the appropriate permissions using service accounts, we have created a few scripts which are available [here](../images/access_setup/content/bin). 
+The [README.md](../images/access_setup/README.md) describes the steps but essentially, you need the below two commands to generate kubeconfig for your cluster and kcp instance respectively. Please refer to the Readme for more details.
+
+```
+- ./setup_compute.sh --kubeconfig /home/.kube/mycluster.kubeconfig --work_dir /repo/sre
+- ./setup_kcp.sh --kubeconfig /kcp/kcpinstance.kubeconfig --kcp_workspace plnsvc-ws --work_dir /repo/sre
+```
+
+### Run manual scripts
+
+One way you could complete the set up process is to run the below scripts manually.  
+_Note: Please run these scripts only if you intend not to use PaC to automate the workflow._
+
+    a. To install Tekton components
+
+    ```
+    $ WORKSPACE_DIR=/home/workspace/pipelines-service/gitops/sre ../images/cluster-setup/install.sh
     ```
 
     b. To access and setup kcp
 
-    ```bash
-    KCP_ORG="root:pipelines-service" KCP_WORKSPACE="compute" DATA_DIR="/home/workspace/pipelines-service" ../images/kcp-registrar/register.sh
+    ```
+    $ KCP_ORG="root:pipelines-service" KCP_WORKSPACE="compute" DATA_DIR="/home/workspace/pipelines-service/gitops/sre" ../images/kcp-registrar/register.sh
     ```
 
-2. Open and merge a Pull Request
+### Pipelines As Code (PaC)
+
+#### Install and setup Pipelines As Code
+
+The second method which we support is to automate the process by using Pipelines as Code.
+
+Note:
+  - Pipelines as Code that needs to be installed and set up does not necessarily have to be on the workload cluster being used for Pipeline Service. It could be on any cluster as long as we have the URL set up and available.
+  - If you already have an existing Pipelines as Code setup, then you could skip this step and just make sure that PaC is able to talk to the repo created in step 1. 
+
 There are a couple of steps that need to be done to use PAC in Pipelines-service.
 a. Install Pipelines as Code on the OpenShift Cluster.
-b. Set up a Git application on any of the Git providers (GitHub, GitLab, Bitbucket etc.) by following the steps from [here](https://pipelinesascode.com).
+- Following the instructions from [here](https://pipelinesascode.com/docs/install/installation/) for an OpenShift cluster:
+  ```
+  kubectl patch tektonconfig config --type="merge" -p '{"spec": {"addon":{"enablePipelinesAsCode": false}}}'
+  kubectl apply -f https://raw.githubusercontent.com/openshift-pipelines/pipelines-as-code/stable/release.yaml
+  ```
+b. In order to set up PaC to listen to PRs, you must push the repository created in step 1 to a Git provider of your choice.
+
+c. From the path of your repo in your system, set up a Git application on any of the Git providers (GitHub, GitLab, Bitbucket etc.) by following the steps from [here](https://pipelinesascode.com).
+- As an example, if you wish to set up a GitHub app, Pipelines as Code team recommends using the [tkn pac cli tool](https://pipelinesascode.com/docs/guide/cli/) as it is easy to complete the whole process in just a couple of commands.
+   ```
+   tkn pac bootstrap github-app
+      This command will guide you through the process to create a GitHub app. 
+   tkn pac create repo
+      This command will create a new Pipelines as Code Repository definition, a namespace where the pipelineruns run and configures webhook.
+   ```
+- Note: 
+  - You need to install the GitHub app on your desired repository apart from the above two steps.
+  - You need to disable SSL in the GitHub app settings if you are using self-signed certificate.
+- PaC also supports the above steps on other Git providers such as Gitlab, Bitbucket all of which is documented [here](https://pipelinesascode.com/).
 
 Once the above two steps are done, the GitHub app (or any other Git provider app) you've set up from step 2 is now talking to PAC and would watch PRs and trigger PipelineRuns that automate the workflow previously described.
 
-The PR should have:
+#### Create and merge a PR
 
-- kubeconfig/s of the OpenShift clusters to be placed under gitops/credentials/kubeconfig/compute
-- overlay/kustomization.yaml to be created under `gitops/environment/compute/<clustername>/overlay/kustomization.yaml`
+Now that we have everything ready, we can create a PR on the repo with the following files. 
 
+_Note: mycluster.kubeconfig, mykcp.kubeconfig, mycluster and kustomization.yaml are all generated by setup_compute.sh and setup_kcp.sh scripts. Based on your requirement, you can customize the configuration under kustomization.yaml. Refer [examples](../docs/sre/examples) for more information._
+
+```
+- .tekton
+    - kcp-registration.yaml
+    - cluster-setup.yaml
+- credentials
+    - kubeconfig
+        - compute
+          - mycluster.kubeconfig    //kubeconfig of your cluster
+        - kcp
+          - mykcp.kubeconfig        //kubeconfig of your kcp shared instance
+- environment
+    - compute
+      - mycluster                   //folder with the same name as your cluster
+        - kustomization.yaml        //kustomization file which points to ArgoCD resources
+
+
+$cat kustomization.yaml
+resources:
+  - github.com/openshift-pipelines/pipelines-service/gitops/argocd?ref=main
+```
+
+Once you merge the PR, PaC will trigger cluster-setup and kcp-registrar Pipelines present under _.tekton_ to set up the cluster and register it with kcp instance.
 
 ## Next steps
 
