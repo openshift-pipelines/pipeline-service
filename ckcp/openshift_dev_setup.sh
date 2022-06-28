@@ -52,7 +52,7 @@ Example:
 
 parse_args() {
   local default_list="openshift-gitops ckcp"
-  local pipeline_list="openshfit-pipeline"
+  local pipeline_list="openshift-pipeline pvc-cleaner"
   APP_LIST="$default_list"
   cluster_type="openshift"
 
@@ -115,6 +115,16 @@ check_cluster_role() {
     echo "Log into the cluster with a user with the required privileges (e.g. kubeadmin) and retry."
     exit 1
   fi
+}
+
+install_pvc_cleaner() {
+  APP="pvc-cleaner"
+
+  echo -n "  - pvc-cleaner application: "
+  kubectl apply -f "$GITOPS_DIR/argocd/argo-apps/$APP.yaml" --wait >/dev/null 2>&1
+  argocd app wait pvc-cleaner openshift-gitops --timeout=90 >/dev/null 2>&1
+  kubectl wait --for=condition=Ready -n pvc-cleaner pod -l=app=pvc-cleaner --timeout=90s >/dev/null 2>&1
+  echo "OK"
 }
 
 install_app() {
@@ -282,19 +292,17 @@ patches:
   echo "OK"
 
   echo -n "  - Workloadcluster pipeline-cluster registration: "
-  if ! KUBECONFIG="$KUBECONFIG_KCP" kubectl get WorkloadCluster local >/dev/null 2>&1; then
-    (
-      kcp_image_tag="$(yq -e '.images[0].newTag' "$ckcp_dev_dir"/kustomization.yaml)"
-      cr_string="$(IFS=,; echo "${CR_TOSYNC[*]}")"
-      KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workload sync local \
-      --syncer-image ghcr.io/kcp-dev/kcp/syncer:"$kcp_image_tag" \
-      --resources "$cr_string" > "$kube_dir/syncer.yaml"
-      kubectl apply -f "$kube_dir/syncer.yaml" >/dev/null 2>&1
-      # Wait until Syncer pod is available
-      SYNCER_NS_ID="$(kubectl get ns -l workload.kcp.io/workload-cluster=local -o json | jq -r '.items[0].metadata.name')" 
-      kubectl rollout status deployment/kcp-syncer -n "$SYNCER_NS_ID" --timeout=90s >/dev/null 2>&1
-      rm -rf "$kube_dir/syncer.yaml"
-    )
+  if ! KUBECONFIG="$KUBECONFIG_KCP" kubectl get workloadcluster local >/dev/null 2>&1; then
+    kcp_image_tag="$(yq -e '.images[0].newTag' "$ckcp_dev_dir"/kustomization.yaml)"
+    cr_string="$(IFS=,; echo "${CR_TOSYNC[*]}")"
+    KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workload sync local \
+    --syncer-image ghcr.io/kcp-dev/kcp/syncer:"$kcp_image_tag" \
+    --resources "$cr_string" > "$kube_dir/syncer.yaml"
+    kubectl apply -f "$kube_dir/syncer.yaml" >/dev/null 2>&1
+    # Wait until Syncer pod is available
+    SYNCER_NS_ID="$(kubectl get ns -l workload.kcp.io/workload-cluster=local -o json | jq -r '.items[0].metadata.name')" 
+    kubectl rollout status deployment/kcp-syncer -n "$SYNCER_NS_ID" --timeout=90s >/dev/null 2>&1
+    rm -rf "$kube_dir/syncer.yaml"
   fi
   echo "OK"
 
@@ -306,7 +314,7 @@ patches:
   echo "OK"
 }
 
-install_openshfit_pipeline() {
+install_openshift_pipeline() {
   APP="argocd"
 
   echo -n "  - openshift-pipeline application: "
