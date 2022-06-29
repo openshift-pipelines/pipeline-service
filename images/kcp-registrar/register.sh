@@ -139,10 +139,14 @@ register() {
 
 prechecks
 kcp_kubeconfig
-printf "Switching to organization %s\n" "${KCP_ORG}"
-switch_org
-printf "Switching to workspace %s\n" "${KCP_WORKSPACE}"
-switch_ws
+if [[ "$(KUBECONFIG=${kcp_kcfg} kubectl kcp workspace current | cut -d\" -f2)" == "$KCP_ORG:$KCP_WORKSPACE" ]]; then
+    printf "Workspace: %s" "$KCP_ORG:$KCP_WORKSPACE"
+else
+    printf "Switching to organization %s\n" "${KCP_ORG}"
+    switch_org
+    printf "Switching to workspace %s\n" "${KCP_WORKSPACE}"
+    switch_ws
+fi
 get_clusters
 printf "Registering clusters to kcp\n"
 register
