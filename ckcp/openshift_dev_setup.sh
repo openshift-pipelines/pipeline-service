@@ -52,7 +52,7 @@ Example:
 
 parse_args() {
   local default_list="openshift-gitops ckcp"
-  local pipeline_list="openshfit-pipeline"
+  local pipeline_list="openshift-pipeline"
   APP_LIST="$default_list"
   cluster_type="openshift"
 
@@ -291,7 +291,7 @@ patches:
       --resources "$cr_string" > "$kube_dir/syncer.yaml"
       kubectl apply -f "$kube_dir/syncer.yaml" >/dev/null 2>&1
       # Wait until Syncer pod is available
-      SYNCER_NS_ID="$(kubectl get ns -l workload.kcp.io/workload-cluster=local -o json | jq -r '.items[0].metadata.name')" 
+      SYNCER_NS_ID="$(kubectl get ns -l workload.kcp.io/workload-cluster=local -o json | jq -r '.items[0].metadata.name')"
       kubectl rollout status deployment/kcp-syncer -n "$SYNCER_NS_ID" --timeout=90s >/dev/null 2>&1
       rm -rf "$kube_dir/syncer.yaml"
     )
@@ -306,7 +306,7 @@ patches:
   echo "OK"
 }
 
-install_openshfit_pipeline() {
+install_openshift_pipeline() {
   APP="argocd"
 
   echo -n "  - openshift-pipeline application: "
