@@ -35,6 +35,7 @@ Before you execute the script,
 4. You need to install [yq](https://mikefarah.gitbook.io/yq/#install)
 5. You need to install [kubectl cert-manager plugin](https://cert-manager.io/docs/usage/kubectl-plugin/#installation)
 6. You need to install [kubectl kcp plugin](https://github.com/kcp-dev/kcp/blob/main/docs/kubectl-kcp-plugin.md)
+   Note: ckcp uses the official kcp image in order to run kcp in a pod (latest released versions). It is advisable to use the same version for the kcp plugin as the kcp core API (especially as KCP API is evolving quickly). The current version can be found in this [file](./openshift/overlays/dev/kustomization.yaml) as the 'newTag' variable. Make sure to checkout this branch before installing the plugin.
 
 You can run the openshift_dev_setup.sh script with or without parameters as specified below:  
 Note: Triggers require pipelines to be running and thus running ckcp with triggers alone is not supported.
