@@ -1,4 +1,19 @@
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6
+LABEL build-date= \
+      com.redhat.build-host= \
+      description="This image provides binaries and a script to install tektoncd components on the workload clusters." \
+      distribution-scope="public" \
+      io.k8s.description="This image provides binaries and a script to install tektoncd components on the workload clusters." \
+      io.k8s.display-name="cluster setup" \
+      maintainer="Pipelines Service" \
+      name="cluster-setup" \
+      release="0.1" \
+      summary="Provides the latest release of cluster-setup image." \
+      url="https://github.com/openshift-pipelines/pipelines-service/tree/main/images/cluster-setup" \
+      vcs-ref=  \
+      vcs-type="git" \
+      vendor="Pipelines Service" \
+      version="0.1"
 WORKDIR /
 RUN mkdir /workspace && chmod 777 /workspace && chown 65532:65532 /workspace
 ENV HOME /tmp/home
