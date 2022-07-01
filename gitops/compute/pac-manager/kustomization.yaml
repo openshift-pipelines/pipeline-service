@@ -1,0 +1,5 @@
+resources:
+  - namespace.yaml
+  - pac-manager.yaml
+  - role.yaml
+  - rolebinding.yaml
