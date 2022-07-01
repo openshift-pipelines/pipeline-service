@@ -2,6 +2,8 @@ apiVersion: operator.tekton.dev/v1alpha1
 kind: TektonConfig
 metadata:
   name: config
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   profile: all
   targetNamespace: openshift-pipelines
