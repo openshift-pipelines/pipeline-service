@@ -83,10 +83,10 @@ get_clusters() {
     contexts=()
     kubeconfigs=()
     printf "Extracting files under the kubeconfig dir and reading the content in each file \n"
-    files=("$(ls "$WORKSPACE_DIR/credentials/kubeconfig/compute")")
+    mapfile -t files < <(find "$WORKSPACE_DIR/credentials/kubeconfig/compute/" -name \*.kubeconfig)
     for kubeconfig in "${files[@]}"; do
         printf "  - %s\n" "$kubeconfig"
-        subs=("$(KUBECONFIG=${WORKSPACE_DIR}/credentials/kubeconfig/compute/${kubeconfig} kubectl config view -o jsonpath='{range .contexts[*]}{.name}{","}{.context.cluster}{"\n"}{end}')")
+        mapfile -t subs < <(KUBECONFIG=${kubeconfig} kubectl config view -o jsonpath='{range .contexts[*]}{.name}{","}{.context.cluster}{"\n"}{end}')
         for sub in "${subs[@]}"; do
             context=$(echo -n "${sub}" | cut -d ',' -f 1)
             cluster=$(echo -n "${sub}" | cut -d ',' -f 2 | cut -d ':' -f 1)
@@ -104,7 +104,7 @@ get_clusters() {
 switch_cluster() {
   # Sometimes the workspace is read-only, preventing the context switch
   export KUBECONFIG="/tmp/cluster.kubeconfig"
-  cp "${WORKSPACE_DIR}/credentials/kubeconfig/compute/${kubeconfigs[$i]}" "$KUBECONFIG"
+  cp "${kubeconfigs[$i]}" "$KUBECONFIG"
 
   if ! kubectl config use-context "${contexts[$i]}" >/dev/null; then
     exit_error "\nCannot use '${contexts[$i]}' context in '$KUBECONFIG'."
@@ -123,26 +123,26 @@ install_tektoncd() {
 }
 
 postchecks() {
-  printf "Checking deployment\n"
+  printf "Checking deployment status\n"
   #checking if the pipelines and triggers pods are up and running
   for i in "${!clusters[@]}"; do
     switch_cluster
     printf "  - %s:\n" "${clusters[$i]}"
     for deploy in tekton-pipelines-controller tekton-triggers-controller tekton-triggers-core-interceptors; do
-      printf "    Checking the status of %s: " "$deploy"
+      printf "    - %s: " "$deploy"
 
       #a loop to check if the deployment exists
-      if ! timeout 300s bash -c "while ! kubectl get deployment/$deploy -n openshift-pipelines >/dev/null 2>/dev/null; do printf '       - Deployed: '; sleep 10; done"; then
-        exit_error "Not found. Something is wrong.\n"
+      if ! timeout 300s bash -c "while ! kubectl get deployment/$deploy -n openshift-pipelines >/dev/null 2>/dev/null; do printf '.'; sleep 10; done"; then
+        exit_error "$deploy not found (timeout)"
       else
-        printf "\nExists\n"
+        printf "Exists"
       fi
 
       #a loop to check if the deployment is Available and Ready
       if kubectl wait --for=condition=Available=true deployment/$deploy -n openshift-pipelines --timeout=100s >/dev/null 2>/dev/null; then
-        printf "Ready\n"
+        printf ", Ready\n"
       else
-        exit_error "Not ready\n"
+        exit_error "$deploy not ready (timeout)"
       fi
     done
   done
