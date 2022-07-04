@@ -16,14 +16,14 @@ KUBECONFIG=${KUBECONFIG:-$HOME/.kube/config}
 KUBECONFIG_KCP="$WORK_DIR/kubeconfig/admin.kubeconfig"
 KUBECONFIG_MERGED="merged-config.kubeconfig:$KUBECONFIG:$KUBECONFIG_KCP"
 CR_TOSYNC=(
-            conditions.tekton.dev
-            pipelines.tekton.dev
-            pipelineruns.tekton.dev
-            pipelineresources.tekton.dev
-            runs.tekton.dev
-            tasks.tekton.dev
-            repositories.pipelinesascode.tekton.dev
-          )
+  conditions.tekton.dev
+  pipelines.tekton.dev
+  pipelineruns.tekton.dev
+  pipelineresources.tekton.dev
+  runs.tekton.dev
+  tasks.tekton.dev
+  repositories.pipelinesascode.tekton.dev
+)
 
 usage() {
   echo "
@@ -51,7 +51,7 @@ Example:
 
 parse_args() {
   local default_list="openshift-gitops ckcp"
-  local pipeline_list="openshift-pipeline"
+  local pipeline_list="openshift-pipeline tekton-results"
   APP_LIST="$default_list"
   cluster_type="openshift"
 
@@ -96,7 +96,7 @@ parse_args() {
 
 # To ensure that dependencies are satisfied
 precheck() {
-  if [ "$(kubectl plugin list | grep -c 'kubectl-kcp')" -eq 0 ]  ; then
+  if [ "$(kubectl plugin list | grep -c 'kubectl-kcp')" -eq 0 ]; then
     printf "kcp plugin could not be found\n"
     exit 1
   fi
@@ -180,7 +180,7 @@ install_cert_manager() {
     kubectl apply -f "$CKCP_DIR/argocd-apps/$APP.yaml" >/dev/null 2>&1
     argocd app wait "$APP" >/dev/null 2>&1
     # Wait until cert manager is ready
-    kubectl cert-manager check api --wait=5m  >/dev/null 2>&1
+    kubectl cert-manager check api --wait=5m >/dev/null 2>&1
   fi
   echo "OK"
 }
@@ -235,7 +235,7 @@ patches:
       - op: add
         path: /spec/dnsNames/-
         description: This value refers to the hostAddress defined in the Route.
-        value: $ckcp_route " >> "$ckcp_temp_dir/kustomization.yaml"
+        value: $ckcp_route " >>"$ckcp_temp_dir/kustomization.yaml"
 
   echo -n "  - kcp: "
   kubectl apply -k "$ckcp_temp_dir" >/dev/null 2>&1
@@ -251,7 +251,10 @@ patches:
   podname="$(kubectl get pods --ignore-not-found -n "$ns" -l=app=kcp-in-a-pod -o jsonpath='{.items[0].metadata.name}')"
   mkdir -p "$(dirname "$KUBECONFIG_KCP")"
   # Wait until admin.kubeconfig file is generated inside ckcp pod
-  while [[ $(kubectl exec -n $APP "$podname" -- ls /etc/kcp/config/admin.kubeconfig >/dev/null 2>&1; echo $?) -ne 0 ]];do
+  while [[ $(
+    kubectl exec -n $APP "$podname" -- ls /etc/kcp/config/admin.kubeconfig >/dev/null 2>&1
+    echo $?
+  ) -ne 0 ]]; do
     echo -n "."
     sleep 5
   done
@@ -268,7 +271,7 @@ patches:
   # Register the host cluster to KCP
   echo -n "  - Workspace: "
   # To ensure we are in demo's parent workspace to manipulate demo workspace
-  KUBECONFIG="$KUBECONFIG_KCP"  kubectl kcp ws use root:default >/dev/null 2>&1
+  KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp ws use root:default >/dev/null 2>&1
   if ! KUBECONFIG="$KUBECONFIG_KCP" kubectl get workspaces demo >/dev/null 2>&1; then
     KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspaces create demo >/dev/null 2>&1
     # Check if workspace "demo" is ready. This is a workaround, because commands executed directly after creating workspace with "--enter" option occasionally fail
@@ -284,10 +287,13 @@ patches:
   if ! KUBECONFIG="$KUBECONFIG_KCP" kubectl get WorkloadCluster local >/dev/null 2>&1; then
     (
       kcp_image_tag="$(yq -e '.images[0].newTag' "$ckcp_dev_dir"/kustomization.yaml)"
-      cr_string="$(IFS=,; echo "${CR_TOSYNC[*]}")"
+      cr_string="$(
+        IFS=,
+        echo "${CR_TOSYNC[*]}"
+      )"
       KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workload sync local \
-      --syncer-image ghcr.io/kcp-dev/kcp/syncer:"$kcp_image_tag" \
-      --resources "$cr_string" > "$kube_dir/syncer.yaml"
+        --syncer-image ghcr.io/kcp-dev/kcp/syncer:"$kcp_image_tag" \
+        --resources "$cr_string" >"$kube_dir/syncer.yaml"
       kubectl apply -f "$kube_dir/syncer.yaml" >/dev/null 2>&1
       # Wait until Syncer pod is available
       SYNCER_NS_ID="$(kubectl get ns -l workload.kcp.io/workload-cluster=local -o json | jq -r '.items[0].metadata.name')"
@@ -300,7 +306,7 @@ patches:
   # Register the KCP cluster into ArgoCD
   echo -n "  - KCP cluster registration to ArgoCD: "
   if ! KUBECONFIG="$KUBECONFIG_MERGED" argocd cluster get kcp >/dev/null 2>&1; then
-    KUBECONFIG="$KUBECONFIG_MERGED" argocd cluster add "workspace.kcp.dev/current" --name=kcp  --system-namespace default --yes >/dev/null 2>&1
+    KUBECONFIG="$KUBECONFIG_MERGED" argocd cluster add "workspace.kcp.dev/current" --name=kcp --system-namespace default --yes >/dev/null 2>&1
   fi
   echo "OK"
 }
@@ -309,24 +315,28 @@ install_openshift_pipeline() {
   APP="argocd"
 
   echo -n "  - openshift-pipeline application: "
+
   kubectl apply -f "$GITOPS_DIR/$APP/$APP.yaml" --wait >/dev/null 2>&1
   argocd app wait pipelines-service tektoncd --timeout=90 >/dev/null 2>&1
   echo "OK"
 
   check_cr_sync
+
 }
 
 check_cr_sync() {
   # Wait until CRDs are synced to KCP
   echo -n "  - Sync CRDs to KCP: "
   local cr_regexp
-  cr_regexp="$(IFS=\|; echo "${CR_TOSYNC[*]}")"
-  local  wait_period=0
-  while [[ "$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources -o name  2>&1 | grep -Ewc "$cr_regexp")" -ne ${#CR_TOSYNC[@]} ]]
-  do
-    wait_period=$((wait_period+10))
+  cr_regexp="$(
+    IFS=\|
+    echo "${CR_TOSYNC[*]}"
+  )"
+  local wait_period=0
+  while [[ "$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources -o name 2>&1 | grep -Ewc "$cr_regexp")" -ne ${#CR_TOSYNC[@]} ]]; do
+    wait_period=$((wait_period + 10))
     #when timeout, print out the CR resoures that is not synced to KCP
-    if [ $wait_period -gt 300 ];then
+    if [ $wait_period -gt 300 ]; then
       echo "Failed to sync following resources to KCP: "
       cr_synced=$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources -o name)
       for cr in "${CR_TOSYNC[@]}"; do
@@ -339,6 +349,33 @@ check_cr_sync() {
     echo -n "."
     sleep 10
   done
+  echo "OK"
+}
+
+install_tekton_results() {
+
+  APP="tekton-results"
+  echo -n "  - tekton-results application: "
+
+  # Generate postgres secret
+  kubectl create secret generic tekton-results-postgres --namespace="openshift-pipelines" --from-literal=POSTGRES_USER=postgres --from-literal=POSTGRES_PASSWORD=$(openssl rand -base64 20) --dry-run=client -o yaml | kubectl apply -f - >/dev/null 2>&1
+
+  # Generate new self-signed cert.
+  openssl req -x509 \
+    -newkey rsa:4096 \
+    -keyout key.pem \
+    -out cert.pem \
+    -days 365 \
+    -nodes \
+    -subj "/CN=tekton-results-api-service.openshift-pipelines.svc.cluster.local" \
+    -addext "subjectAltName = DNS:tekton-results-api-service.openshift-pipelines.svc.cluster.local" >/dev/null 2>&1
+
+  # Create new TLS Secret from cert.
+  kubectl create secret tls -n openshift-pipelines tekton-results-tls --cert=cert.pem --key=key.pem --dry-run=client -o yaml | kubectl apply -f - >/dev/null 2>&1
+
+  kubectl apply -f "$GITOPS_DIR/argocd/$APP.yaml" --wait >/dev/null 2>&1
+  argocd app wait tekton-results --timeout=90 >/dev/null 2>&1
+  rm cert.pem key.pem
   echo "OK"
 }
 

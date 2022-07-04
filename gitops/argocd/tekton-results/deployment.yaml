@@ -1,0 +1,111 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: api
+    app.kubernetes.io/name: tekton-results
+    app.kubernetes.io/part-of: tekton-results
+    app.kubernetes.io/version: v0.3.0
+    results.tekton.dev/release: devel
+    version: devel
+  name: tekton-results-api
+  namespace: openshift-pipelines
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tekton-results-api
+      app.kubernetes.io/part-of: tekton-results
+      app.kubernetes.io/version: v0.3.0
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+      labels:
+        app: tekton-results-api
+        app.kubernetes.io/component: api
+        app.kubernetes.io/name: tekton-results
+        app.kubernetes.io/part-of: tekton-results
+        app.kubernetes.io/version: v0.3.0
+        results.tekton.dev/release: devel
+        version: devel
+    spec:
+      containers:
+        - env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  key: POSTGRES_USER
+                  name: tekton-results-postgres
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: POSTGRES_PASSWORD
+                  name: tekton-results-postgres
+            - name: DB_PROTOCOL
+              value: tcp
+            - name: DB_ADDR
+              value: postgres-service.openshift-pipelines.svc.cluster.local
+            - name: DB_NAME
+              value: tekton-results
+          image: gcr.io/tekton-releases/github.com/tektoncd/results/cmd/api:v0.3.0@sha256:ed956232dc782cb9bb16f7bf15459fd56db52ce0952b5e2be70ae5314d0ad8de
+          name: tekton-results-api
+          volumeMounts:
+            - mountPath: /etc/tls
+              name: tls
+              readOnly: true
+      serviceAccountName: tekton-results-api
+      volumes:
+        - name: tls
+          secret:
+            secretName: tekton-results-tls
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: watcher
+    app.kubernetes.io/name: tekton-results
+    app.kubernetes.io/part-of: tekton-results
+    app.kubernetes.io/version: v0.3.0
+    results.tekton.dev/release: devel
+    version: devel
+  name: tekton-results-watcher
+  namespace: openshift-pipelines
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tekton-results-watcher
+      app.kubernetes.io/part-of: tekton-results
+      app.kubernetes.io/version: v0.3.0
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+      labels:
+        app: tekton-results-watcher
+        app.kubernetes.io/component: watcher
+        app.kubernetes.io/name: tekton-results
+        app.kubernetes.io/part-of: tekton-results
+        app.kubernetes.io/version: v0.3.0
+        results.tekton.dev/release: devel
+        version: devel
+    spec:
+      containers:
+        - args:
+            - -api_addr
+            - tekton-results-api-service.openshift-pipelines.svc.cluster.local:50051
+            - -auth_mode
+            - token
+          image: gcr.io/tekton-releases/github.com/tektoncd/results/cmd/watcher:v0.3.0@sha256:00b6df37bcee791a96691675a0f83db8ff04bfcf07993e07c61847766f015b44
+          name: tekton-results-watcher
+          volumeMounts:
+            - mountPath: /etc/tls
+              name: tls
+              readOnly: true
+      serviceAccountName: tekton-results-watcher
+      volumes:
+        - name: tls
+          secret:
+            secretName: tekton-results-tls
