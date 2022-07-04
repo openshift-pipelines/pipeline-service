@@ -23,6 +23,7 @@ CR_TOSYNC=(
             runs.tekton.dev
             tasks.tekton.dev
             repositories.pipelinesascode.tekton.dev
+            networkpolicies.networking.k8s.io
           )
 
 usage() {
