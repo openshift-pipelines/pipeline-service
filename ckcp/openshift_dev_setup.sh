@@ -309,8 +309,25 @@ install_openshift_pipeline() {
   APP="argocd"
 
   echo -n "  - openshift-pipeline application: "
+
+  # Generate postgres secret
+  kubectl create secret generic tekton-results-postgres --namespace="openshift-pipelines" --from-literal=POSTGRES_USER=postgres --from-literal=POSTGRES_PASSWORD=$(openssl rand -base64 20) --dry-run=client -o yaml | kubectl apply -f - >/dev/null 2>&1
+
+  # Generate new self-signed cert.
+  openssl req -x509 \
+  -newkey rsa:4096 \
+  -keyout key.pem \
+  -out cert.pem \
+  -days 365 \
+  -nodes \
+  -subj "/CN=tekton-results-api-service.openshift-pipelines.svc.cluster.local" \
+  -addext "subjectAltName = DNS:tekton-results-api-service.openshift-pipelines.svc.cluster.local"
+
+  # Create new TLS Secret from cert.
+  kubectl create secret tls -n openshift-pipelines tekton-results-tls --cert=cert.pem --key=key.pem --dry-run=client -o yaml | kubectl apply -f - >/dev/null 2>&1
+
   kubectl apply -f "$GITOPS_DIR/$APP/$APP.yaml" --wait >/dev/null 2>&1
-  argocd app wait pipelines-service tektoncd --timeout=90 >/dev/null 2>&1
+  argocd app wait pipelines-service tektoncd tekton-results --timeout=90 >/dev/null 2>&1
   echo "OK"
 
   check_cr_sync

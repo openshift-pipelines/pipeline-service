@@ -1,2 +1,3 @@
 resources:
   - tektoncd.yaml
+  - tekton-results.yaml
