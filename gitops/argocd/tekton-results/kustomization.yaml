@@ -5,6 +5,4 @@ resources:
   - permissions.yaml
   - service-account.yaml
   - configmap.yaml
-  - service.yaml
   - deployment.yaml
-  - statefulset.yaml

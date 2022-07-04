@@ -2,24 +2,25 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   labels:
+    app.kubernetes.io/name: tekton-results-postgres
     app.kubernetes.io/part-of: tekton-results
-    app.kubernetes.io/version: v0.3.0
-  name: postgres
+    app.kubernetes.io/version: v0.4.0
+  name: tekton-results-postgres
   namespace: openshift-pipelines
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: postgres
+      app.kubernetes.io/name: tekton-results-postgres
       app.kubernetes.io/part-of: tekton-results
-      app.kubernetes.io/version: v0.3.0
+      app.kubernetes.io/version: v0.4.0
   serviceName: postgres
   template:
     metadata:
       labels:
-        app: postgres
+        app.kubernetes.io/name: tekton-results-postgres
         app.kubernetes.io/part-of: tekton-results
-        app.kubernetes.io/version: v0.3.0
+        app.kubernetes.io/version: v0.4.0
     spec:
       containers:
         - envFrom:
@@ -27,7 +28,7 @@ spec:
                 name: tekton-results-postgres
             - secretRef:
                 name: tekton-results-postgres
-          image: postgres@sha256:6647385dd9ae11aa2216bf55c54d126b0a85637b3cf4039ef24e3234113588e3
+          image: postgres:13.3
           name: postgres
           env:
             - name: PGDATA
@@ -36,19 +37,19 @@ spec:
             - containerPort: 5432
               name: postgredb
           volumeMounts:
-            - mountPath: /var/lib/postgresql
+            - mountPath: /var/lib/postgresql/data
               name: postgredb
             - mountPath: /docker-entrypoint-initdb.d
               name: sql-initdb
       volumes:
         - configMap:
-            name: sql-initdb-config
+            name: tekton-results-sql-initdb-config
           name: sql-initdb
   volumeClaimTemplates:
     - metadata:
         labels:
           app.kubernetes.io/part-of: tekton-results
-          app.kubernetes.io/version: v0.3.0
+          app.kubernetes.io/version: v0.4.0
         name: postgredb
       spec:
         accessModes:

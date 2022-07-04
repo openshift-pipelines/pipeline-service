@@ -128,7 +128,7 @@ postchecks() {
   for i in "${!clusters[@]}"; do
     switch_cluster
     printf "  - %s:\n" "${clusters[$i]}"
-    for deploy in tekton-pipelines-controller tekton-triggers-controller tekton-triggers-core-interceptors; do
+    for deploy in tekton-pipelines-controller tekton-triggers-controller tekton-triggers-core-interceptors tekton-results-api tekton-results-watcher; do
       printf "    - %s: " "$deploy"
 
       #a loop to check if the deployment exists

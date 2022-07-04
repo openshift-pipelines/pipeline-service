@@ -11,13 +11,15 @@ SCRIPT_DIR="$(
 GITOPS_DIR="$(dirname "$SCRIPT_DIR")/gitops"
 CKCP_DIR="$(dirname "$SCRIPT_DIR")/ckcp"
 KUBECONFIG=${KUBECONFIG:-$HOME/.kube/config}
-CR_TO_SYNC=(
-            conditions.tekton.dev
-            pipelines.tekton.dev
-            pipelineruns.tekton.dev
-            pipelineresources.tekton.dev
-            runs.tekton.dev
-            tasks.tekton.dev
+CR_TO_SYNC=(	
+            deployments.apps	
+            services	
+            ingresses.networking.k8s.io	
+            pipelines.tekton.dev	
+            pipelineruns.tekton.dev	
+            runs.tekton.dev	
+            tasks.tekton.dev	
+            networkpolicies.networking.k8s.io	
           )
 
 usage() {
@@ -72,7 +74,7 @@ parse_args() {
 }
 
 init() {
-  APP_LIST="openshift-gitops ckcp compute"
+  APP_LIST="openshift-gitops tekton-results ckcp compute"
   cluster_type="openshift"
 
   # Create SRE repository folder
@@ -302,6 +304,32 @@ install_compute() {
     "$SCRIPT_DIR/../images/kcp-registrar/register.sh"
 
   check_cr_sync
+}
+
+install_tekton_results(){
+  APP="tekton-results"
+  echo -n "  - tekton-results application: "
+
+  kubectl apply -k "tekton-results/openshift" >/dev/null 2>&1
+
+  # Generate postgres secret
+  kubectl create secret generic tekton-results-postgres --namespace="openshift-pipelines" --from-literal=POSTGRES_USER=postgres --from-literal=POSTGRES_PASSWORD=$(openssl rand -base64 20) --dry-run=client -o yaml | kubectl apply -f - >/dev/null 2>&1
+
+  # Generate new self-signed cert.
+  openssl req -x509 \
+    -newkey rsa:4096 \
+    -keyout key.pem \
+    -out cert.pem \
+    -days 365 \
+    -nodes \
+    -subj "/CN=tekton-results-api-service.openshift-pipelines.svc.cluster.local" \
+    -addext "subjectAltName = DNS:tekton-results-api-service.openshift-pipelines.svc.cluster.local" >/dev/null 2>&1
+
+  # Create new TLS Secret from cert.
+  kubectl create secret tls -n openshift-pipelines tekton-results-tls --cert=cert.pem --key=key.pem --dry-run=client -o yaml | kubectl apply -f - >/dev/null 2>&1
+
+  rm cert.pem key.pem
+  echo "OK"
 }
 
 check_cr_sync() {
