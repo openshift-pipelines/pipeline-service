@@ -63,7 +63,8 @@ controller_install() {
     CONTROLLER_INSTALL="${CONTROLLER_INSTALL:-}"
     if [[ $(tr '[:upper:]' '[:lower:]' <<< "$CONTROLLER_INSTALL") == "true" ]]; then
        printf "Installing controller\n"
-       kubectl --kubeconfig ${KUBECONFIG} apply -f https://raw.githubusercontent.com/openshift-pipelines/pipelines-as-code/stable/release.k8s.yaml
+       kubectl --kubeconfig ${KUBECONFIG} patch tektonconfig config --type="merge" -p '{"spec": {"addon":{"enablePipelinesAsCode": false}}}'
+       kubectl --kubeconfig ${KUBECONFIG} apply -f https://github.com/openshift-pipelines/pipelines-as-code/releases/download/0.10.0/release.yaml
     fi
 }
 
