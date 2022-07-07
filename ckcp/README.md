@@ -42,11 +42,8 @@ Note: Triggers require pipelines to be running and thus running ckcp with trigge
 
 ```bash
 ./openshift_dev_setup.sh
-    #installs openshift-gitops in a host cluster, install kcp in a pod (a.k.a ckcp)
-    #and register the kcp cluster to the ArgoCD instance
-
-./openshift_dev_setup.sh -a pipelines
-    #installs openshift-gitops + ckcp + openshift-pipeline
+    # installs openshift-gitops in a host cluster, install kcp in a pod (a.k.a ckcp)
+    # setup the host cluster and register it to kcp
 ```
 
 The test.sh script runs certain examples from tektoncd repo for pipelines and triggers. You can run the below script only after openshift_dev_setup.sh is run and the required resources are up and running.

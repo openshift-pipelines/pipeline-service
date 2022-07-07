@@ -74,9 +74,17 @@ mk_tmpdir () {
 }
 
 kustomize () {
-
     GIT_TOKEN=$(echo "${GIT_TOKEN}" | base64)
     WEBHOOK_SECRET=$(echo "${WEBHOOK_SECRET}" | base64)
+
+    # This resource may take some time to spawn, which will cause Kustomize to fail when
+    # applying the patch if we do not wait for it.
+    printf "Waiting for resources: "
+    while ! kubectl --kubeconfig ${KUBECONFIG} api-resources -o name | grep -Eq "^repositories.pipelinesascode.tekton.dev$"; do
+      printf "."
+      sleep 5
+    done
+    printf "OK\n"
 
     # Create a json patch for the repository
     cat <<EOF > ${TMP_DIR}/patch-repo.yaml

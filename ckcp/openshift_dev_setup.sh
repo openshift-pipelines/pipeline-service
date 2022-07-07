@@ -2,7 +2,6 @@
 
 #quit if exit status of any cmd is a non-zero value
 set -euo pipefail
-# set -x
 
 SCRIPT_DIR="$(
   cd "$(dirname "$0")" >/dev/null
@@ -13,16 +12,14 @@ GITOPS_DIR="$(dirname "$SCRIPT_DIR")/gitops"
 CKCP_DIR="$(dirname "$SCRIPT_DIR")/ckcp"
 WORK_DIR="$SCRIPT_DIR/work"
 KUBECONFIG=${KUBECONFIG:-$HOME/.kube/config}
-KUBECONFIG_KCP="$WORK_DIR/kubeconfig/admin.kubeconfig"
-KUBECONFIG_MERGED="merged-config.kubeconfig:$KUBECONFIG:$KUBECONFIG_KCP"
-CR_TOSYNC=(
+KUBECONFIG_KCP="$WORK_DIR/credentials/kubeconfig/kcp/admin.kubeconfig.base"
+CR_TO_SYNC=(
             conditions.tekton.dev
             pipelines.tekton.dev
             pipelineruns.tekton.dev
             pipelineresources.tekton.dev
             runs.tekton.dev
             tasks.tekton.dev
-            repositories.pipelinesascode.tekton.dev
           )
 
 usage() {
@@ -33,46 +30,20 @@ Usage:
 Setup the pipeline service on a cluster running on KCP.
 
 Optional arguments:
-    -a, --app APP
-        Install APP in the cluster. APP must be pipelines.
-        The flag can be repeated to install multiple apps.
-    --all
-        Install all applications.
     -d, --debug
         Activate tracing/debug mode.
     -h, --help
         Display this message.
 
 Example:
-    ${0##*/} --all
+    ${0##*/}
 " >&2
 
 }
 
 parse_args() {
-  local default_list="openshift-gitops ckcp"
-  local pipeline_list="openshift-pipeline"
-  APP_LIST="$default_list"
-  cluster_type="openshift"
-
   while [[ $# -gt 0 ]]; do
     case $1 in
-    -a | --app)
-      shift
-      case $1 in
-      pipelines)
-        APP_LIST="$APP_LIST $pipeline_list"
-        ;;
-      *)
-        echo "[ERROR] Unsupported app: $1" >&2
-        usage
-        exit 1
-        ;;
-      esac
-      ;;
-    --all)
-      APP_LIST="$default_list $pipeline_list"
-      ;;
     -d | --debug)
       set -x
       ;;
@@ -92,6 +63,27 @@ parse_args() {
     esac
     shift
   done
+}
+
+init(){
+  APP_LIST="openshift-gitops ckcp compute"
+  cluster_type="openshift"
+
+  # Create SRE repository folder
+  if [[ -d "$WORK_DIR" ]]; then
+    rm -rf "$WORK_DIR"
+  fi
+  cp -rf "$GITOPS_DIR/sre" "$WORK_DIR"
+  for dir in kcp compute; do
+    mkdir -p "$WORK_DIR/credentials/kubeconfig/$dir"
+  done
+  cp "$KUBECONFIG" "$WORK_DIR/credentials/kubeconfig/compute/compute.kubeconfig.base"
+
+  KUBECONFIG="$WORK_DIR/credentials/kubeconfig/compute/compute.kubeconfig.base"
+  KUBECONFIG_MERGED="merged-config.kubeconfig:$KUBECONFIG:$KUBECONFIG_KCP"
+  export KUBECONFIG
+  kcp_workspace="compute"
+  kcp_version="$(yq '.images[] | select(.name == "kcp") | .newTag' "$SCRIPT_DIR/openshift/overlays/dev/kustomization.yaml")"
 }
 
 # To ensure that dependencies are satisfied
@@ -114,15 +106,6 @@ check_cluster_role() {
     echo "Log into the cluster with a user with the required privileges (e.g. kubeadmin) and retry."
     exit 1
   fi
-}
-
-install_app() {
-  APP="$1"
-
-  echo -n "  - $APP application: "
-  kubectl apply -f "$GITOPS_DIR/$APP.yaml" --wait >/dev/null
-  argocd app wait "$APP" >/dev/null
-  echo "OK"
 }
 
 install_openshift_gitops() {
@@ -186,13 +169,12 @@ install_cert_manager() {
 }
 
 install_ckcp() {
+  # Install cert manager operator
+  install_cert_manager
+
   APP="ckcp"
 
   local ns="$APP"
-  local kube_dir="$WORK_DIR/kubeconfig"
-
-  # Install cert manager operator
-  install_cert_manager
 
   # #############################################################################
   # # Deploy KCP
@@ -237,7 +219,7 @@ patches:
         description: This value refers to the hostAddress defined in the Route.
         value: $ckcp_route " >> "$ckcp_temp_dir/kustomization.yaml"
 
-  echo -n "  - kcp: "
+  echo -n "  - kcp $kcp_version: "
   kubectl apply -k "$ckcp_temp_dir" >/dev/null 2>&1
   # Check if ckcp pod status is Ready
   kubectl wait --for=condition=Ready -n $ns pod -l=app=kcp-in-a-pod --timeout=90s >/dev/null 2>&1
@@ -256,6 +238,7 @@ patches:
     sleep 5
   done
   kubectl cp "$APP/$podname:/etc/kcp/config/admin.kubeconfig" "$KUBECONFIG_KCP" >/dev/null 2>&1
+  KUBECONFIG="$KUBECONFIG_KCP" kubectl config rename-context "default" "workspace.kcp.dev/current" >/dev/null
   echo "OK"
 
   # Check if external ip is assigned and replace kcp's external IP in the kubeconfig file
@@ -265,53 +248,39 @@ patches:
   fi
   echo "OK"
 
-  # Register the host cluster to KCP
-  echo -n "  - Workspace: "
-  # To ensure we are in demo's parent workspace to manipulate demo workspace
-  KUBECONFIG="$KUBECONFIG_KCP"  kubectl kcp ws use root:default >/dev/null 2>&1
-  if ! KUBECONFIG="$KUBECONFIG_KCP" kubectl get workspaces demo >/dev/null 2>&1; then
-    KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspaces create demo >/dev/null 2>&1
-    # Check if workspace "demo" is ready. This is a workaround, because commands executed directly after creating workspace with "--enter" option occasionally fail
-    while [[ $(KUBECONFIG="$KUBECONFIG_KCP" kubectl get workspace -o jsonpath='{.items[0].status.phase}') != "Ready" ]]; do
-      echo -n "."
-      sleep 5
-    done
-  fi
-  KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspaces use demo >/dev/null 2>&1
-  echo "OK"
+  # Workaround to prevent the creation of the creation of a new workspace until KCP is ready.
+  # This fixes `error: creating a workspace under a Universal type workspace is not supported`.
+  while ! KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspace create "dummy" --ignore-existing >/dev/null; do
+    sleep 5
+  done
 
-  echo -n "  - Workloadcluster pipeline-cluster registration: "
-  if ! KUBECONFIG="$KUBECONFIG_KCP" kubectl get WorkloadCluster local >/dev/null 2>&1; then
-    (
-      kcp_image_tag="$(yq -e '.images[0].newTag' "$ckcp_dev_dir"/kustomization.yaml)"
-      cr_string="$(IFS=,; echo "${CR_TOSYNC[*]}")"
-      KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workload sync local \
-      --syncer-image ghcr.io/kcp-dev/kcp/syncer:"$kcp_image_tag" \
-      --resources "$cr_string" > "$kube_dir/syncer.yaml"
-      kubectl apply -f "$kube_dir/syncer.yaml" >/dev/null 2>&1
-      # Wait until Syncer pod is available
-      SYNCER_NS_ID="$(kubectl get ns -l workload.kcp.io/workload-cluster=local -o json | jq -r '.items[0].metadata.name')"
-      kubectl rollout status deployment/kcp-syncer -n "$SYNCER_NS_ID" --timeout=90s >/dev/null 2>&1
-      rm -rf "$kube_dir/syncer.yaml"
-    )
-  fi
-  echo "OK"
-
-  # Register the KCP cluster into ArgoCD
-  echo -n "  - KCP cluster registration to ArgoCD: "
-  if ! KUBECONFIG="$KUBECONFIG_MERGED" argocd cluster get kcp >/dev/null 2>&1; then
-    KUBECONFIG="$KUBECONFIG_MERGED" argocd cluster add "workspace.kcp.dev/current" --name=kcp  --system-namespace default --yes >/dev/null 2>&1
-  fi
-  echo "OK"
+  echo "  - Setup kcp access:"
+  "$SCRIPT_DIR/../images/access-setup/content/bin/setup_kcp.sh" \
+    --kubeconfig "$KUBECONFIG_KCP" \
+    --kcp-workspace "$kcp_workspace" \
+    --work-dir "$WORK_DIR"
+  KUBECONFIG_KCP="$WORK_DIR/credentials/kubeconfig/kcp/ckcp-ckcp.default.compute.kubeconfig"
 }
 
-install_openshift_pipeline() {
-  APP="argocd"
+install_compute(){
+  echo "  - Setup compute access:"
+  "$SCRIPT_DIR/../images/access-setup/content/bin/setup_compute.sh" \
+    --kubeconfig "$KUBECONFIG" \
+    --work-dir "$WORK_DIR"
 
-  echo -n "  - openshift-pipeline application: "
-  kubectl apply -f "$GITOPS_DIR/$APP/$APP.yaml" --wait >/dev/null 2>&1
-  argocd app wait pipelines-service tektoncd --timeout=90 >/dev/null 2>&1
-  echo "OK"
+  echo "  - Deploy compute:"
+  "$SCRIPT_DIR/../images/cluster-setup/install.sh" --workspace-dir "$WORK_DIR"
+
+  echo "  - Install Pipelines as Code:"
+  # Passing dummy values to the parameters of the pac/setup.sh script
+  # because we only want to install the runner side of resources.
+  GITOPS_REPO="https://example.git.com/my/repo" GIT_TOKEN="placeholder_token" \
+    WEBHOOK_SECRET="placeholder_webhook" \
+    "$GITOPS_DIR/pac/setup.sh"
+
+  echo "  - Register compute to KCP"
+  KCP_ORG="root:default" KCP_WORKSPACE="$kcp_workspace" DATA_DIR="$WORK_DIR" KCP_SYNC_TAG="$kcp_version" \
+    "$SCRIPT_DIR/../images/kcp-registrar/register.sh"
 
   check_cr_sync
 }
@@ -320,16 +289,16 @@ check_cr_sync() {
   # Wait until CRDs are synced to KCP
   echo -n "  - Sync CRDs to KCP: "
   local cr_regexp
-  cr_regexp="$(IFS=\|; echo "${CR_TOSYNC[*]}")"
+  cr_regexp="$(IFS=\|; echo "${CR_TO_SYNC[*]}")"
   local  wait_period=0
-  while [[ "$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources -o name  2>&1 | grep -Ewc "$cr_regexp")" -ne ${#CR_TOSYNC[@]} ]]
+  while [[ "$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources -o name  2>&1 | grep -Ewc "$cr_regexp")" -ne ${#CR_TO_SYNC[@]} ]]
   do
     wait_period=$((wait_period+10))
     #when timeout, print out the CR resoures that is not synced to KCP
     if [ $wait_period -gt 300 ];then
       echo "Failed to sync following resources to KCP: "
       cr_synced=$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources -o name)
-      for cr in "${CR_TOSYNC[@]}"; do
+      for cr in "${CR_TO_SYNC[@]}"; do
         if [ "$(echo "$cr_synced" | grep -wc "$cr")" -eq 0 ]; then
           echo "    * $cr"
         fi
@@ -344,9 +313,8 @@ check_cr_sync() {
 
 main() {
   parse_args "$@"
-
+  init
   precheck
-
   check_cluster_role
   for APP in $APP_LIST; do
     echo "[$APP]"
