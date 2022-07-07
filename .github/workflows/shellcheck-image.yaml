@@ -1,0 +1,47 @@
+name: Build and Publish shellcheck Image
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "test/images/shellcheck/**"
+  workflow_dispatch:
+  
+jobs:
+  build-push:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      sha_short: ${{ steps.vars.outputs.sha_short }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Get the short sha
+        id: vars
+        run: echo "::set-output name=sha_short::$(echo ${{ github.sha }} | cut -b -7)"
+
+      # Build and push a shellcheck image, tagged with latest and the commit SHA.
+      - name: Build shellcheck Image
+        id: build-image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: shellcheck
+          context: ./test/images/shellcheck
+          tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
+          containerfiles: |
+            ./images/shellcheck/Dockerfile
+
+      - name: Push to ghcr.io
+        id: push-to-ghcr
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-image.outputs.image }}
+          tags: ${{ steps.build-image.outputs.tags }} ${{ github.ref_name }}
+          registry: ghcr.io/${{ github.repository_owner }}/test
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
