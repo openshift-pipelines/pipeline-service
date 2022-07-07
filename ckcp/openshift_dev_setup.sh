@@ -176,12 +176,19 @@ install_cert_manager() {
   # # Install the cert manager operator
   # #############################################################################
   echo -n "  - openshift-cert-manager-operator: "
-  if [ "$(kubectl cert-manager check api 2>&1 | grep -c "Not ready")" -eq 1 ]; then
+  # As cert manager is installed via operator, when cert-manager operator's subscription doesn't exist, 
+  # it supposes cert-manager is not installed
+  if [ $(kubectl -n openshift-cert-manager-operator get sub 2>&1 | grep -c "No resources found")  -eq 1 ]; then
     kubectl apply -f "$CKCP_DIR/argocd-apps/$APP.yaml" >/dev/null 2>&1
     argocd app wait "$APP" >/dev/null 2>&1
-    # Wait until cert manager is ready
-    kubectl cert-manager check api --wait=5m  >/dev/null 2>&1
   fi
+
+  # Wait until cert-manager is ready
+  pods_cmd="kubectl -n openshift-cert-manager get pods -o=jsonpath='{range .items[*]}{.metadata.name}{\" \"}{.status.containerStatuses[*].ready}{\"\n\"}{end}'"
+  until [[ $(eval $pods_cmd | wc -l) -eq 3 ]]; do
+    echo -n "."
+    sleep 5
+  done
   echo "OK"
 }
 
