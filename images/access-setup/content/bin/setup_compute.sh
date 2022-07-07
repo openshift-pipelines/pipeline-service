@@ -109,7 +109,7 @@ init() {
 
 generate_compute_credentials() {
   current_context=$(kubectl config current-context)
-  compute_name="$(yq '.contexts[] | select(.name == "'"$current_context"'") | .context.cluster' "$KUBECONFIG")"
+  compute_name="$(yq '.contexts[] | select(.name == "'"$current_context"'") | .context.cluster' "$KUBECONFIG" | sed 's/:.*//')"
   printf "[Compute cluster: %s]\n" "$compute_name"
   kubeconfig="$credentials_dir/compute/$compute_name.kubeconfig"
 
