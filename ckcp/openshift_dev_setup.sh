@@ -30,6 +30,9 @@ Usage:
 Setup the pipeline service on a cluster running on KCP.
 
 Optional arguments:
+    --extra-crds
+        Comma separated list of extra CRDs that need to be synchronized
+        by the KCP syncer.
     -d, --debug
         Activate tracing/debug mode.
     -h, --help
@@ -44,6 +47,11 @@ Example:
 parse_args() {
   while [[ $# -gt 0 ]]; do
     case $1 in
+    --extra-crds)
+      shift
+      kcp_extra_crds="$1"
+      CR_TO_SYNC=( $(echo ${CR_TO_SYNC[*]}; echo "$kcp_extra_crds" | tr ',' ' ') )
+      ;;
     -d | --debug)
       set -x
       ;;
@@ -280,6 +288,7 @@ install_compute(){
 
   echo "  - Register compute to KCP"
   KCP_ORG="root:default" KCP_WORKSPACE="$kcp_workspace" DATA_DIR="$WORK_DIR" KCP_SYNC_TAG="$kcp_version" \
+  KCP_EXTRA_CRDS="$kcp_extra_crds" \
     "$SCRIPT_DIR/../images/kcp-registrar/register.sh"
 
   check_cr_sync

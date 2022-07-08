@@ -27,6 +27,7 @@ usage() {
     printf "KCP_ORG: the organization for which the workload clusters need to be registered, i.e.: root:pipelines-service\n"
     printf "KCP_WORKSPACE: the name of the workspace where the workload clusters get registered (created if it does not exist), i.e: compute\n"
     printf "KCP_SYNC_TAG: the tag of the kcp syncer image to use (preset in the container image at build time and leveraged by the PipelineRun)\n"
+    printf "KCP_EXTRA_CRDS: comma separated list of additional resources to synchronize\n"
     printf "DATA_DIR: the location of the cluster files\n"
     printf "          a single file with extension kubeconfig is expected in the subdirectory: credentials/kubeconfig/kcp\n"
     printf "          kubeconfig files for compute clusters are expected in the subdirectory: credentials/kubeconfig/compute \n\n"
@@ -57,6 +58,25 @@ prechecks() {
     DATA_DIR=${DATA_DIR:-}
     if [[ -z "${DATA_DIR}" ]]; then
         exit_error "DATA_DIR not set\n\n"
+    fi
+}
+
+init() {
+    crds_to_sync=(
+        deployments.apps
+        services
+        ingresses.networking.k8s.io
+        conditions.tekton.dev
+        pipelines.tekton.dev
+        pipelineruns.tekton.dev
+        pipelineresources.tekton.dev
+        tasks.tekton.dev
+        runs.tekton.dev
+    )
+    kcp_sync_crds="$(IFS=,; echo "${crds_to_sync[*]}")"
+    KCP_EXTRA_CRDS=${KCP_EXTRA_CRDS:-}
+    if [[ -n "${KCP_EXTRA_CRDS}" ]]; then
+        kcp_sync_crds="$kcp_sync_crds,$KCP_EXTRA_CRDS"
     fi
 }
 
@@ -130,7 +150,7 @@ register() {
             syncer_manifest="/tmp/syncer-${clusters[$i]}.yaml"
             KUBECONFIG=${kcp_kcfg} kubectl kcp workload sync "${clusters[$i]}" \
                 --syncer-image ghcr.io/kcp-dev/kcp/syncer:$KCP_SYNC_TAG \
-                --resources deployments.apps,services,ingresses.networking.k8s.io,conditions.tekton.dev,pipelines.tekton.dev,pipelineruns.tekton.dev,pipelineresources.tekton.dev,tasks.tekton.dev,runs.tekton.dev \
+                --resources "$kcp_sync_crds" \
                 >"$syncer_manifest"
             KUBECONFIG=${DATA_DIR}/credentials/kubeconfig/compute/${kubeconfigs[$i]} kubectl apply --context ${contexts[$i]} -f "$syncer_manifest"
         fi
@@ -138,6 +158,7 @@ register() {
 }
 
 prechecks
+init
 kcp_kubeconfig
 if [[ "$(KUBECONFIG=${kcp_kcfg} kubectl kcp workspace current | cut -d\" -f2)" == "$KCP_ORG:$KCP_WORKSPACE" ]]; then
     printf "Workspace: %s" "$KCP_ORG:$KCP_WORKSPACE"
