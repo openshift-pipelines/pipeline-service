@@ -21,7 +21,7 @@ set -o pipefail
 usage() {
 
     printf "Usage: KUBECONFIG="path-to-kubeconfig" GITOPS_REPO="https://gitops.com/group/project" GIT_TOKEN="XXXXXXXXX" WEBHOOK_SECRET="YYYYYYYYYY" ./setup.sh\n\n"
-	
+    
     # Parameters
     printf "The following parameters need to be passed to the script:\n"
     printf "KUBECONFIG: the path to the kubeconfig file used to connect to the cluster where Pipelines as Code will be installed\n"
@@ -39,12 +39,12 @@ check_params() {
     WEBHOOK_SECRET="${WEBHOOK_SECRET:-}"
     if [[ -z "${KUBECONFIG}" ]]; then
         printf "KUBECONFIG environment variable needs to be set\n\n"
-	usage
-	exit 1
+        usage
+        exit 1
     fi
     if [[ -z "${GITOPS_REPO}" ]]; then
         printf "GITOPS_REPO environment variable needs to be set\n\n"
-	usage
+        usage
         exit 1
     fi
     if [[ -z "${GIT_TOKEN}" ]]; then
@@ -86,6 +86,8 @@ kustomize () {
     done
     printf "OK\n"
 
+    ppath_relative=$(realpath --relative-to=${TMP_DIR} ${parent_path})
+
     # Create a json patch for the repository
     cat <<EOF > ${TMP_DIR}/patch-repo.yaml
 - op: replace
@@ -115,7 +117,7 @@ EOF
         cat <<EOF > ${TMP_DIR}/kustomization.yaml
 resources:
 - ingress.yaml
-- ../../$parent_path/manifests
+- ./${ppath_relative}/manifests
 patchesJson6902:
 - target:
     group: pipelinesascode.tekton.dev
@@ -137,10 +139,10 @@ patchesJson6902:
 EOF
 
     else
-	# kustomization.yaml
+        # kustomization.yaml
         cat <<EOF > ${TMP_DIR}/kustomization.yaml
 resources:
-- ../../$parent_path/manifests
+- ./${ppath_relative}/manifests
 patchesJson6902:
 - target:
     group: pipelinesascode.tekton.dev
@@ -172,4 +174,3 @@ mk_tmpdir
 kustomize
 
 printf "Pipelines as Code installed\n"
-
