@@ -10,9 +10,7 @@ SCRIPT_DIR="$(
 
 GITOPS_DIR="$(dirname "$SCRIPT_DIR")/gitops"
 CKCP_DIR="$(dirname "$SCRIPT_DIR")/ckcp"
-WORK_DIR="$SCRIPT_DIR/work"
 KUBECONFIG=${KUBECONFIG:-$HOME/.kube/config}
-KUBECONFIG_KCP="$WORK_DIR/credentials/kubeconfig/kcp/admin.kubeconfig.base"
 CR_TO_SYNC=(
             conditions.tekton.dev
             pipelines.tekton.dev
@@ -23,6 +21,7 @@ CR_TO_SYNC=(
           )
 
 usage() {
+  TMPDIR=$(dirname "$(mktemp -u)")
   echo "
 Usage:
     ${0##*/} [options]
@@ -30,6 +29,10 @@ Usage:
 Setup the pipeline service on a cluster running on KCP.
 
 Optional arguments:
+    -w, --work-dir
+        Directory in which to create the gitops file structure.
+        If the directory already exists, all content will be removed.
+        By default a temporary directory will be created in $TMPDIR.
     -d, --debug
         Activate tracing/debug mode.
     -h, --help
@@ -38,12 +41,15 @@ Optional arguments:
 Example:
     ${0##*/}
 " >&2
-
 }
 
 parse_args() {
   while [[ $# -gt 0 ]]; do
     case $1 in
+    -w | --work-dir)
+      shift
+      WORK_DIR="$1"
+      ;;
     -d | --debug)
       set -x
       ;;
@@ -65,11 +71,16 @@ parse_args() {
   done
 }
 
-init(){
+init() {
   APP_LIST="openshift-gitops ckcp compute"
   cluster_type="openshift"
 
   # Create SRE repository folder
+  WORK_DIR="${WORK_DIR:-}"
+  if [[ -z "$WORK_DIR" ]]; then
+    WORK_DIR=$(mktemp -d)
+    echo "Working directory: $WORK_DIR"
+  fi
   if [[ -d "$WORK_DIR" ]]; then
     rm -rf "$WORK_DIR"
   fi
@@ -79,6 +90,7 @@ init(){
   done
   cp "$KUBECONFIG" "$WORK_DIR/credentials/kubeconfig/compute/compute.kubeconfig.base"
 
+  KUBECONFIG_KCP="$WORK_DIR/credentials/kubeconfig/kcp/admin.kubeconfig.base"
   KUBECONFIG="$WORK_DIR/credentials/kubeconfig/compute/compute.kubeconfig.base"
   KUBECONFIG_MERGED="merged-config.kubeconfig:$KUBECONFIG:$KUBECONFIG_KCP"
   export KUBECONFIG
@@ -88,7 +100,7 @@ init(){
 
 # To ensure that dependencies are satisfied
 precheck() {
-  if [ "$(kubectl plugin list | grep -c 'kubectl-kcp')" -eq 0 ]  ; then
+  if [ "$(kubectl plugin list | grep -c 'kubectl-kcp')" -eq 0 ]; then
     printf "kcp plugin could not be found\n"
     exit 1
   fi
@@ -159,9 +171,9 @@ install_cert_manager() {
   # # Install the cert manager operator
   # #############################################################################
   echo -n "  - openshift-cert-manager-operator: "
-  # As cert manager is installed via operator, when cert-manager operator's subscription doesn't exist, 
+  # As cert manager is installed via operator, when cert-manager operator's subscription doesn't exist,
   # it supposes cert-manager is not installed
-  if [ $(kubectl -n openshift-cert-manager-operator get sub 2>&1 | grep -c "No resources found")  -eq 1 ]; then
+  if [ $(kubectl -n openshift-cert-manager-operator get sub 2>&1 | grep -c "No resources found") -eq 1 ]; then
     kubectl apply -f "$CKCP_DIR/argocd-apps/$APP.yaml" >/dev/null 2>&1
     argocd app wait "$APP" >/dev/null 2>&1
   fi
@@ -224,7 +236,7 @@ patches:
       - op: add
         path: /spec/dnsNames/-
         description: This value refers to the hostAddress defined in the Route.
-        value: $ckcp_route " >> "$ckcp_temp_dir/kustomization.yaml"
+        value: $ckcp_route " >>"$ckcp_temp_dir/kustomization.yaml"
 
   echo -n "  - kcp $kcp_version: "
   kubectl apply -k "$ckcp_temp_dir" >/dev/null 2>&1
@@ -240,7 +252,7 @@ patches:
   podname="$(kubectl get pods --ignore-not-found -n "$ns" -l=app=kcp-in-a-pod -o jsonpath='{.items[0].metadata.name}')"
   mkdir -p "$(dirname "$KUBECONFIG_KCP")"
   # Wait until admin.kubeconfig file is generated inside ckcp pod
-  while [[ $(kubectl exec -n $APP "$podname" -- ls /etc/kcp/config/admin.kubeconfig >/dev/null 2>&1; echo $?) -ne 0 ]];do
+  while [[ $(kubectl exec -n $APP "$podname" -- ls /etc/kcp/config/admin.kubeconfig >/dev/null 2>&1; echo $?) -ne 0 ]]; do
     echo -n "."
     sleep 5
   done
@@ -269,7 +281,7 @@ patches:
   KUBECONFIG_KCP="$WORK_DIR/credentials/kubeconfig/kcp/ckcp-ckcp.default.compute.kubeconfig"
 }
 
-install_compute(){
+install_compute() {
   echo "  - Setup compute access:"
   "$SCRIPT_DIR/../images/access-setup/content/bin/setup_compute.sh" \
     --kubeconfig "$KUBECONFIG" \
@@ -297,12 +309,11 @@ check_cr_sync() {
   echo -n "  - Sync CRDs to KCP: "
   local cr_regexp
   cr_regexp="$(IFS=\|; echo "${CR_TO_SYNC[*]}")"
-  local  wait_period=0
-  while [[ "$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources -o name  2>&1 | grep -Ewc "$cr_regexp")" -ne ${#CR_TO_SYNC[@]} ]]
-  do
-    wait_period=$((wait_period+10))
+  local wait_period=0
+  while [[ "$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources -o name 2>&1 | grep -Ewc "$cr_regexp")" -ne ${#CR_TO_SYNC[@]} ]]; do
+    wait_period=$((wait_period + 10))
     #when timeout, print out the CR resoures that is not synced to KCP
-    if [ $wait_period -gt 300 ];then
+    if [ $wait_period -gt 300 ]; then
       echo "Failed to sync following resources to KCP: "
       cr_synced=$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources -o name)
       for cr in "${CR_TO_SYNC[@]}"; do
