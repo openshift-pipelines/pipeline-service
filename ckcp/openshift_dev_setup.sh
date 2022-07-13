@@ -12,10 +12,11 @@ GITOPS_DIR="$(dirname "$SCRIPT_DIR")/gitops"
 CKCP_DIR="$(dirname "$SCRIPT_DIR")/ckcp"
 KUBECONFIG=${KUBECONFIG:-$HOME/.kube/config}
 CR_TO_SYNC=(
-            conditions.tekton.dev
+            deployments.apps
+            services
+            ingresses.networking.k8s.io
             pipelines.tekton.dev
             pipelineruns.tekton.dev
-            pipelineresources.tekton.dev
             runs.tekton.dev
             tasks.tekton.dev
             networkpolicies.networking.k8s.io
