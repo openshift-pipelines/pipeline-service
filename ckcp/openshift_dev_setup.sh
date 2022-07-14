@@ -18,6 +18,7 @@ CR_TO_SYNC=(
             pipelineresources.tekton.dev
             runs.tekton.dev
             tasks.tekton.dev
+            networkpolicies.networking.k8s.io
           )
 
 usage() {
