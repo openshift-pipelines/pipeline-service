@@ -9,9 +9,11 @@ We have therefore two scripts to get them running on your local machine with min
 
 Prerequisites:
 
+- [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)
 - [kind](https://github.com/kubernetes-sigs/kind)
 - a container engine: [podman](https://podman.io/) or [docker](https://docs.docker.com/engine/)
 - [git](https://git-scm.com/)
+- [jq](https://stedolan.github.io/jq/)
 
 ## Workload clusters with kind
 
@@ -33,7 +35,7 @@ By default, Argo CD is installed on both clusters. It is possible to deactivate 
 
 ## kcp cluster
 
-[./local/kcp/start.sh](./local/kcp/start.sh) will set up a kcp cluster with ingress controller and envoy.
+[./local/kcp/start.sh](./local/kcp/start.sh) will set up a kcp cluster.
 
 The script can be customized by setting the following optional environment variables:
 
@@ -43,7 +45,9 @@ The script can be customized by setting the following optional environment varia
 | KCP_BRANCH | the branch to use. Mind that the script will do a git checkout, to a default release if the branch is not specified |
 | PARAMS | the parameters to start kcp with |
 
-The script will output the location of the kubeconfig file that can be used to interact with the kcp API.
+The script will output:
+	- the location of the kubeconfig file that can be used to interact with the kcp API.
+	- the location of the kubectl kcp plugin which provides KCP specific sub-command for kubectl
 
 ```console
 ./local/kcp/start.sh
@@ -59,7 +63,7 @@ The script will output the location of the kubeconfig file that can be used to i
 Here is an example for running the registration image in a development environment:
 
 ```bash
-podman run --env KCP_ORG='root:pipelines-service' --env KCP_WORKSPACE='compute' --env DATA_DIR='/workspace' --privileged --volume /home/myusername/plnsvc:/workspace quay.io/myuser/pipelines-kcp
+podman run --env KCP_ORG='root:pipeline-service' --env KCP_WORKSPACE='compute' --env WORKSPACE_DIR='/workspace' --privileged --volume /home/myusername/plnsvc:/workspace quay.io/redhat-pipeline-service/kcp-registrar:main
 ```
 
 Make sure that iptables/firewalld is not preventing the communication (tcp initiated from the kind clusters) between the containers running on the kind network and the kcp process on the host.
@@ -98,7 +102,7 @@ argocd login argocd-server-argocd.apps.127.0.0.1.nip.io:8443
 
 Argo CD web UI is accessible at <https://argocd-server-argocd.apps.127.0.0.1.nip.io:8443/applications>.
 
-GitOps is the preferred approach for deploying the Pipelines Service. The installed instances of ArgoCD can be leveraged for creating organisations in kcp, universal workspaces used by the infrastructure, installing the Tekton controllers and registering the workload clusters.
+GitOps is the preferred approach for deploying the Pipeline Service. The installed instances of Argo CD can be leveraged for creating organisations in kcp, universal workspaces used by the infrastructure, installing the Tekton controllers and registering the workload clusters.
 
 The cluster where Argo CD runs is automatically registered to Argo CD.
 
@@ -106,7 +110,7 @@ The cluster where Argo CD runs is automatically registered to Argo CD.
 
 As indicated by the kcp start script `ctrl-C` stops all components: kcp, ingress controller and envoy.
 
-The files used by kcp are stored in the directory that was created, whose path was printed out by the script, for example: `/tmp/kcp-pipelines-service.uD5nOWUtU/`
+The files used by kcp are stored in the directory that was created, whose path was printed out by the script, for example: `/tmp/kcp-pipeline-service.uD5nOWUtU/`
 Files in /tmp are usually cleared by a reboot and depending on the operating system may be cleansed when they have not been accessed for 10 days or another elapse of time.
 
 Workload clusters created with kind can be removed with the usual kind command for the purpose `kind delete clusters us-east1 us-west1`
@@ -145,13 +149,15 @@ A final fix is to uninstall docker and use podman only.
 
 ### Looping with "error: availableReplicas is not found"
 
-This is _not an issue_, few lines like this are expected as the script checks for the ingress controller to be ready before creating the ingress object for it. You can wait for a few minutes or if you don't need Argo CD you can pass `NO_ARGOCD=true` before running the script.
+This is _not an issue_, a few lines like this are expected as the script checks for the ingress controller to be ready before creating the ingress object for it. You can wait for a few minutes or if you don't need Argo CD you can pass `NO_ARGOCD=true` before running the script.
 
 If it is too long and the ingress controller is still not ready, that is probably due to the scarcity of file monitors on the system. In that case, increasing `fs`.inotify.max_user_instances` may help. This can be done either by the solution described [above](#ingress-router-pods-crashloop---too-many-open-files) or by running the following command.
 
 ```bash
 sudo sysctl -w fs.inotify.max_user_instances=256
 ```
+
+If you are using `podman` the issue could be that the `pids_limit` default value of `2048` is too low. Edit `/usr/share/containers/containers.conf` and increase it (e.g. to `4098`). You could disable the limit entirely with `-1`, but it's not recommended as your system would not be protected against fork bombs anymore.
 
 ### "Kind could not be found" when running with sudo
 
@@ -163,3 +169,11 @@ Install kind to any of the root enabled paths i.e `/usr/local/bin` or create a s
 sudo ln -s $(which kind) /usr/local/bin/kind
 ```
 
+### If we install yq via snap store on Fedora, it uses strict confinement policy which does not provide access to root (including /tmp).
+
+```
+$ yq e ".current-context" "/tmp/tmp.QNwtlzJzZh/credentials/kubeconfig/compute/compute.kubeconfig.base"
+Error: open /tmp/tmp.QNwtlzJzZh/credentials/kubeconfig/compute/compute.kubeconfig.base: no such file or directory
+```
+
+Make sure tools such as yq, jq or any other that is using a strict confinement policy is setup to have access to root filesystem. This could be done by installing these tools locally rather than through package managers.

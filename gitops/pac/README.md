@@ -6,7 +6,7 @@
 When a kubeconfig file gets added to a GitOps repository Pipelines as Code triggers a pipeline for the purpose. It is similar in this respect to GitHub actions and a git provider-independent alternative to it.
 
 ---
-**_NOTE:_**  Pipelines as Code can leverage any cluster for running its pipelines. The cluster does not have to be part of the Pipelines Service infrastructure.
+**_NOTE:_**  Pipelines as Code can leverage any cluster for running its pipelines. The cluster does not have to be part of the Pipeline Service infrastructure.
 
 ---
 
@@ -32,7 +32,7 @@ A script has been made available in this directory for automating the cluster (r
 The registration can be performed by running for instance:
 
 ```bash
-KUBECONFIG="/pathto/kubeconfig" GITOPS_REPO="https://gitops.org.com/org/pipelines-service-infra" GIT_TOKEN="s2sdfdsf3EFfd42fFSfsg4ds" WEBHOOK_SECRET="b3erewer43a44eerwsafdfasf11cd37" ./setup.sh
+KUBECONFIG="/pathto/kubeconfig" GITOPS_REPO="https://gitops.org.com/org/pipeline-service-infra" GIT_TOKEN="s2sdfdsf3EFfd42fFSfsg4ds" WEBHOOK_SECRET="b3erewer43a44eerwsafdfasf11cd37" ./setup.sh
 ```
 
 ## Pipelines

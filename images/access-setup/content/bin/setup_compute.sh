@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2022 The pipelines-service Authors.
+# Copyright 2022 The Pipeline Service Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ SCRIPT_DIR="$(
   pwd
 )"
 
+# shellcheck source=images/access-setup/content/bin/common.sh
 source "$SCRIPT_DIR/common.sh"
 
 usage() {
@@ -31,14 +32,24 @@ usage() {
 
 Generate access credentials for a new compute cluster so it can be managed by pipelines as code
 
-Optional arguments:
+Mandatory arguments:
     -k, --kubeconfig KUBECONFIG
-        kubeconfig to the cluster to configure.
+        kubeconfig to the kcp instance to configure.
         The current context will be used.
         Default value: \$KUBECONFIG
+
+Optional arguments:
     --kustomization KUSTOMIZATION
         path to the directory holding the kustomization.yaml to apply.
         Can be read from \$KUSTOMIZATION.
+        Default: %s
+    --git-remote-url GIT_URL
+        Git repo to be referenced to apply various customizations.
+        Can be read from \$GIT_URL.
+        Default: %s
+    --git-remote-ref GIT_REF
+        Git repo's ref to be referenced to apply various customizations.
+        Can be read from \$GIT_REF.
         Default: %s
     -w, --work-dir WORK_DIR
         Directory into which the credentials folder will be created.
@@ -52,7 +63,9 @@ Example:
 }
 
 parse_args() {
-  KUSTOMIZATION=${KUSTOMIZATION:-github.com/openshift-pipelines/pipelines-service/gitops/compute/pac-manager?ref=main}
+  KUSTOMIZATION=${KUSTOMIZATION:-github.com/openshift-pipelines/pipeline-service/gitops/compute/pac-manager?ref=main}
+  GIT_URL=${GIT_URL:-"https://github.com/openshift-pipelines/pipeline-service.git"}
+  GIT_REF=${GIT_REF:="main"}
   while [[ $# -gt 0 ]]; do
     case "$1" in
     -k | --kubeconfig)
@@ -62,6 +75,14 @@ parse_args() {
     --kustomization)
       shift
       KUSTOMIZATION="$1"
+      ;;
+    --git-remote-url)
+      shift
+      GIT_URL="$1"
+      ;;
+    --git-remote-ref)
+      shift
+      GIT_REF="$1"
       ;;
     -w | --work-dir)
       shift
@@ -107,9 +128,17 @@ init() {
   mkdir -p "$credentials_dir"
 }
 
+check_prerequisites() {
+  # Check that argocd has been installed
+  if [[ $(kubectl api-resources | grep -c "argoproj.io/") = "0" ]]; then
+    echo "Argo CD must be deployed on the cluster first" >&2
+    exit 1
+  fi
+}
+
 generate_compute_credentials() {
   current_context=$(kubectl config current-context)
-  compute_name="$(yq '.contexts[] | select(.name == "'"$current_context"'") | .context.cluster' "$KUBECONFIG" | sed 's/:.*//')"
+  compute_name="$(yq '.contexts[] | select(.name == "'"$current_context"'") | .context.cluster' < "$KUBECONFIG" | sed 's/:.*//')"
   printf "[Compute cluster: %s]\n" "$compute_name"
   kubeconfig="$credentials_dir/compute/$compute_name.kubeconfig"
 
@@ -122,7 +151,7 @@ generate_compute_credentials() {
 
   mkdir -p "$WORK_DIR/environment/compute/$compute_name"
   echo "resources:
-  - github.com/openshift-pipelines/pipelines-service/gitops/argocd?ref=main
+  - $GIT_URL/gitops/argocd?ref=$GIT_REF
 " >"$WORK_DIR/environment/compute/$compute_name/kustomization.yaml"
 }
 
@@ -130,6 +159,7 @@ main() {
   parse_args "$@"
   prechecks
   init
+  check_prerequisites
   generate_compute_credentials
 }
 

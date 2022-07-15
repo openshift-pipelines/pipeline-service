@@ -1,13 +1,24 @@
+---
 apiVersion: operator.tekton.dev/v1alpha1
 kind: TektonConfig
 metadata:
   name: config
+  annotations:
+    # An Argo CD wave annotation ensures that some resources are always ready
+    # before next step. By default everything is a part of wave "0".
+    # Refer <https://argo-cd.readthedocs.io/en/release-1.8/user-guide/sync-waves/>
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   profile: all
   targetNamespace: openshift-pipelines
+  pipeline:
+    enable-tekton-oci-bundles: true
   pruner:
     resources:
+      # Only prune taskruns until re-reconciling of resources is fixed.
       - taskrun
-    keep: 100
-    # Run the TaskRun pruner every day at 0800 Hrs (8:00 AM) system time. Refer <https://en.wikipedia.org/wiki/Cron> for detailed Cron format.
+    # Retain resources younger than 2 days (2880 mins)
+    keep-since: 2880
+    # Run the TaskRun pruner every day at 0800 Hrs (8:00 AM) system time.
+    # Refer <https://en.wikipedia.org/wiki/Cron> for detailed Cron format.
     schedule: "0 8 * * *"

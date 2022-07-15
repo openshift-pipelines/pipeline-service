@@ -1,4 +1,6 @@
-# Copyright 2022 The Pipelines-service Authors.
+#!/usr/bin/env bash
+
+# Copyright 2022 The Pipeline Service Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,16 +21,24 @@ wait_command() {
   local wait_seconds="${1:-40}"; shift # 40 seconds as default timeout
 
   until [[ $((wait_seconds--)) -eq 0 ]] || eval "$command &> /dev/null" ; do sleep 1; done
+
+  ((++wait_seconds))
 }
 
 cleanup() {
-    if [[ -n "${KCP_PIDS}" ]]; then
-      printf "\nCleaning up processes %s\n" "$KCP_PIDS"
-      kill "$KCP_PIDS"
+    local ret="$?"
+    if [[ $ret -eq 0 ]] || [[ $ret -eq 130 ]];then
+      printf "\nTerminating...\n"
+    else
+      printf "\nExit on failure...\n"
     fi
-    if [[ -n "${KCP_CIDS}" ]]; then
-      printf "\nStopping containers %s\n" "$KCP_CIDS"
-      $CONTAINER_ENGINE stop "$KCP_CIDS"
+    if [[ "${#KCP_PIDS[@]}" -gt 0 ]]; then
+      printf "\nCleaning up processes %s\n" "${KCP_PIDS[*]}"
+      kill "${KCP_PIDS[@]}"
+    fi
+    if [[ "${#KCP_CIDS[@]}" -gt 0 ]]; then
+      printf "\nStopping containers %s\n" "${KCP_CIDS[*]}"
+      $CONTAINER_ENGINE stop "${KCP_CIDS[@]}"
     fi
 }
 

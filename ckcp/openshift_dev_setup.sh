@@ -8,19 +8,14 @@ SCRIPT_DIR="$(
   pwd
 )"
 
+# shellcheck source=ckcp/hack/util/update-git-reference.sh
+source "$SCRIPT_DIR/hack/util/update-git-reference.sh"
+
 GITOPS_DIR="$(dirname "$SCRIPT_DIR")/gitops"
 CKCP_DIR="$(dirname "$SCRIPT_DIR")/ckcp"
+CONFIG="$CKCP_DIR/config.yaml"
+
 KUBECONFIG=${KUBECONFIG:-$HOME/.kube/config}
-CR_TO_SYNC=(	
-            deployments.apps	
-            services	
-            ingresses.networking.k8s.io	
-            pipelines.tekton.dev	
-            pipelineruns.tekton.dev	
-            runs.tekton.dev	
-            tasks.tekton.dev	
-            networkpolicies.networking.k8s.io	
-          )
 
 usage() {
   TMPDIR=$(dirname "$(mktemp -u)")
@@ -28,7 +23,7 @@ usage() {
 Usage:
     ${0##*/} [options]
 
-Setup the pipeline service on a cluster running on KCP.
+Setup Pipeline Service on a cluster running on KCP.
 
 Optional arguments:
     -w, --work-dir
@@ -51,6 +46,8 @@ parse_args() {
     -w | --work-dir)
       shift
       WORK_DIR="$1"
+      mkdir -p "$WORK_DIR"
+      WORK_DIR="$(cd "$1" >/dev/null; pwd)"
       ;;
     -d | --debug)
       set -x
@@ -73,9 +70,50 @@ parse_args() {
   done
 }
 
+# Checks if a binary is present on the local system
+precheck_binary() {
+  for binary in "$@"; do
+    command -v "$binary" >/dev/null 2>&1 || {
+      echo >&2 "openshift_dev_setup.sh requires '$binary' command-line utility to be installed on your local machine. Aborting..."
+      exit 1
+    }
+  done
+}
+
 init() {
-  APP_LIST="openshift-gitops tekton-results ckcp compute"
-  cluster_type="openshift"
+  APP_LIST=(
+            "openshift-gitops"
+            "cert-manager"
+            "tekton-results"
+            "ckcp"
+           )
+  # get the list of APPS to be installed
+  read -ra APPS <<< "$(yq eval '.APPS | join(" ")' "$CONFIG")"
+  for app in  "${APPS[@]}"
+  do
+    APP_LIST+=("$app")
+  done
+
+  # get cluster type
+  cluster_type=$(yq '.CLUSTER_TYPE // "openshift"' "$CONFIG")
+
+  GIT_URL=$(yq '.GIT_URL // "https://github.com/openshift-pipelines/pipeline-service.git"' "$CONFIG")
+  GIT_REF=$(yq '.GIT_REF // "main"' "$CONFIG")
+
+  # get list of CRs to sync
+  read -ra CR_TO_SYNC <<< "$(yq eval '.CR_TO_SYNC | join(" ")' "$CONFIG")"
+  if (( "${#CR_TO_SYNC[@]}" <= 0 )); then
+    CR_TO_SYNC=(
+                "deployments.apps"
+                "services"
+                "ingresses.networking.k8s.io"
+                "pipelines.tekton.dev"
+                "pipelineruns.tekton.dev"
+                "runs.tekton.dev"
+                "tasks.tekton.dev"
+                "networkpolicies.networking.k8s.io"
+              )
+  fi
 
   # Create SRE repository folder
   WORK_DIR="${WORK_DIR:-}"
@@ -87,6 +125,8 @@ init() {
     rm -rf "$WORK_DIR"
   fi
   cp -rf "$GITOPS_DIR/sre" "$WORK_DIR"
+  update_git_reference "$GIT_URL" "$GIT_REF" "$WORK_DIR/environment/kcp/kustomization.yaml"
+
   for dir in kcp compute; do
     mkdir -p "$WORK_DIR/credentials/kubeconfig/$dir"
   done
@@ -96,7 +136,8 @@ init() {
   KUBECONFIG="$WORK_DIR/credentials/kubeconfig/compute/compute.kubeconfig.base"
   KUBECONFIG_MERGED="merged-config.kubeconfig:$KUBECONFIG:$KUBECONFIG_KCP"
   export KUBECONFIG
-  kcp_workspace="compute"
+  kcp_org="root:default"
+  kcp_workspace="pipeline-service-compute"
   kcp_version="$(yq '.images[] | select(.name == "kcp") | .newTag' "$SCRIPT_DIR/openshift/overlays/dev/kustomization.yaml")"
 }
 
@@ -104,11 +145,6 @@ init() {
 precheck() {
   if [ "$(kubectl plugin list | grep -c 'kubectl-kcp')" -eq 0 ]; then
     printf "kcp plugin could not be found\n"
-    exit 1
-  fi
-
-  if [ "$(kubectl plugin list | grep -c 'kubectl-cert_manager')" -eq 0 ]; then
-    printf "cert_manager plugin could not be found\n"
     exit 1
   fi
 }
@@ -125,20 +161,20 @@ check_cluster_role() {
 install_openshift_gitops() {
   APP="openshift-gitops"
 
-  local ns="openshift-operators"
+  local ns="$APP"
 
   #############################################################################
   # Install the gitops operator
   #############################################################################
   echo -n "  - OpenShift-GitOps: "
-  kubectl apply -k "$CKCP_DIR/openshift-operators/$APP" >/dev/null 2>&1
+  kubectl apply -k "$CKCP_DIR/openshift-operators/$APP" >/dev/null
   echo "OK"
 
   #############################################################################
   # Wait for the URL to be available
   #############################################################################
-  echo -n "  - ArgoCD dashboard: "
-  test_cmd="kubectl get route/openshift-gitops-server --ignore-not-found -n $APP -o jsonpath={.spec.host}"
+  echo -n "  - Argo CD dashboard: "
+  test_cmd="kubectl get route/openshift-gitops-server --ignore-not-found -n $ns -o jsonpath={.spec.host}"
   ARGOCD_HOSTNAME="$(${test_cmd})"
   until curl --fail --insecure --output /dev/null --silent "https://$ARGOCD_HOSTNAME"; do
     echo -n "."
@@ -146,53 +182,52 @@ install_openshift_gitops() {
     ARGOCD_HOSTNAME="$(${test_cmd})"
   done
   echo "OK"
-  echo "  - ArgoCD URL: https://$ARGOCD_HOSTNAME"
+  echo "  - Argo CD URL: https://$ARGOCD_HOSTNAME"
 
   #############################################################################
   # Post install
   #############################################################################
-  # Log into ArgoCD
-  echo -n "  - ArgoCD Login: "
+  # Log into Argo CD
+  echo -n "  - Argo CD Login: "
   local argocd_password
-  argocd_password="$(kubectl get secret openshift-gitops-cluster -n openshift-gitops -o jsonpath="{.data.admin\.password}" | base64 --decode)"
-  argocd login "$ARGOCD_HOSTNAME" --grpc-web --insecure --username admin --password "$argocd_password" >/dev/null 2>&1
+  argocd_password="$(kubectl get secret openshift-gitops-cluster -n $ns -o jsonpath="{.data.admin\.password}" | base64 --decode)"
+  argocd login "$ARGOCD_HOSTNAME" --grpc-web --insecure --username admin --password "$argocd_password" >/dev/null
   echo "OK"
 
   # Register the host cluster as pipeline-cluster
   local cluster_name="plnsvc"
-  echo -n "  - Register host cluster to ArgoCD as '$cluster_name': "
+  echo -n "  - Register host cluster to Argo CD as '$cluster_name': "
   if ! KUBECONFIG="$KUBECONFIG_MERGED" argocd cluster get "$cluster_name" >/dev/null 2>&1; then
-    argocd cluster add "$(yq e ".current-context" "$KUBECONFIG")" --name="$cluster_name" --upsert --yes >/dev/null 2>&1
+    argocd cluster add "$(yq e ".current-context" <"$KUBECONFIG")" --name="$cluster_name" --upsert --yes >/dev/null
   fi
   echo "OK"
 }
 
-install_cert_manager() {
-  local APP="cert-manager-operator"
-  # #############################################################################
-  # # Install the cert manager operator
-  # #############################################################################
-  echo -n "  - openshift-cert-manager-operator: "
-  # As cert manager is installed via operator, when cert-manager operator's subscription doesn't exist,
-  # it supposes cert-manager is not installed
-  if [ $(kubectl -n openshift-cert-manager-operator get sub 2>&1 | grep -c "No resources found") -eq 1 ]; then
-    kubectl apply -f "$CKCP_DIR/argocd-apps/$APP.yaml" >/dev/null 2>&1
-    argocd app wait "$APP" >/dev/null 2>&1
-  fi
+install_cert_manager(){
+  APP="cert-manager-operator"
+  echo -n "  - OpenShift-Cert-Manager: "
+  kubectl apply -f "$GITOPS_DIR/argocd/argo-apps/$APP.yaml" >/dev/null
+  check_cert_manager
+}
 
-  # Wait until cert-manager is ready
-  pods_cmd="kubectl -n openshift-cert-manager get pods -o=jsonpath='{range .items[*]}{.metadata.name}{\" \"}{.status.containerStatuses[*].ready}{\"\n\"}{end}'"
-  until [[ $(eval $pods_cmd | wc -l) -eq 3 ]]; do
+check_cert_manager() {
+  # perform a dry-run create of a cert-manager
+  # Certificate resource in order to verify that CRDs are installed and all the
+  # required webhooks are reachable by the K8S API server.
+  local i=0
+  until kubectl create -f "$CKCP_DIR/openshift/base/certs.yaml" --dry-run=client >/dev/null 2>&1; do
     echo -n "."
     sleep 5
+    i=$((i+1))
+    if [ "$i" == 12 ]; then
+      echo "[ERROR] Failed to deploy OpenShift Cert-Manager operator on the host cluster."
+      exit 1
+    fi
   done
   echo "OK"
 }
 
 install_ckcp() {
-  # Install cert manager operator
-  install_cert_manager
-
   APP="ckcp"
 
   local ns="$APP"
@@ -204,7 +239,7 @@ install_ckcp() {
   local ckcp_dev_dir=$ckcp_manifest_dir/overlays/dev
   local ckcp_temp_dir=$ckcp_manifest_dir/overlays/temp
 
-  # To ensure kustomization.yaml file under overlays/temp won't be changed, remove the dirctory overlays/temp if it exists
+  # To ensure kustomization.yaml file under overlays/temp won't be changed, remove the directory overlays/temp if it exists
   if [ -d "$ckcp_temp_dir" ]; then
     rm -rf "$ckcp_temp_dir"
   fi
@@ -241,9 +276,20 @@ patches:
         value: $ckcp_route " >>"$ckcp_temp_dir/kustomization.yaml"
 
   echo -n "  - kcp $kcp_version: "
-  kubectl apply -k "$ckcp_temp_dir" >/dev/null 2>&1
+  kubectl apply -k "$ckcp_temp_dir" >/dev/null
   # Check if ckcp pod status is Ready
-  kubectl wait --for=condition=Ready -n $ns pod -l=app=kcp-in-a-pod --timeout=90s >/dev/null 2>&1
+  local error="false"
+  kubectl wait --for=condition=Ready -n "$ns" pod -l=app=kcp-in-a-pod --timeout=120s >/dev/null 2>&1 || error="true"
+  if [ "$error" == "true" ]; then
+    printf "Debug: print out pod state\n"
+    kubectl -n "$ns" describe pods
+
+    printf "Debug: print out pod logs\n"
+    kubectl -n "$ns" logs "$(kubectl -n "$ns" get pods -l=app=kcp-in-a-pod -o name)"
+
+    exit 1
+  fi
+
   # Clean up kustomize temp dir
   rm -rf "$ckcp_temp_dir"
 
@@ -254,12 +300,11 @@ patches:
   podname="$(kubectl get pods --ignore-not-found -n "$ns" -l=app=kcp-in-a-pod -o jsonpath='{.items[0].metadata.name}')"
   mkdir -p "$(dirname "$KUBECONFIG_KCP")"
   # Wait until admin.kubeconfig file is generated inside ckcp pod
-  while [[ $(kubectl exec -n $APP "$podname" -- ls /etc/kcp/config/admin.kubeconfig >/dev/null 2>&1; echo $?) -ne 0 ]]; do
+  while [[ $(kubectl exec -n $ns "$podname" -- ls /etc/kcp/config/admin.kubeconfig >/dev/null 2>&1; echo $?) -ne 0 ]]; do
     echo -n "."
     sleep 5
   done
-  kubectl cp "$APP/$podname:/etc/kcp/config/admin.kubeconfig" "$KUBECONFIG_KCP" >/dev/null 2>&1
-  KUBECONFIG="$KUBECONFIG_KCP" kubectl config rename-context "default" "workspace.kcp.dev/current" >/dev/null
+  kubectl cp "$ns/$podname:/etc/kcp/config/admin.kubeconfig" "$KUBECONFIG_KCP" >/dev/null
   echo "OK"
 
   # Check if external ip is assigned and replace kcp's external IP in the kubeconfig file
@@ -269,25 +314,32 @@ patches:
   fi
   echo "OK"
 
-  # Workaround to prevent the creation of the creation of a new workspace until KCP is ready.
+  # Workaround to prevent the creation of a new workspace until KCP is ready.
   # This fixes `error: creating a workspace under a Universal type workspace is not supported`.
-  while ! KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspace create "dummy" --ignore-existing >/dev/null; do
+  ws_name=$(echo "$kcp_org" | cut -d: -f2)
+  while ! KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspace create "$ws_name" --type root:organization --ignore-existing >/dev/null; do
     sleep 5
   done
+  KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspace use "$ws_name"
 
   echo "  - Setup kcp access:"
   "$SCRIPT_DIR/../images/access-setup/content/bin/setup_kcp.sh" \
     --kubeconfig "$KUBECONFIG_KCP" \
+    --kcp-org "$kcp_org" \
     --kcp-workspace "$kcp_workspace" \
-    --work-dir "$WORK_DIR"
-  KUBECONFIG_KCP="$WORK_DIR/credentials/kubeconfig/kcp/ckcp-ckcp.default.compute.kubeconfig"
+    --work-dir "$WORK_DIR" \
+    --kustomization "$GIT_URL/gitops/kcp/pac-manager?ref=$GIT_REF"
+  KUBECONFIG_KCP="$WORK_DIR/credentials/kubeconfig/kcp/ckcp-ckcp.${ws_name}.${kcp_workspace}.kubeconfig"
 }
 
-install_compute() {
+install_pipeline_service() {
   echo "  - Setup compute access:"
   "$SCRIPT_DIR/../images/access-setup/content/bin/setup_compute.sh" \
     --kubeconfig "$KUBECONFIG" \
-    --work-dir "$WORK_DIR"
+    --work-dir "$WORK_DIR" \
+    --kustomization "$GIT_URL/gitops/compute/pac-manager?ref=$GIT_REF" \
+    --git-remote-url "$GIT_URL" \
+    --git-remote-ref "$GIT_REF"
 
   echo "  - Deploy compute:"
   "$SCRIPT_DIR/../images/cluster-setup/install.sh" --workspace-dir "$WORK_DIR"
@@ -299,9 +351,15 @@ install_compute() {
     WEBHOOK_SECRET="placeholder_webhook" \
     "$GITOPS_DIR/pac/setup.sh"
 
+}
+
+register_compute() {
   echo "  - Register compute to KCP"
-  KCP_ORG="root:default" KCP_WORKSPACE="$kcp_workspace" DATA_DIR="$WORK_DIR" KCP_SYNC_TAG="$kcp_version" \
-    "$SCRIPT_DIR/../images/kcp-registrar/register.sh"
+  "$(dirname "$SCRIPT_DIR")/images/kcp-registrar/register.sh" \
+    --kcp-org "root:default" \
+    --kcp-workspace "$kcp_workspace" \
+    --kcp-sync-tag "$kcp_version" \
+    --workspace-dir "$WORK_DIR"
 
   check_cr_sync
 }
@@ -315,20 +373,6 @@ install_tekton_results(){
   # Generate postgres secret
   kubectl create secret generic tekton-results-postgres --namespace="openshift-pipelines" --from-literal=POSTGRES_USER=postgres --from-literal=POSTGRES_PASSWORD=$(openssl rand -base64 20) --dry-run=client -o yaml | kubectl apply -f - >/dev/null 2>&1
 
-  # Generate new self-signed cert.
-  openssl req -x509 \
-    -newkey rsa:4096 \
-    -keyout key.pem \
-    -out cert.pem \
-    -days 365 \
-    -nodes \
-    -subj "/CN=tekton-results-api-service.openshift-pipelines.svc.cluster.local" \
-    -addext "subjectAltName = DNS:tekton-results-api-service.openshift-pipelines.svc.cluster.local" >/dev/null 2>&1
-
-  # Create new TLS Secret from cert.
-  kubectl create secret tls -n openshift-pipelines tekton-results-tls --cert=cert.pem --key=key.pem --dry-run=client -o yaml | kubectl apply -f - >/dev/null 2>&1
-
-  rm cert.pem key.pem
   echo "OK"
 }
 
@@ -336,7 +380,10 @@ check_cr_sync() {
   # Wait until CRDs are synced to KCP
   echo -n "  - Sync CRDs to KCP: "
   local cr_regexp
-  cr_regexp="$(IFS=\|; echo "${CR_TO_SYNC[*]}")"
+  cr_regexp="$(
+    IFS=\|
+    echo "${CR_TO_SYNC[*]}"
+  )"
   local wait_period=0
   while [[ "$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources -o name 2>&1 | grep -Ewc "$cr_regexp")" -ne ${#CR_TO_SYNC[@]} ]]; do
     wait_period=$((wait_period + 10))
@@ -359,14 +406,16 @@ check_cr_sync() {
 
 main() {
   parse_args "$@"
+  precheck_binary "kubectl" "yq" "curl" "argocd"
   init
   precheck
   check_cluster_role
-  for APP in $APP_LIST; do
+  for APP in "${APP_LIST[@]}"; do
     echo "[$APP]"
     install_"$(echo "$APP" | tr '-' '_')"
     echo
   done
+  register_compute
 }
 
 if [ "${BASH_SOURCE[0]}" == "$0" ]; then

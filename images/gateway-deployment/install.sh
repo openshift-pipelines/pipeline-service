@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2022 The pipelines-service Authors.
+# Copyright 2022 The Pipeline Service Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,12 +20,12 @@ set -o pipefail
 
 usage() {
 
-    printf "Usage: KCP_ORG=root:pipelines-service KCP_WORKSPACE=infra DATA_DIR=/workspace ./install.sh\n\n"
+    printf "Usage: KCP_ORG=root:pipeline-service KCP_WORKSPACE=infra DATA_DIR=/workspace ./install.sh\n\n"
 
     # Parameters
     printf "The following parameters need to be passed to the script:\n"
-    printf "KCP_ORG: the organistation for which the workload clusters need to be registered, i.e.: root:pipelines-service\n"
-    printf "KCP_WORKSPACE: the name of the workspace where the gateway gets deployed (created if it does not exist), i.e: infra. If the workspace differs from the one where the WorkloadCluster has been created an APIBinding will need to be added\n"
+    printf "KCP_ORG: the organistation for which the workload clusters need to be registered, i.e.: root:pipeline-service\n"
+    printf "KCP_WORKSPACE: the name of the workspace where the gateway gets deployed (created if it does not exist), i.e: infra. If the workspace differs from the one where the SyncTarget has been created an APIBinding will need to be added\n"
     printf "DATA_DIR: the location of the cluster files\n"
 }
 
@@ -54,24 +54,19 @@ prechecks () {
 
 # populate kcp_kcfg with the location of the kubeconfig for connecting to kcp
 kcp_kubeconfig() {
-    if files=($(ls $DATA_DIR/credentials/kubeconfig/kcp/*.kubeconfig 2>/dev/null)); then
-        if [ ${#files[@]} -ne 1 ]; then
-            printf "A single kubeconfig file is expected at %s\n" "$DATA_DIR/credentials/kubeconfig/kcp"
-            usage
-            exit 1
-        fi
-        kcp_kcfg="${files[0]}"
-    else
+    mapfile -t files < <(ls "$DATA_DIR/credentials/kubeconfig/kcp/*.kubeconfig" 2>/dev/null)
+    if [ ${#files[@]} -ne 1 ]; then
         printf "A single kubeconfig file is expected at %s\n" "$DATA_DIR/credentials/kubeconfig/kcp"
         usage
         exit 1
     fi
+    kcp_kcfg="${files[0]}"
 }
 
 switch_org() {
-    KUBECONFIG=${kcp_kcfg} kubectl kcp workspace use ${KCP_ORG}
+    KUBECONFIG=${kcp_kcfg} kubectl kcp workspace use "${KCP_ORG}"
     if ! (KUBECONFIG=${kcp_kcfg} kubectl api-resources >> /dev/null 2>&1); then
-        printf "%s is not a valid organization, wrong kubectl context in use or connectivity issue\n" ${KCP_ORG}
+        printf "%s is not a valid organization, wrong kubectl context in use or connectivity issue\n" "${KCP_ORG}"
 	usage
 	exit 1
     fi
@@ -84,7 +79,7 @@ switch_ws() {
 
     else
        printf "creating workspace %s\n" "${KCP_WORKSPACE}"
-       KUBECONFIG=${kcp_kcfg} kubectl kcp workspace create "${KCP_WORKSPACE}" --enter
+       KUBECONFIG=${kcp_kcfg} kubectl kcp workspace create "${KCP_WORKSPACE}" --type=universal --enter
     fi
 }
 

@@ -1,0 +1,14 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: apibinding:kubernetes
+rules:
+  - apiGroups:
+      - apis.kcp.dev
+    resources:
+      - apiexports
+    resourceNames:
+      - kubernetes # value of the spec/identity/secretRef/name field of the APIExport
+    verbs:
+      - bind

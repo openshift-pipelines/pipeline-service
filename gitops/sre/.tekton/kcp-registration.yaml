@@ -1,3 +1,4 @@
+---
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
@@ -43,13 +44,13 @@ spec:
             - name: source
           steps:
             - name: register-to-kcp
-              image: ghcr.io/openshift-pipelines/kcp-registrar:main
+              image: quay.io/redhat-pipeline-service/kcp-registrar:main
               workingDir: $(workspaces.source.path)
               env:
-                - name: DATA_DIR
+                - name: WORKSPACE_DIR
                   value: $(workspaces.source.path)
                 - name: KCP_ORG
-                  value: "pipelines-service"
+                  value: "pipeline-service"
                 - name: KCP_WORKSPACE
                   value: "compute"
   workspaces:

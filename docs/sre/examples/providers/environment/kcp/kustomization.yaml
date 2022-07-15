@@ -1,0 +1,4 @@
+---
+resources:
+  - github.com/openshift-pipelines/pipeline-service/gitops/kcp/registration?ref=main
+# The default APIBinding RBAC settings could be patched here.

@@ -1,5 +1,6 @@
 # This should be moved to the gitops folder and be synced by gitops
 # to guarantee that there's no configuration drift between clusters.
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:

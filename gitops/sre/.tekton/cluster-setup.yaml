@@ -1,3 +1,4 @@
+---
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
@@ -43,7 +44,7 @@ spec:
             - name: source
           steps:
             - name: cluster-setup
-              image: ghcr.io/openshift-pipelines/cluster-setup:main
+              image: quay.io/redhat-pipeline-service/cluster-setup:main
               workingDir: $(workspaces.source.path)
               env:
                 - name: WORKSPACE_DIR

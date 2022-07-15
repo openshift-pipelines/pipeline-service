@@ -1,6 +1,0 @@
-apiVersion: tenancy.kcp.dev/v1alpha1
-kind: ClusterWorkspace
-metadata:
-  name: pipelines-service
-spec:
-  type: Organization

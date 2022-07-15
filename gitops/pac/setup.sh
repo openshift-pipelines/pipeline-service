@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2022 The pipelines-service Authors.
+# Copyright 2022 The Pipeline Service Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ set -o pipefail
 
 usage() {
 
-    printf "Usage: KUBECONFIG="path-to-kubeconfig" GITOPS_REPO="https://gitops.com/group/project" GIT_TOKEN="XXXXXXXXX" WEBHOOK_SECRET="YYYYYYYYYY" ./setup.sh\n\n"
-	
+    printf 'Usage: KUBECONFIG="path-to-kubeconfig" GITOPS_REPO="https://gitops.com/group/project" GIT_TOKEN="XXXXXXXXX" WEBHOOK_SECRET="YYYYYYYYYY" ./setup.sh\n\n'
+
     # Parameters
     printf "The following parameters need to be passed to the script:\n"
     printf "KUBECONFIG: the path to the kubeconfig file used to connect to the cluster where Pipelines as Code will be installed\n"
@@ -39,12 +39,12 @@ check_params() {
     WEBHOOK_SECRET="${WEBHOOK_SECRET:-}"
     if [[ -z "${KUBECONFIG}" ]]; then
         printf "KUBECONFIG environment variable needs to be set\n\n"
-	usage
-	exit 1
+        usage
+        exit 1
     fi
     if [[ -z "${GITOPS_REPO}" ]]; then
         printf "GITOPS_REPO environment variable needs to be set\n\n"
-	usage
+        usage
         exit 1
     fi
     if [[ -z "${GIT_TOKEN}" ]]; then
@@ -63,14 +63,14 @@ controller_install() {
     CONTROLLER_INSTALL="${CONTROLLER_INSTALL:-}"
     if [[ $(tr '[:upper:]' '[:lower:]' <<< "$CONTROLLER_INSTALL") == "true" ]]; then
        printf "Installing controller\n"
-       kubectl --kubeconfig ${KUBECONFIG} patch tektonconfig config --type="merge" -p '{"spec": {"addon":{"enablePipelinesAsCode": false}}}'
-       kubectl --kubeconfig ${KUBECONFIG} apply -f https://github.com/openshift-pipelines/pipelines-as-code/releases/download/0.10.0/release.yaml
+       kubectl --kubeconfig "${KUBECONFIG}" patch tektonconfig config --type="merge" -p '{"spec": {"addon":{"enablePipelinesAsCode": false}}}'
+       kubectl --kubeconfig "${KUBECONFIG}" apply -f https://github.com/CathalOConnorRH/pipelines-as-code/releases/download/0.10.0/release.yaml
     fi
 }
 
 mk_tmpdir () {
-  TMP_DIR="$(mktemp -d -t pac-pipelines-service.XXXXXXXXX)"
-  printf "Temporary directory created: ${TMP_DIR}\n"
+  TMP_DIR="$(mktemp -d -t pac-pipeline-service.XXXXXXXXX)"
+  printf "Temporary directory created: %s\n" "${TMP_DIR}"
 }
 
 kustomize () {
@@ -80,21 +80,23 @@ kustomize () {
     # This resource may take some time to spawn, which will cause Kustomize to fail when
     # applying the patch if we do not wait for it.
     printf "Waiting for resources: "
-    while ! kubectl --kubeconfig ${KUBECONFIG} api-resources -o name | grep -Eq "^repositories.pipelinesascode.tekton.dev$"; do
+    while ! kubectl --kubeconfig "${KUBECONFIG}" api-resources -o name | grep -Eq "^repositories.pipelinesascode.tekton.dev$"; do
       printf "."
       sleep 5
     done
     printf "OK\n"
 
+    ppath_relative=$(realpath --relative-to="${TMP_DIR}" "${parent_path}")
+
     # Create a json patch for the repository
-    cat <<EOF > ${TMP_DIR}/patch-repo.yaml
+    cat <<EOF > "${TMP_DIR}/patch-repo.yaml"
 - op: replace
   path: /spec/url
   value: ${GITOPS_REPO}
 EOF
 
     # Create a json patch for the secret
-    cat <<EOF > ${TMP_DIR}/patch-secret.yaml
+    cat <<EOF > "${TMP_DIR}/patch-secret.yaml"
 - op: replace
   path: /data/provider.token
   value: ${GIT_TOKEN}
@@ -105,17 +107,17 @@ EOF
 
     if [[ $(tr '[:upper:]' '[:lower:]' <<< "$CONTROLLER_INSTALL") == "true" ]]; then
         # Create a json patch for the ingress
-        cat <<EOF > ${TMP_DIR}/patch-ingress.yaml
+        cat <<EOF > "${TMP_DIR}/patch-ingress.yaml"
 - op: replace
   path: /spec/rules/0/host
   value: ${PAC_HOST}
 EOF
-        cp $parent_path/manifests/ingress.yaml ${TMP_DIR}/ingress.yaml
+        cp "$parent_path/manifests/ingress.yaml" "${TMP_DIR}/ingress.yaml"
         # kustomization.yaml
-        cat <<EOF > ${TMP_DIR}/kustomization.yaml
+        cat <<EOF > "${TMP_DIR}/kustomization.yaml"
 resources:
 - ingress.yaml
-- ../../$parent_path/manifests
+- ./${ppath_relative}/manifests
 patchesJson6902:
 - target:
     group: pipelinesascode.tekton.dev
@@ -137,10 +139,10 @@ patchesJson6902:
 EOF
 
     else
-	# kustomization.yaml
-        cat <<EOF > ${TMP_DIR}/kustomization.yaml
+        # kustomization.yaml
+        cat <<EOF > "${TMP_DIR}/kustomization.yaml"
 resources:
-- ../../$parent_path/manifests
+- ./${ppath_relative}/manifests
 patchesJson6902:
 - target:
     group: pipelinesascode.tekton.dev
@@ -156,8 +158,8 @@ patchesJson6902:
 EOF
 
     fi
-    kubectl kustomize ${TMP_DIR} > ${TMP_DIR}/patched.yaml
-    kubectl --kubeconfig=${KUBECONFIG} apply -f ${TMP_DIR}/patched.yaml
+    kubectl kustomize "${TMP_DIR}" > "${TMP_DIR}/patched.yaml"
+    kubectl --kubeconfig="${KUBECONFIG}" apply -f "${TMP_DIR}/patched.yaml"
 }
 
 parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
@@ -172,4 +174,3 @@ mk_tmpdir
 kustomize
 
 printf "Pipelines as Code installed\n"
-

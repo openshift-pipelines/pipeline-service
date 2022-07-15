@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2022 The pipelines-service Authors.
+# Copyright 2022 The Pipeline Service Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ usage() {
 Usage:
     %s [options]
 
-Deploy Pipelines Service on the clusters as per the configuration in
+Deploy Pipeline Service on the clusters as per the configuration in
 WORKSPACE_DIR.
 
 Optional arguments:
@@ -122,29 +122,42 @@ install_tektoncd() {
   printf "\n"
 }
 
+check_deployments() {
+  local ns="$1"
+  shift
+  local deployments=("$@")
+
+  for deploy in "${deployments[@]}"; do
+    printf "    - %s: " "$deploy"
+
+    #a loop to check if the deployment exists
+    if ! timeout 300s bash -c "while ! kubectl get deployment/$deploy -n $ns >/dev/null 2>/dev/null; do printf '.'; sleep 10; done"; then
+      exit_error "$deploy not found (timeout)"
+    else
+      printf "Exists"
+    fi
+
+    #a loop to check if the deployment is Available and Ready
+    if kubectl wait --for=condition=Available=true "deployment/$deploy" -n "$ns" --timeout=100s >/dev/null 2>/dev/null; then
+      printf ", Ready\n"
+    else
+      exit_error "$deploy not ready (timeout)"
+    fi
+  done
+}
+
 postchecks() {
   printf "Checking deployment status\n"
   #checking if the pipelines and triggers pods are up and running
   for i in "${!clusters[@]}"; do
     switch_cluster
     printf "  - %s:\n" "${clusters[$i]}"
-    for deploy in tekton-pipelines-controller tekton-triggers-controller tekton-triggers-core-interceptors tekton-results-api tekton-results-watcher; do
-      printf "    - %s: " "$deploy"
 
-      #a loop to check if the deployment exists
-      if ! timeout 300s bash -c "while ! kubectl get deployment/$deploy -n openshift-pipelines >/dev/null 2>/dev/null; do printf '.'; sleep 10; done"; then
-        exit_error "$deploy not found (timeout)"
-      else
-        printf "Exists"
-      fi
+    tektonDeployments=("tekton-pipelines-controller" "tekton-triggers-controller" "tekton-triggers-core-interceptors")
+    check_deployments "openshift-pipelines" "${tektonDeployments[@]}"
 
-      #a loop to check if the deployment is Available and Ready
-      if kubectl wait --for=condition=Available=true deployment/$deploy -n openshift-pipelines --timeout=100s >/dev/null 2>/dev/null; then
-        printf ", Ready\n"
-      else
-        exit_error "$deploy not ready (timeout)"
-      fi
-    done
+    certManagerDeployments=("cert-manager" "cert-manager-cainjector" "cert-manager-webhook")
+    check_deployments "openshift-cert-manager" "${certManagerDeployments[@]}"
   done
 }
 

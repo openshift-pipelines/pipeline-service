@@ -1,31 +1,41 @@
 #!/usr/bin/env bash
 
 #quit if exit status of any cmd is a non-zero value
-set -exuo pipefail
+set -euo pipefail
+
+# Uncomment the below line to enable debugging
+# set -x
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" >/dev/null ; pwd)"
 KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
 export KUBECONFIG=$KUBECONFIG
-KUBECONFIG_KCP="${KUBECONFIG_KCP:-$SCRIPT_DIR/work/kubeconfig/admin.kubeconfig}"
+KUBECONFIG_KCP="${KUBECONFIG_KCP:-$SCRIPT_DIR/work/credentials/kubeconfig/kcp/ckcp-ckcp.default.pipeline-service-compute.kubeconfig}"
 
 get_namespace() {
   # Retrieve the KCP namespace id
-  local ns_locator="{\"logical-cluster\":\"$(
+  local ns_locator
+  ns_locator="\"workspace\":\"$(
     KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspace current | cut -d\" -f2
-  )\",\"namespace\":\"default\"}"
+  )\",\"namespace\":\"default\""
   # Loop is necessary as it takes KCP time to create the namespace
   while ! kubectl get ns -o yaml | grep -q "$ns_locator"; do
     sleep 2
   done
-  local KCP_NS_NAME="$(kubectl get ns -l internal.workload.kcp.dev/cluster=local -o json \
-    | jq -r '.items[].metadata | select(.annotations."kcp.dev/namespace-locator" 
+
+  local KCP_NS_NAME
+  KCP_NS_NAME="$(kubectl get ns -l internal.workload.kcp.dev/cluster -o json \
+    | jq -r '.items[].metadata | select(.annotations."kcp.dev/namespace-locator"
     | contains("\"namespace\":\"default\"")) | .name'
   )"
-  echo $KCP_NS_NAME
+
+  if [ -z "$KCP_NS_NAME" ]; then
+    echo "[ERROR] Could not retrieve KCP_NS_NAME"
+    exit 1
+  fi
+  echo "$KCP_NS_NAME"
 }
 
 
-#install pipelines/triggers based on args
 if [ $# -eq 0 ]; then
   echo "No args passed; exiting now! ckcp is running in a pod"
 else
@@ -55,7 +65,7 @@ else
       echo "Print kube resources in the physical cluster (Note: physical cluster will not know what pipelinesruns are)"
       
       KCP_NS_NAME="$(get_namespace)"
-      kubectl get pods -n $KCP_NS_NAME
+      kubectl get pods -n "$KCP_NS_NAME"
 
     elif [ $arg == "triggers" ]; then
       echo "Arg triggers passed. Running triggers tests..."

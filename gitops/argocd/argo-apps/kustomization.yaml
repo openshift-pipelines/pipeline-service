@@ -1,3 +1,5 @@
+---
 resources:
   - tektoncd.yaml
+  - cert-manager-operator.yaml
   - tekton-results.yaml

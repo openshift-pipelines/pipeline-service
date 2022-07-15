@@ -5,14 +5,14 @@ LABEL build-date= \
       distribution-scope="public" \
       io.k8s.description="This image provides binaries and a script to easily register clusters to Argo CD." \
       io.k8s.display-name="Argo CD register" \
-      maintainer="Pipelines Service" \
+      maintainer="Pipeline Service" \
       name="argocd-registrar" \
       release="0.1" \
       summary="Provides the latest release of argocd-registrar image." \
-      url="https://github.com/openshift-pipelines/pipelines-service/tree/main/images/argocd-registrar" \
+      url="https://github.com/CathalOConnorRH/pipelines-service/tree/main/images/argocd-registrar" \
       vcs-ref=  \
       vcs-type="git" \
-      vendor="Pipelines Service" \
+      vendor="Pipeline Service" \
       version="0.1"
 WORKDIR /
 ENV HOME /tmp/home

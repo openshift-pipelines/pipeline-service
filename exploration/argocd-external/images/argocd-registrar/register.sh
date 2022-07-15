@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2022 The pipelines-service Authors.
+# Copyright 2022 The Pipeline Service Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ set -o pipefail
 
 usage() {
 
-    printf "Usage: ARGO_URL="https://argoserver.com" ARGO_USER="user" ARGO_PWD="xxxxxxxxx" DATA_DIR="/workspace" ./register.sh\n\n"
+    printf 'Usage: ARGO_URL="https://argoserver.com" ARGO_USER="user" ARGO_PWD="xxxxxxxxx" DATA_DIR="/workspace" ./register.sh\n\n'
 
     # Parameters
     printf "The following parameters need to be passed to the script:\n"
@@ -78,16 +78,16 @@ get_clusters() {
     clusters=()
     contexts=()
     kubeconfigs=()
-    files=($(ls $DATA_DIR/gitops/sre/credentials/kubeconfig/compute))
+    mapfile -t files < <(ls "$DATA_DIR/gitops/sre/credentials/kubeconfig/compute")
     for kubeconfig in "${files[@]}"; do
-        subs=($(KUBECONFIG=${DATA_DIR}/gitops/sre/credentials/kubeconfig/compute/${kubeconfig} kubectl config view -o jsonpath='{range .contexts[*]}{.name}{","}{.context.cluster}{"\n"}{end}'))
+        mapfile -t subs < <(KUBECONFIG=${DATA_DIR}/gitops/sre/credentials/kubeconfig/compute/${kubeconfig} kubectl config view -o jsonpath='{range .contexts[*]}{.name}{","}{.context.cluster}{"\n"}{end}')
         for sub in "${subs[@]}"; do
-            context=$(echo -n ${sub} | cut -d ',' -f 1)
-            cluster=$(echo -n ${sub} | cut -d ',' -f 2 | cut -d ':' -f 1)
+            context=$(echo -n "${sub}" | cut -d ',' -f 1)
+            cluster=$(echo -n "${sub}" | cut -d ',' -f 2 | cut -d ':' -f 1)
 	    if ! (echo "${clusters[@]}" | grep "${cluster}"); then
-                clusters+=( ${cluster} )
-                contexts+=( ${context} )
-                kubeconfigs+=( ${kubeconfig} )
+                clusters+=( "${cluster}" )
+                contexts+=( "${context}" )
+                kubeconfigs+=( "${kubeconfig}" )
             fi
         done
     done
@@ -97,7 +97,7 @@ registration() {
     printf "Logging into Argo CD\n"
     # TODO: there may be a better way than user/password
     # there should be no assumption that Argo CD runs on the same cluster
-    argocd ${insecure} login $ARGO_URL --username $ARGO_USER --password $ARGO_PWD
+    argocd "${insecure}" login "$ARGO_URL" --username "$ARGO_USER" --password "$ARGO_PWD"
 
     printf "Getting the list of registered clusters\n"
     existing_clusters=$(argocd cluster list -o json | jq '.[].name')
@@ -111,14 +111,12 @@ registration() {
             # Split between namespace creation and application of rbac policies:
             # - `argocd cluster add` requires the namespaces to exist
             # - `argocd cluster add` applies default rbac that may differ from what is desired
-            KUBECONFIG=${DATA_DIR}/gitops/sre/credentials/kubeconfig/compute/${kubeconfigs[$i]} kubectl --context "${contexts[$i]}" apply -k ${DATA_DIR}/gitops/sre/environment/compute/${clusters[$i]}/namespaces
-            KUBECONFIG=${DATA_DIR}/gitops/sre/credentials/kubeconfig/compute/${kubeconfigs[$i]} argocd -y ${insecure} cluster add "${contexts[$i]}" --name "${clusters[$i]}" --system-namespace argocd-management --namespace=tekton-pipelines --namespace=kcp-syncer
-            KUBECONFIG=${DATA_DIR}/gitops/sre/credentials/kubeconfig/compute/${kubeconfigs[$i]} kubectl --context "${contexts[$i]}" apply -k ${DATA_DIR}/gitops/sre/environment/compute/${clusters[$i]}/argocd-rbac
+            KUBECONFIG="${DATA_DIR}/gitops/sre/credentials/kubeconfig/compute/${kubeconfigs[$i]}" kubectl --context "${contexts[$i]}" apply -k "${DATA_DIR}/gitops/sre/environment/compute/${clusters[$i]}/namespaces"
+            KUBECONFIG="${DATA_DIR}/gitops/sre/credentials/kubeconfig/compute/${kubeconfigs[$i]}" argocd -y "${insecure}" cluster add "${contexts[$i]}" --name "${clusters[$i]}" --system-namespace argocd-management --namespace=tekton-pipelines --namespace=kcp-syncer
+            KUBECONFIG="${DATA_DIR}/gitops/sre/credentials/kubeconfig/compute/${kubeconfigs[$i]}" kubectl --context "${contexts[$i]}" apply -k "${DATA_DIR}/gitops/sre/environment/compute/${clusters[$i]}/argocd-rbac"
         fi
     done
 }
-
-parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 
 prechecks
 

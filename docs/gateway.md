@@ -1,6 +1,6 @@
-# Gateway for Tekton triggers
+# Gateway for Tekton triggers and Pipelines as Code
 
-Leveraging kcp, workload clusters are an infrastructure that end users may not be aware of and not allowed to access directly.
+Leveraging kcp, workload clusters are an infrastructure that end users may not be aware of. Depending on circumstances their pipelines may get scheduled on one or another cluster.
 With the approach described for [phase 1](../README.md#phase-1) controllers are directly running on these workload clusters.
 
 This introduces a challenge. For trigger integration, external systems or users need to send requests to the listeners on the workload cluster.
@@ -10,19 +10,25 @@ The approach taken for addressing it is to introduce a gateway (an haproxy conta
 
 ![Gateway architecture](./images/haproxy.png)
 
-- GLB is kcp global load balancer. This is a work in progress. Currently a development version is based on an ingress-controller that automatically configures an envoy proxy.
+- GLB is [kcp global load balancer](https://github.com/Kuadrant/kcp-glbc). This is a work in progress. The current version automatically configures DNS, e.g. route 53, so that the hostname points to the ingress endpoint of the cluster where the matching workload (Service, Deployment) has been deployed. It also integrates with cert-manager to configure a certificate that matches the hostname.
 - Ingress, Service, Deployment and ConfigMap for the HAProxy based gateway are created in kcp, which syncs them onto the workload clusters.
 
 The request flow is as follows:
 
 1. An external system, GitHub for instance, triggers an http call.
-2. The GLB forwards the call to the ingress router running on a workload cluster.
-3. The ingress router forwards the call to its backend the HAProxy container.
-4. HAProxy uses path-based routing to forward `/trigger` requests to the trigger Service in the trigger namespace.
-5. The Service, implemented through iptables rules most of the time, forwards the packets to the trigger pod.
+2. The DNS server returns the IP address for the ingress router running on the same workload cluster (or a proxy to it) as the gateway.
+3. The ingress router forwards the call to its backend the gateway (HAProxy container).
+4. HAProxy uses path-based routing to forward `/trigger` requests to the Pipelines as Code Service.
+5. The Service, implemented through iptables rules or a cloud provider's load balancer most of the time, forwards the packets to the trigger pod.
 6. The trigger pod processes the request.
 
 ## Installation
+
+### Prerequisites
+
+[kcp GLBC](https://github.com/Kuadrant/kcp-glbc) must be deployed. [Instructions](https://github.com/Kuadrant/kcp-glbc/blob/main/docs/deployment.md) are provided in its GitHub repository.
+
+### Commands
 
 Kubectl should point to your kcp organisation.
 
@@ -75,5 +81,4 @@ here the backend is the service `el-pipelines-as-code-interceptor` in the `opens
 
 - There is currently no controller watching EventListeners to configure the gateway dynamically. This means that the gateway would work for Pipelines as Code, which offers a stable entrypoint but not for pure Tekton Triggers.
 - PipelineRuns are not visible in any kcp workspace.
-- Ingress is currently broken with kcp 0.5 and may not get fixed before 0.7
 

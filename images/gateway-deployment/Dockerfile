@@ -5,14 +5,14 @@ LABEL build-date= \
       distribution-scope="public" \
       io.k8s.description="This image provides binaries and a script to deploy gateway on kcp." \
       io.k8s.display-name="gateway deployment" \
-      maintainer="Pipelines Service" \
+      maintainer="Pipeline Service" \
       name="gateway-deployment" \
       release="0.1" \
       summary="Provides the latest release of gateway-deployment image." \
-      url="https://github.com/openshift-pipelines/pipelines-service/tree/main/images/gateway-deployment" \
+      url="https://github.com/CathalOConnorRH/pipelines-service/tree/main/images/gateway-deployment" \
       vcs-ref=  \
       vcs-type="git" \
-      vendor="Pipelines Service" \
+      vendor="Pipeline Service" \
       version="0.1"
 WORKDIR /
 RUN mkdir /workspace && chmod 777 /workspace && chown 65532:65532 /workspace

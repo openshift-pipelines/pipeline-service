@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2022 The pipelines-service Authors.
+# Copyright 2022 The Pipeline Service Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ SCRIPT_DIR="$(
   pwd
 )"
 
+# shellcheck source=images/access-setup/content/bin/common.sh
 source "$SCRIPT_DIR/common.sh"
 
 usage() {
@@ -31,11 +32,13 @@ usage() {
 
 Generate access credentials for a new KCP instance so it can be managed by pipelines as code
 
-Optional arguments:
+Mandatory arguments:
     -k, --kubeconfig KUBECONFIG
         kubeconfig to the kcp instance to configure.
         The current context will be used.
         Default value: \$KUBECONFIG
+
+Optional arguments:
     --kcp-org KCP_ORG
         Path to the organization workspace.
         Can be read from \$KCP_ORG.
@@ -62,7 +65,7 @@ Example:
 }
 
 parse_args() {
-  KUSTOMIZATION=${KUSTOMIZATION:-github.com/openshift-pipelines/pipelines-service/gitops/kcp/pac-manager?ref=main}
+  KUSTOMIZATION=${KUSTOMIZATION:-github.com/openshift-pipelines/pipeline-service/gitops/kcp/pac-manager?ref=main}
   while [[ $# -gt 0 ]]; do
     case "$1" in
     -k | --kubeconfig)
@@ -140,7 +143,7 @@ generate_kcp_credentials() {
   printf "    - Create workspace:\n"
   kubectl kcp workspace use "$KCP_ORG"
   if ! kubectl kcp workspace use "$KCP_WORKSPACE" >/dev/null 2>&1; then
-    kubectl kcp workspace create "$KCP_WORKSPACE" --enter >/dev/null
+    kubectl kcp workspace create "$KCP_WORKSPACE" --type=universal --enter >/dev/null
   fi
   kubectl kcp workspace current
 
