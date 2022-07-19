@@ -178,9 +178,17 @@ install_cert_manager() {
     argocd app wait "$APP" >/dev/null 2>&1
   fi
 
-  # Wait until cert-manager is ready
+  # Wait until cert-manager pods are ready
   pods_cmd="kubectl -n openshift-cert-manager get pods -o=jsonpath='{range .items[*]}{.metadata.name}{\" \"}{.status.containerStatuses[*].ready}{\"\n\"}{end}'"
   until [[ $(eval $pods_cmd | wc -l) -eq 3 ]]; do
+    echo -n "."
+    sleep 5
+  done
+
+  # perform a dry-run create of a cert-manager
+  # Certificate resource in order to verify that CRDs are installed and all the
+  # required webhooks are reachable by the K8S API server.
+  until kubectl create -f $CKCP_DIR/openshift/base/certs.yaml --dry-run >/dev/null 2>&1; do
     echo -n "."
     sleep 5
   done
