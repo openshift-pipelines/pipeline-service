@@ -190,7 +190,7 @@ install_cert_manager() {
   # perform a dry-run create of a cert-manager
   # Certificate resource in order to verify that CRDs are installed and all the
   # required webhooks are reachable by the K8S API server.
-  until kubectl create -f $CKCP_DIR/openshift/base/certs.yaml --dry-run >/dev/null 2>&1; do
+  until kubectl create -f $CKCP_DIR/openshift/base/certs.yaml --dry-run=client >/dev/null 2>&1; do
     echo -n "."
     sleep 5
   done
