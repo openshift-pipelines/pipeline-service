@@ -76,7 +76,7 @@ parse_args() {
 }
 
 init() {
-  APP_LIST="openshift-gitops ckcp compute"
+  APP_LIST="openshift-gitops compute ckcp register-compute"
   cluster_type="openshift"
 
   # Create SRE repository folder
@@ -170,29 +170,11 @@ install_openshift_gitops() {
   echo "OK"
 }
 
-install_cert_manager() {
-  local APP="cert-manager-operator"
-  # #############################################################################
-  # # Install the cert manager operator
-  # #############################################################################
-  echo -n "  - openshift-cert-manager-operator: "
-  # As cert manager is installed via operator, when cert-manager operator's subscription doesn't exist,
-  # it supposes cert-manager is not installed
-  if [ "$(kubectl -n openshift-cert-manager-operator get sub 2>&1 | grep -c "No resources found")" -eq 1 ]; then
-    kubectl apply -f "$CKCP_DIR/argocd-apps/$APP.yaml" >/dev/null 2>&1
-    argocd app wait "$APP" >/dev/null 2>&1
-  fi
-
-  # Wait until cert-manager pods are ready
-  pods_cmd="kubectl -n openshift-cert-manager get pods -o=jsonpath='{range .items[*]}{.metadata.name}{\" \"}{.status.containerStatuses[*].ready}{\"\n\"}{end}'"
-  until [[ $(eval "$pods_cmd" | wc -l) -eq 3 ]]; do
-    echo -n "."
-    sleep 5
-  done
-
+check_cert_manager() {
   # perform a dry-run create of a cert-manager
   # Certificate resource in order to verify that CRDs are installed and all the
   # required webhooks are reachable by the K8S API server.
+  echo -n "  - openshift-cert-manager-operator: "
   until kubectl create -f "$CKCP_DIR/openshift/base/certs.yaml" --dry-run=client >/dev/null 2>&1; do
     echo -n "."
     sleep 5
@@ -202,7 +184,7 @@ install_cert_manager() {
 
 install_ckcp() {
   # Install cert manager operator
-  install_cert_manager
+  check_cert_manager
 
   APP="ckcp"
 
@@ -312,6 +294,9 @@ install_compute() {
     WEBHOOK_SECRET="placeholder_webhook" \
     "$GITOPS_DIR/pac/setup.sh"
 
+}
+
+install_register_compute() {
   echo "  - Register compute to KCP"
   "$(dirname "$SCRIPT_DIR")/images/kcp-registrar/register.sh" \
     --kcp-org "root:default" \
@@ -326,7 +311,10 @@ check_cr_sync() {
   # Wait until CRDs are synced to KCP
   echo -n "  - Sync CRDs to KCP: "
   local cr_regexp
-  cr_regexp="$(IFS=\|; echo "${CR_TO_SYNC[*]}")"
+  cr_regexp="$(
+    IFS=\|
+    echo "${CR_TO_SYNC[*]}"
+  )"
   local wait_period=0
   while [[ "$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources -o name 2>&1 | grep -Ewc "$cr_regexp")" -ne ${#CR_TO_SYNC[@]} ]]; do
     wait_period=$((wait_period + 10))
