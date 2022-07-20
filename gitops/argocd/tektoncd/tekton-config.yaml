@@ -5,6 +5,8 @@ metadata:
 spec:
   profile: all
   targetNamespace: openshift-pipelines
+  pipeline:
+    enable-tekton-oci-bundles: true
   pruner:
     resources:
       - taskrun
