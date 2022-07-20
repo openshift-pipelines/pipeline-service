@@ -25,7 +25,7 @@ usage() {
     # Parameters
     printf "The following parameters need to be passed to the script:\n"
     printf "KCP_ORG: the organistation for which the workload clusters need to be registered, i.e.: root:pipelines-service\n"
-    printf "KCP_WORKSPACE: the name of the workspace where the gateway gets deployed (created if it does not exist), i.e: infra. If the workspace differs from the one where the WorkloadCluster has been created an APIBinding will need to be added\n"
+    printf "KCP_WORKSPACE: the name of the workspace where the gateway gets deployed (created if it does not exist), i.e: infra. If the workspace differs from the one where the SyncTarget has been created an APIBinding will need to be added\n"
     printf "DATA_DIR: the location of the cluster files\n"
 }
 

@@ -104,7 +104,7 @@ pipelineruns                      pr,prs       tekton.dev/v1beta1               
 pipelines                                      tekton.dev/v1beta1                     true         Pipeline
 runs                                           tekton.dev/v1alpha1                    true         Run
 tasks                                          tekton.dev/v1beta1                     true         Task</b>
-workloadclusters                               workload.kcp.dev/v1alpha1              false        WorkloadCluster
+synctargets                                    workload.kcp.dev/v1alpha1              false        SyncTarget
 </pre>
 
 ### How to get access on an already setup cluster

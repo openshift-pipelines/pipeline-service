@@ -3,4 +3,6 @@ kind: ClusterWorkspace
 metadata:
   name: pipelines-service
 spec:
-  type: Organization
+  type:
+    name: organization
+    path: root

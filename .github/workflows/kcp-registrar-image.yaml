@@ -36,7 +36,7 @@ jobs:
           containerfiles: |
             ./images/kcp-registrar/Dockerfile
           build-args: |
-            KCP_BRANCH=release-0.5
+            KCP_BRANCH=release-0.6
 
       - name: Push to ghcr.io
         id: push-to-ghcr
