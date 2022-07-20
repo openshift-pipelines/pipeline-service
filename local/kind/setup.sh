@@ -31,11 +31,10 @@ prechecks () {
     if [[ "${CONTAINER_ENGINE}" != "docker" && "${ALLOW_ROOTLESS}" != "true" ]]; then
         KIND_CMD="sudo KIND_EXPERIMENTAL_PROVIDER=podman kind"
     else
-	if [[ "${CONTAINER_ENGINE}" != "docker" ]]; then
-            KIND_CMD="KIND_EXPERIMENTAL_PROVIDER=podman kind"
-	else
-    	    KIND_CMD="kind"
-	fi
+        if [[ "${CONTAINER_ENGINE}" != "docker" ]]; then
+            export KIND_EXPERIMENTAL_PROVIDER=podman
+        fi	
+    	KIND_CMD="kind"
     fi
     printf "OS: %s\n" "${OSTYPE}"
     printf "Container engine: %s\n" "${CONTAINER_ENGINE}"

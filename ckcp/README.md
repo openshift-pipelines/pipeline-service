@@ -33,7 +33,6 @@ Before you execute the script,
 2. You need to install [oc](https://docs.openshift.com/container-platform/4.9/cli_reference/openshift_cli/getting-started-cli.html)
 3. You need to install [argocd](https://argo-cd.readthedocs.io/en/stable/cli_installation/).
 4. You need to install [yq](https://mikefarah.gitbook.io/yq/#install)
-5. You need to install [kubectl cert-manager plugin](https://cert-manager.io/docs/usage/kubectl-plugin/#installation)
 6. You need to install [kubectl kcp plugin](https://github.com/kcp-dev/kcp/blob/main/docs/kubectl-kcp-plugin.md)
    Note: ckcp uses the official kcp image in order to run kcp in a pod (latest released versions). It is advisable to use the same version for the kcp plugin as the kcp core API (especially as KCP API is evolving quickly). The current version can be found in this [file](./openshift/overlays/dev/kustomization.yaml) as the 'newTag' variable. Make sure to checkout this branch before installing the plugin.
 
@@ -42,11 +41,8 @@ Note: Triggers require pipelines to be running and thus running ckcp with trigge
 
 ```bash
 ./openshift_dev_setup.sh
-    #installs openshift-gitops in a host cluster, install kcp in a pod (a.k.a ckcp)
-    #and register the kcp cluster to the ArgoCD instance
-
-./openshift_dev_setup.sh -a pipelines
-    #installs openshift-gitops + ckcp + openshift-pipeline
+    # installs openshift-gitops in a host cluster, install kcp in a pod (a.k.a ckcp)
+    # setup the host cluster and register it to kcp
 ```
 
 The test.sh script runs certain examples from tektoncd repo for pipelines and triggers. You can run the below script only after openshift_dev_setup.sh is run and the required resources are up and running.
