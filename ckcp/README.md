@@ -27,13 +27,13 @@ Long Version:
 
 ### Pre-requisites
 
-Before you execute the script,
+Before you execute the script, you need:
 
-1. You need to have a _kubernetes/openshift_ cluster.
-2. You need to install [oc](https://docs.openshift.com/container-platform/4.9/cli_reference/openshift_cli/getting-started-cli.html)
-3. You need to install [argocd](https://argo-cd.readthedocs.io/en/stable/cli_installation/).
-4. You need to install [yq](https://mikefarah.gitbook.io/yq/#install)
-6. You need to install [kubectl kcp plugin](https://github.com/kcp-dev/kcp/blob/main/docs/kubectl-kcp-plugin.md)
+1. to have a _kubernetes/openshift_ cluster with at least 6 CPU cores and 16GB RAM.
+2. to install [oc](https://docs.openshift.com/container-platform/4.9/cli_reference/openshift_cli/getting-started-cli.html)
+3. to install [argocd CLI](https://argo-cd.readthedocs.io/en/stable/cli_installation/)
+4. to install [yq](https://mikefarah.gitbook.io/yq/#install)
+6. to install [kubectl kcp plugin](https://github.com/kcp-dev/kcp/blob/main/docs/kubectl-kcp-plugin.md)
    Note: ckcp uses the official kcp image in order to run kcp in a pod (latest released versions). It is advisable to use the same version for the kcp plugin as the kcp core API (especially as KCP API is evolving quickly). The current version can be found in this [file](./openshift/overlays/dev/kustomization.yaml) as the 'newTag' variable. Make sure to checkout this branch before installing the plugin.
 
 You can run the openshift_dev_setup.sh script with or without parameters as specified below:  
