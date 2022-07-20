@@ -9,7 +9,7 @@ spec:
     namespace: openshift-gitops
     server: https://kubernetes.default.svc
   source:
-    path: ckcp/openshift-operators/cert-manager
+    path: operators/cert-manager
     repoURL: https://github.com/openshift-pipelines/pipelines-service.git
     targetRevision: main
   project: default
