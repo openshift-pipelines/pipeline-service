@@ -22,13 +22,13 @@ wait_command() {
 }
 
 cleanup() {
-    if [[ -n "${KCP_PIDS}" ]]; then
-      printf "\nCleaning up processes %s\n" "$KCP_PIDS"
-      kill "$KCP_PIDS"
+    if [[ "${#KCP_PIDS[@]}" -gt 0 ]]; then
+      printf "\nCleaning up processes %s\n" "${KCP_PIDS[*]}"
+      kill "${KCP_PIDS[@]}"
     fi
-    if [[ -n "${KCP_CIDS}" ]]; then
-      printf "\nStopping containers %s\n" "$KCP_CIDS"
-      $CONTAINER_ENGINE stop "$KCP_CIDS"
+    if [[ "${#KCP_CIDS[@]}" -gt 0 ]]; then
+      printf "\nStopping containers %s\n" "${KCP_CIDS[*]}"
+      $CONTAINER_ENGINE stop "${KCP_CIDS[@]}"
     fi
 }
 

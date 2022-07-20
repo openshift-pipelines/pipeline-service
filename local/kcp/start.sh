@@ -40,7 +40,7 @@ kcp-binaries() {
     git clone https://github.com/kcp-dev/kcp.git
     KCP_DIR="${KCP_PARENT_DIR}/kcp"
     pushd kcp
-    KCP_BRANCH="${KCP_BRANCH:-release-0.5}"
+    KCP_BRANCH="${KCP_BRANCH:-release-0.6}"
     git checkout "${KCP_BRANCH}"
     make build
     popd
@@ -52,7 +52,7 @@ kcp-start() {
   printf "Starting KCP server ...\n"
   (cd "${TMP_DIR}" && exec "${KCP_DIR}"/bin/kcp start ${PARAMS}) &> "${TMP_DIR}/kcp.log" &
   KCP_PID=$!
-  KCP_PIDS="${KCP_PIDS} ${KCP_PID}"
+  KCP_PIDS+=(${KCP_PID})
   printf "KCP server started: %s\n" $KCP_PID
 
   touch "${TMP_DIR}/kcp-started"
@@ -68,7 +68,7 @@ ingress-ctrler-start() {
   "${KCP_DIR}"/bin/ingress-controller --kubeconfig="${KUBECONFIG}" --context=system:admin --envoy-listener-port=8181 --envoy-xds-port=18000 &> "${TMP_DIR}"/ingress-controller.log &
   INGRESS_CONTROLLER_PID=$!
   printf "Ingress Controller started: %s\n" "${INGRESS_CONTROLLER_PID}"
-  KCP_PIDS="${KCP_PIDS} ${INGRESS_CONTROLLER_PID}"
+  KCP_PIDS+=(${INGRESS_CONTROLLER_PID})
 }
 
 envoy-start() {
@@ -84,12 +84,13 @@ envoy-start() {
   ${CONTAINER_ENGINE} start "${ENVOY_CID}"
   ${CONTAINER_ENGINE} logs -f "${ENVOY_CID}" &> "${TMP_DIR}"/envoy.log &
   echo "Envoy started in container: ${ENVOY_CID}"
-  KCP_CIDS="${KCP_CIDS}  ${ENVOY_CID}"
+  KCP_CIDS+=(${ENVOY_CID})
 }
 
 create-org() {
   printf "Creating organization\n"
   kubectl --kubeconfig="${KUBECONFIG}" config use-context root
+  KUBECONFIG="${KUBECONFIG}" kubectl kcp workspace use root
   kubectl --kubeconfig="${KUBECONFIG}" create -f "${PARENT_PATH}"/pipelines-service-org.yaml
 }
 
@@ -109,8 +110,8 @@ source "${PARENT_PATH}/../.utils"
 detect_container_engine
 
 setupTraps
-KCP_PIDS=""
-KCP_CIDS=""
+KCP_PIDS=()
+KCP_CIDS=()
 
 PARAMS="${PARAMS:-}"
 if [[ -z "${PARAMS}" ]]; then

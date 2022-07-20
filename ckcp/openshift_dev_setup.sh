@@ -51,6 +51,8 @@ parse_args() {
     -w | --work-dir)
       shift
       WORK_DIR="$1"
+      mkdir -p "$WORK_DIR"
+      WORK_DIR="$(cd "$1" >/dev/null; pwd)"
       ;;
     -d | --debug)
       set -x
@@ -96,7 +98,8 @@ init() {
   KUBECONFIG="$WORK_DIR/credentials/kubeconfig/compute/compute.kubeconfig.base"
   KUBECONFIG_MERGED="merged-config.kubeconfig:$KUBECONFIG:$KUBECONFIG_KCP"
   export KUBECONFIG
-  kcp_workspace="compute"
+  kcp_org="root:default"
+  kcp_workspace="pipelines-service-compute"
   kcp_version="$(yq '.images[] | select(.name == "kcp") | .newTag' "$SCRIPT_DIR/openshift/overlays/dev/kustomization.yaml")"
 }
 
@@ -262,12 +265,11 @@ patches:
   podname="$(kubectl get pods --ignore-not-found -n "$ns" -l=app=kcp-in-a-pod -o jsonpath='{.items[0].metadata.name}')"
   mkdir -p "$(dirname "$KUBECONFIG_KCP")"
   # Wait until admin.kubeconfig file is generated inside ckcp pod
-  while [[ $(kubectl exec -n $APP "$podname" -- ls /etc/kcp/config/admin.kubeconfig >/dev/null 2>&1; echo $?) -ne 0 ]]; do
+  while [[ $(kubectl exec -n $ns "$podname" -- ls /etc/kcp/config/admin.kubeconfig >/dev/null 2>&1; echo $?) -ne 0 ]]; do
     echo -n "."
     sleep 5
   done
-  kubectl cp "$APP/$podname:/etc/kcp/config/admin.kubeconfig" "$KUBECONFIG_KCP" >/dev/null 2>&1
-  KUBECONFIG="$KUBECONFIG_KCP" kubectl config rename-context "default" "workspace.kcp.dev/current" >/dev/null
+  kubectl cp "$ns/$podname:/etc/kcp/config/admin.kubeconfig" "$KUBECONFIG_KCP" >/dev/null 2>&1
   echo "OK"
 
   # Check if external ip is assigned and replace kcp's external IP in the kubeconfig file
@@ -279,16 +281,19 @@ patches:
 
   # Workaround to prevent the creation of the creation of a new workspace until KCP is ready.
   # This fixes `error: creating a workspace under a Universal type workspace is not supported`.
-  while ! KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspace create "dummy" --ignore-existing >/dev/null; do
+  ws_name=$(echo "$kcp_org" | cut -d: -f2)
+  while ! KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspace create "$ws_name" --type root:organization --ignore-existing >/dev/null; do
     sleep 5
   done
+  KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspace use "$ws_name"
 
   echo "  - Setup kcp access:"
   "$SCRIPT_DIR/../images/access-setup/content/bin/setup_kcp.sh" \
     --kubeconfig "$KUBECONFIG_KCP" \
+    --kcp-org "$kcp_org" \
     --kcp-workspace "$kcp_workspace" \
     --work-dir "$WORK_DIR"
-  KUBECONFIG_KCP="$WORK_DIR/credentials/kubeconfig/kcp/ckcp-ckcp.default.compute.kubeconfig"
+  KUBECONFIG_KCP="$WORK_DIR/credentials/kubeconfig/kcp/ckcp-ckcp.${ws_name}.${kcp_workspace}.kubeconfig"
 }
 
 install_compute() {
@@ -308,7 +313,7 @@ install_compute() {
     "$GITOPS_DIR/pac/setup.sh"
 
   echo "  - Register compute to KCP"
-  KCP_ORG="root:default" KCP_WORKSPACE="$kcp_workspace" DATA_DIR="$WORK_DIR" KCP_SYNC_TAG="$kcp_version" \
+  KCP_ORG="$kcp_org" KCP_WORKSPACE="$kcp_workspace" DATA_DIR="$WORK_DIR" KCP_SYNC_TAG="$kcp_version" \
     "$SCRIPT_DIR/../images/kcp-registrar/register.sh"
 
   check_cr_sync

@@ -119,7 +119,7 @@ switch_ws() {
 
 register() {
     printf "Getting the list of registered clusters\n"
-    existing_clusters=$(KUBECONFIG=${kcp_kcfg} kubectl get workloadclusters -o name)
+    existing_clusters=$(KUBECONFIG=${kcp_kcfg} kubectl get synctargets -o name)
 
     for i in "${!clusters[@]}"; do
         printf "Processing cluster %s\n" "${clusters[$i]}"
@@ -131,7 +131,7 @@ register() {
             KUBECONFIG=${kcp_kcfg} kubectl kcp workload sync "${clusters[$i]}" \
                 --syncer-image ghcr.io/kcp-dev/kcp/syncer:$KCP_SYNC_TAG \
                 --resources deployments.apps,services,ingresses.networking.k8s.io,pipelines.tekton.dev,pipelineruns.tekton.dev,tasks.tekton.dev,runs.tekton.dev,networkpolicies.networking.k8s.io \
-                >"$syncer_manifest"
+                --output-file "$syncer_manifest"
             KUBECONFIG=${DATA_DIR}/credentials/kubeconfig/compute/${kubeconfigs[$i]} kubectl apply --context ${contexts[$i]} -f "$syncer_manifest"
         fi
     done
