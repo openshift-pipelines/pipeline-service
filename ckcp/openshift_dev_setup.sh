@@ -162,7 +162,7 @@ install_openshift_gitops() {
   local cluster_name="plnsvc"
   echo -n "  - Register host cluster to ArgoCD as '$cluster_name': "
   if ! KUBECONFIG="$KUBECONFIG_MERGED" argocd cluster get "$cluster_name" >/dev/null 2>&1; then
-    argocd cluster add "$(yq e ".current-context" "$KUBECONFIG")" --name="$cluster_name" --upsert --yes >/dev/null 2>&1
+    argocd cluster add "$(cat $KUBECONFIG | yq e ".current-context")" --name="$cluster_name" --upsert --yes >/dev/null 2>&1
   fi
   echo "OK"
 }
