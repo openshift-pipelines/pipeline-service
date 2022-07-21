@@ -50,7 +50,7 @@ kcp-binaries() {
 
 kcp-start() {
   printf "Starting KCP server ...\n"
-  (cd "${TMP_DIR}" && exec "${KCP_DIR}"/bin/kcp start ${PARAMS}) &> "${TMP_DIR}/kcp.log" &
+  (cd "${TMP_DIR}" && exec "${KCP_DIR}/bin/kcp" start "${PARAMS[@]}") &> "${TMP_DIR}/kcp.log" &
   KCP_PID=$!
   KCP_PIDS+=(${KCP_PID})
   printf "KCP server started: %s\n" $KCP_PID
@@ -65,7 +65,7 @@ kcp-start() {
 
 ingress-ctrler-start() {
   printf "Starting Ingress Controller\n"
-  "${KCP_DIR}"/bin/ingress-controller --kubeconfig="${KUBECONFIG}" --context=system:admin --envoy-listener-port=8181 --envoy-xds-port=18000 &> "${TMP_DIR}"/ingress-controller.log &
+  "${KCP_DIR}/bin/ingress-controller" --kubeconfig="${KUBECONFIG}" --context=system:admin --envoy-listener-port=8181 --envoy-xds-port=18000 &> "${TMP_DIR}/ingress-controller.log" &
   INGRESS_CONTROLLER_PID=$!
   printf "Ingress Controller started: %s\n" "${INGRESS_CONTROLLER_PID}"
   KCP_PIDS+=(${INGRESS_CONTROLLER_PID})
@@ -77,12 +77,12 @@ envoy-start() {
   if [[ "${CONTAINER_ENGINE}" != "docker" ]]; then
     bootstrapAddress="host.containers.internal"
   fi
-  sed "s/BOOTSTRAP_ADDRESS/$bootstrapAddress/" "${PARENT_PATH}"/envoy-bootstrap.yaml > "${TMP_DIR}"/envoy-bootstrap.yaml
+  sed "s/BOOTSTRAP_ADDRESS/$bootstrapAddress/" "${PARENT_PATH}/envoy-bootstrap.yaml" > "${TMP_DIR}/envoy-bootstrap.yaml"
   ${CONTAINER_ENGINE} create --rm -t --net=kind -p 8181:8181 docker.io/envoyproxy/envoy-dev:d803505d919aff1c4207b353c3b430edfa047010
   ENVOY_CID=$(${CONTAINER_ENGINE} ps -q -n1)
-  ${CONTAINER_ENGINE} cp "${TMP_DIR}"/envoy-bootstrap.yaml "${ENVOY_CID}":/etc/envoy/envoy.yaml
+  ${CONTAINER_ENGINE} cp "${TMP_DIR}/envoy-bootstrap.yaml" "${ENVOY_CID}:/etc/envoy/envoy.yaml"
   ${CONTAINER_ENGINE} start "${ENVOY_CID}"
-  ${CONTAINER_ENGINE} logs -f "${ENVOY_CID}" &> "${TMP_DIR}"/envoy.log &
+  ${CONTAINER_ENGINE} logs -f "${ENVOY_CID}" &> "${TMP_DIR}/envoy.log" &
   echo "Envoy started in container: ${ENVOY_CID}"
   KCP_CIDS+=(${ENVOY_CID})
 }
@@ -91,7 +91,7 @@ create-org() {
   printf "Creating organization\n"
   kubectl --kubeconfig="${KUBECONFIG}" config use-context root
   KUBECONFIG="${KUBECONFIG}" kubectl kcp workspace use root
-  kubectl --kubeconfig="${KUBECONFIG}" create -f "${PARENT_PATH}"/pipelines-service-org.yaml
+  kubectl --kubeconfig="${KUBECONFIG}" create -f "${PARENT_PATH}/pipelines-service-org.yaml"
 }
 
 # Execution
@@ -105,7 +105,7 @@ printf "Temporary directory created: %s\n" "${TMP_DIR}"
 KUBECONFIG="${TMP_DIR}/.kcp/admin.kubeconfig"
 printf "KUBECONFIG=%s\n" "${KUBECONFIG}"
 
-source "${PARENT_PATH}/../.utils"
+source "${PARENT_PATH}/../utils.sh"
 
 detect_container_engine
 
@@ -115,10 +115,12 @@ KCP_CIDS=()
 
 PARAMS="${PARAMS:-}"
 if [[ -z "${PARAMS}" ]]; then
-PARAMS="--token-auth-file ${PARENT_PATH}/kcp-tokens \
---discovery-poll-interval 3s \
---profiler-address localhost:6060 \
--v 2"
+  PARAMS=(
+    --token-auth-file "${PARENT_PATH}/kcp-tokens"
+    --discovery-poll-interval 3s
+    --profiler-address localhost:6060
+    -v 2
+  )
 fi
 
 kcp-start
