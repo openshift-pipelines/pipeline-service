@@ -46,7 +46,7 @@ spec:
               image: ghcr.io/openshift-pipelines/kcp-registrar:main
               workingDir: $(workspaces.source.path)
               env:
-                - name: DATA_DIR
+                - name: WORKSPACE_DIR
                   value: $(workspaces.source.path)
                 - name: KCP_ORG
                   value: "pipelines-service"

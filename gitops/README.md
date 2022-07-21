@@ -76,7 +76,7 @@ _Note: Please run these scripts only if you intend not to use PaC to automate th
     b. To access and setup kcp
 
     ```
-    $ KCP_ORG="root:pipelines-service" KCP_WORKSPACE="compute" DATA_DIR="/home/workspace/pipelines-service/gitops/sre" ../images/kcp-registrar/register.sh
+    $ KCP_ORG="root:pipelines-service" KCP_WORKSPACE="compute" WORKSPACE_DIR="/home/workspace/pipelines-service/gitops/sre" ../images/kcp-registrar/register.sh
     ```
 
 ### Pipelines As Code (PaC)
@@ -172,6 +172,8 @@ spec:
   - rev-158351.deployments.apps
 
 ```
+
+Users must be authorized to bind APIExports on the workspace hosting the SyncTarget, or they will get an `unable to create APIImport: missing verb='bind' permission on apiexports` error. The default configuration will grant the `bind` permission to all authenticated users (c.f. `gitops/kcp/registration`). This configuration can be customized by creating the appropriate manifest(s) in the `environment/kcp` folder (c.f. [this example](../docs/sre/examples/providers/environment/kcp/kustomization.yaml)).
 
 Below snippet shows the APIBinding used in a new workspace named 'user'.
 

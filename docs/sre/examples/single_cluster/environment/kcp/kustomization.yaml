@@ -1,0 +1,2 @@
+resources:
+  - github.com/openshift-pipelines/pipelines-service/gitops/kcp/registration?ref=main

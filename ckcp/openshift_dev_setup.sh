@@ -128,7 +128,7 @@ check_cluster_role() {
 install_openshift_gitops() {
   APP="openshift-gitops"
 
-  local ns="openshift-operators"
+  local ns="$APP"
 
   #############################################################################
   # Install the gitops operator
@@ -141,7 +141,7 @@ install_openshift_gitops() {
   # Wait for the URL to be available
   #############################################################################
   echo -n "  - ArgoCD dashboard: "
-  test_cmd="kubectl get route/openshift-gitops-server --ignore-not-found -n $APP -o jsonpath={.spec.host}"
+  test_cmd="kubectl get route/openshift-gitops-server --ignore-not-found -n $ns -o jsonpath={.spec.host}"
   ARGOCD_HOSTNAME="$(${test_cmd})"
   until curl --fail --insecure --output /dev/null --silent "https://$ARGOCD_HOSTNAME"; do
     echo -n "."
@@ -157,7 +157,7 @@ install_openshift_gitops() {
   # Log into ArgoCD
   echo -n "  - ArgoCD Login: "
   local argocd_password
-  argocd_password="$(kubectl get secret openshift-gitops-cluster -n openshift-gitops -o jsonpath="{.data.admin\.password}" | base64 --decode)"
+  argocd_password="$(kubectl get secret openshift-gitops-cluster -n $ns -o jsonpath="{.data.admin\.password}" | base64 --decode)"
   argocd login "$ARGOCD_HOSTNAME" --grpc-web --insecure --username admin --password "$argocd_password" >/dev/null 2>&1
   echo "OK"
 
@@ -165,7 +165,7 @@ install_openshift_gitops() {
   local cluster_name="plnsvc"
   echo -n "  - Register host cluster to ArgoCD as '$cluster_name': "
   if ! KUBECONFIG="$KUBECONFIG_MERGED" argocd cluster get "$cluster_name" >/dev/null 2>&1; then
-    argocd cluster add "$(cat $KUBECONFIG | yq e ".current-context")" --name="$cluster_name" --upsert --yes >/dev/null 2>&1
+    argocd cluster add "$(cat "$KUBECONFIG" | yq e ".current-context")" --name="$cluster_name" --upsert --yes >/dev/null 2>&1
   fi
   echo "OK"
 }
@@ -193,7 +193,7 @@ install_cert_manager() {
   # perform a dry-run create of a cert-manager
   # Certificate resource in order to verify that CRDs are installed and all the
   # required webhooks are reachable by the K8S API server.
-  until kubectl create -f $CKCP_DIR/openshift/base/certs.yaml --dry-run=client >/dev/null 2>&1; do
+  until kubectl create -f "$CKCP_DIR/openshift/base/certs.yaml" --dry-run=client >/dev/null 2>&1; do
     echo -n "."
     sleep 5
   done
@@ -215,7 +215,7 @@ install_ckcp() {
   local ckcp_dev_dir=$ckcp_manifest_dir/overlays/dev
   local ckcp_temp_dir=$ckcp_manifest_dir/overlays/temp
 
-  # To ensure kustomization.yaml file under overlays/temp won't be changed, remove the dirctory overlays/temp if it exists
+  # To ensure kustomization.yaml file under overlays/temp won't be changed, remove the directory overlays/temp if it exists
   if [ -d "$ckcp_temp_dir" ]; then
     rm -rf "$ckcp_temp_dir"
   fi
@@ -279,7 +279,7 @@ patches:
   fi
   echo "OK"
 
-  # Workaround to prevent the creation of the creation of a new workspace until KCP is ready.
+  # Workaround to prevent the creation of a new workspace until KCP is ready.
   # This fixes `error: creating a workspace under a Universal type workspace is not supported`.
   ws_name=$(echo "$kcp_org" | cut -d: -f2)
   while ! KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspace create "$ws_name" --type root:organization --ignore-existing >/dev/null; do
@@ -313,8 +313,11 @@ install_compute() {
     "$GITOPS_DIR/pac/setup.sh"
 
   echo "  - Register compute to KCP"
-  KCP_ORG="$kcp_org" KCP_WORKSPACE="$kcp_workspace" DATA_DIR="$WORK_DIR" KCP_SYNC_TAG="$kcp_version" \
-    "$SCRIPT_DIR/../images/kcp-registrar/register.sh"
+  "$(dirname "$SCRIPT_DIR")/images/kcp-registrar/register.sh" \
+    --kcp-org "root:default" \
+    --kcp-workspace "$kcp_workspace" \
+    --kcp-sync-tag "$kcp_version" \
+    --workspace-dir "$WORK_DIR"
 
   check_cr_sync
 }

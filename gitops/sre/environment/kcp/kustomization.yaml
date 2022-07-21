@@ -1,0 +1,2 @@
+resources:
+  - github.com/Roming22/pipelines-service/gitops/kcp/registration?ref=docs

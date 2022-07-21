@@ -20,16 +20,81 @@ set -o pipefail
 
 usage() {
 
-    printf "Usage: KCP_ORG="root:pipelines-service" KCP_WORKSPACE="compute" KCP_SYNC_TAG="release-0.5" DATA_DIR="/workspace" ./register.sh\n\n"
+    printf "
+Usage:
+    %s [options]
 
-    # Parameters
-    printf "The following parameters need to be passed to the script:\n"
-    printf "KCP_ORG: the organization for which the workload clusters need to be registered, i.e.: root:pipelines-service\n"
-    printf "KCP_WORKSPACE: the name of the workspace where the workload clusters get registered (created if it does not exist), i.e: compute\n"
-    printf "KCP_SYNC_TAG: the tag of the kcp syncer image to use (preset in the container image at build time and leveraged by the PipelineRun)\n"
-    printf "DATA_DIR: the location of the cluster files\n"
-    printf "          a single file with extension kubeconfig is expected in the subdirectory: credentials/kubeconfig/kcp\n"
-    printf "          kubeconfig files for compute clusters are expected in the subdirectory: credentials/kubeconfig/compute \n\n"
+Deploy Pipelines Service on the clusters as per the configuration in WORKSPACE_DIR.
+
+Mandatory arguments:
+    --kcp-org KCP_ORG
+        Organization for which the workload clusters need to be registered.
+        Example: 'root:pipelines-service'.
+        Can be set through \$KCP_ORG.
+    --kcp-workspace KCP_WORKSPACE
+        Name of the workspace where the workload clusters get registered (created if it
+        does not exist).
+        Example: 'compute'.
+        Can be set through \$KCP_WORKSPACE.
+    --kcp-sync-tag KCP_SYNC_TAG
+        Tag of the kcp syncer image to use (preset in the container image at build time
+        and leveraged by the PipelineRun).
+        Example: 'v0.6.0-alpha0'
+        Can be set through \$KCP_SYNC_TAG.
+
+Optional arguments:
+    -w, --workspace-dir WORKSPACE_DIR
+        Location of the cluster files related to the environment.
+        A single file with extension kubeconfig is expected in the subdirectory: credentials/kubeconfig/kcp
+        Kubeconfig files for compute clusters are expected in the subdirectory: credentials/kubeconfig/compute
+        Default: \$WORKSPACE_DIR or current directory if the environment
+        variable is unset.
+    -d, --debug
+        Activate tracing/debug mode.
+    -h, --help
+        Display this message.
+
+Example:
+    KCP_SYNC_TAG='release-0.6' %s --kcp-org 'root:my_org' --kcp-workspace 'my_workspace' --workspace_dir /path/to/my_dir
+" "${0##*/}" "${0##*/}" >&2
+}
+
+parse_args() {
+    WORKSPACE_DIR="${WORKSPACE_DIR:-$PWD}"
+
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+        --kcp-org)
+            shift
+            KCP_ORG="$1"
+            ;;
+        --kcp-workspace)
+            shift
+            KCP_WORKSPACE="$1"
+            ;;
+        --kcp-sync-tag)
+            shift
+            KCP_SYNC_TAG="$1"
+            ;;
+        -w | --workspace-dir)
+            shift
+            WORKSPACE_DIR="$1"
+            ;;
+        -d | --debug)
+            set -x
+            ;;
+        -h | --help)
+            usage
+            exit 0
+            ;;
+        *)
+            echo "Unknown argument: $1"
+            usage
+            exit 1
+            ;;
+        esac
+        shift
+    done
 }
 
 exit_error() {
@@ -54,15 +119,17 @@ prechecks() {
         exit_error "KCP_SYNC_TAG not set\n\n"
     fi
 
-    DATA_DIR=${DATA_DIR:-}
-    if [[ -z "${DATA_DIR}" ]]; then
-        exit_error "DATA_DIR not set\n\n"
+    WORKSPACE_DIR=${WORKSPACE_DIR:-}
+    if [[ -z "${WORKSPACE_DIR}" ]]; then
+        exit_error "WORKSPACE_DIR not set\n\n"
     fi
+
+    WORKSPACE_DIR="$(cd "$WORKSPACE_DIR" >/dev/null && pwd)" || exit_error "WORKSPACE_DIR '$WORKSPACE_DIR' cannot be accessed\n\n"
 }
 
 # populate kcp_kcfg with the location of the kubeconfig for connecting to kcp
 kcp_kubeconfig() {
-    kubeconfig_dir="$DATA_DIR/credentials/kubeconfig"
+    kubeconfig_dir="$WORKSPACE_DIR/credentials/kubeconfig"
     if files=($(ls "$kubeconfig_dir/kcp/"*.kubeconfig 2>/dev/null)); then
         if [ ${#files[@]} -ne 1 ]; then
             exit_error "A single kubeconfig file is expected at $kubeconfig_dir/kcp\n\n"
@@ -71,7 +138,7 @@ kcp_kubeconfig() {
         exit_error "A single kubeconfig file is expected at $kubeconfig_dir/kcp\n\n"
     fi
     tmp_dir=$(mktemp -d)
-    cp -rf "$DATA_DIR/credentials" "$tmp_dir"
+    cp -rf "$WORKSPACE_DIR/credentials" "$tmp_dir"
     kubeconfig_dir="$tmp_dir/credentials/kubeconfig"
     kcp_kcfg="$(ls "$kubeconfig_dir/kcp/"*.kubeconfig)"
 }
@@ -90,7 +157,8 @@ get_clusters() {
         for sub in "${subs[@]}"; do
             context=$(echo -n ${sub} | cut -d ',' -f 1)
             cluster=$(echo -n ${sub} | cut -d ',' -f 2 | cut -d ':' -f 1)
-            if ! (echo "${clusters[@]}" | grep "${cluster}"); then
+            if ! (echo "${clusters[@]}" | grep -q "${cluster}") \
+                && (find "$WORKSPACE_DIR/environment/compute" -type d -name "${cluster}" | grep -q "${cluster}" >/dev/null); then
                 clusters+=(${cluster})
                 contexts+=(${context})
                 kubeconfigs+=(${kubeconfig})
@@ -122,31 +190,48 @@ register() {
     existing_clusters=$(KUBECONFIG=${kcp_kcfg} kubectl get synctargets -o name)
 
     for i in "${!clusters[@]}"; do
-        printf "Processing cluster %s\n" "${clusters[$i]}"
+        printf "Processing cluster %s (%s/%s)\n" "${clusters[$i]}" "$((i+1))" "${#clusters[@]}"
         if echo "${existing_clusters}" | grep "${clusters[$i]}"; then
             printf "Cluster already registered\n"
         else
             printf "Registering cluster\n"
             syncer_manifest="/tmp/syncer-${clusters[$i]}.yaml"
-            KUBECONFIG=${kcp_kcfg} kubectl kcp workload sync "${clusters[$i]}" \
-                --syncer-image ghcr.io/kcp-dev/kcp/syncer:$KCP_SYNC_TAG \
+            KUBECONFIG="${kcp_kcfg}" kubectl kcp workload sync "${clusters[$i]}" \
+                --syncer-image "ghcr.io/kcp-dev/kcp/syncer:$KCP_SYNC_TAG" \
                 --resources deployments.apps,services,ingresses.networking.k8s.io,pipelines.tekton.dev,pipelineruns.tekton.dev,tasks.tekton.dev,runs.tekton.dev,networkpolicies.networking.k8s.io \
                 --output-file "$syncer_manifest"
-            KUBECONFIG=${DATA_DIR}/credentials/kubeconfig/compute/${kubeconfigs[$i]} kubectl apply --context ${contexts[$i]} -f "$syncer_manifest"
+            KUBECONFIG="${WORKSPACE_DIR}/credentials/kubeconfig/compute/${kubeconfigs[$i]}" kubectl apply \
+                --context "${contexts[$i]}" -f "$syncer_manifest"
         fi
     done
 }
 
-prechecks
-kcp_kubeconfig
-if [[ "$(KUBECONFIG=${kcp_kcfg} kubectl kcp workspace current | cut -d\" -f2)" == "$KCP_ORG:$KCP_WORKSPACE" ]]; then
-    printf "Workspace: %s" "$KCP_ORG:$KCP_WORKSPACE"
-else
-    printf "Switching to organization %s\n" "${KCP_ORG}"
-    switch_org
-    printf "Switching to workspace %s\n" "${KCP_WORKSPACE}"
-    switch_ws
+configure_synctarget_ws() {
+    manifests_source="$WORKSPACE_DIR/environment/kcp"
+    if [[ -d "$manifests_source" ]]; then
+        printf "Configuring KCP workspace\n"
+        KUBECONFIG=${kcp_kcfg} kubectl apply -k "$manifests_source"
+    fi
+}
+
+main() {
+    parse_args "$@"
+    prechecks
+    kcp_kubeconfig
+    if [[ "$(KUBECONFIG=${kcp_kcfg} kubectl kcp workspace current | cut -d\" -f2)" == "$KCP_ORG:$KCP_WORKSPACE" ]]; then
+        printf "Workspace: %s\n" "$KCP_ORG:$KCP_WORKSPACE"
+    else
+        printf "Switching to organization %s\n" "${KCP_ORG}"
+        switch_org
+        printf "Switching to workspace %s\n" "${KCP_WORKSPACE}"
+        switch_ws
+    fi
+    get_clusters
+    printf "Registering clusters to kcp\n"
+    register
+    configure_synctarget_ws
+}
+
+if [ "${BASH_SOURCE[0]}" == "$0" ]; then
+    main "$@"
 fi
-get_clusters
-printf "Registering clusters to kcp\n"
-register
