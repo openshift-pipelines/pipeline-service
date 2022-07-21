@@ -165,7 +165,7 @@ install_openshift_gitops() {
   local cluster_name="plnsvc"
   echo -n "  - Register host cluster to ArgoCD as '$cluster_name': "
   if ! KUBECONFIG="$KUBECONFIG_MERGED" argocd cluster get "$cluster_name" >/dev/null 2>&1; then
-    argocd cluster add "$(cat "$KUBECONFIG" | yq e ".current-context")" --name="$cluster_name" --upsert --yes >/dev/null 2>&1
+    argocd cluster add "$(yq e ".current-context" <"$KUBECONFIG")" --name="$cluster_name" --upsert --yes >/dev/null 2>&1
   fi
   echo "OK"
 }
@@ -178,14 +178,14 @@ install_cert_manager() {
   echo -n "  - openshift-cert-manager-operator: "
   # As cert manager is installed via operator, when cert-manager operator's subscription doesn't exist,
   # it supposes cert-manager is not installed
-  if [ $(kubectl -n openshift-cert-manager-operator get sub 2>&1 | grep -c "No resources found") -eq 1 ]; then
+  if [ "$(kubectl -n openshift-cert-manager-operator get sub 2>&1 | grep -c "No resources found")" -eq 1 ]; then
     kubectl apply -f "$CKCP_DIR/argocd-apps/$APP.yaml" >/dev/null 2>&1
     argocd app wait "$APP" >/dev/null 2>&1
   fi
 
   # Wait until cert-manager pods are ready
   pods_cmd="kubectl -n openshift-cert-manager get pods -o=jsonpath='{range .items[*]}{.metadata.name}{\" \"}{.status.containerStatuses[*].ready}{\"\n\"}{end}'"
-  until [[ $(eval $pods_cmd | wc -l) -eq 3 ]]; do
+  until [[ $(eval "$pods_cmd" | wc -l) -eq 3 ]]; do
     echo -n "."
     sleep 5
   done

@@ -10,18 +10,20 @@ KUBECONFIG_KCP="${KUBECONFIG_KCP:-$SCRIPT_DIR/work/kubeconfig/admin.kubeconfig}"
 
 get_namespace() {
   # Retrieve the KCP namespace id
-  local ns_locator="{\"logical-cluster\":\"$(
+  local ns_locator
+  ns_locator="{\"logical-cluster\":\"$(
     KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspace current | cut -d\" -f2
   )\",\"namespace\":\"default\"}"
   # Loop is necessary as it takes KCP time to create the namespace
   while ! kubectl get ns -o yaml | grep -q "$ns_locator"; do
     sleep 2
   done
-  local KCP_NS_NAME="$(kubectl get ns -l internal.workload.kcp.dev/cluster=local -o json \
+  local KCP_NS_NAME
+  KCP_NS_NAME="$(kubectl get ns -l internal.workload.kcp.dev/cluster=local -o json \
     | jq -r '.items[].metadata | select(.annotations."kcp.dev/namespace-locator" 
     | contains("\"namespace\":\"default\"")) | .name'
   )"
-  echo $KCP_NS_NAME
+  echo "$KCP_NS_NAME"
 }
 
 
@@ -55,7 +57,7 @@ else
       echo "Print kube resources in the physical cluster (Note: physical cluster will not know what pipelinesruns are)"
       
       KCP_NS_NAME="$(get_namespace)"
-      kubectl get pods -n $KCP_NS_NAME
+      kubectl get pods -n "$KCP_NS_NAME"
 
     elif [ $arg == "triggers" ]; then
       echo "Arg triggers passed. Running triggers tests..."

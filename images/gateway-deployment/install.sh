@@ -54,7 +54,7 @@ prechecks () {
 
 # populate kcp_kcfg with the location of the kubeconfig for connecting to kcp
 kcp_kubeconfig() {
-    if files=($(ls $DATA_DIR/credentials/kubeconfig/kcp/*.kubeconfig 2>/dev/null)); then
+    if files=($(ls "$DATA_DIR/credentials/kubeconfig/kcp/*.kubeconfig" 2>/dev/null)); then
         if [ ${#files[@]} -ne 1 ]; then
             printf "A single kubeconfig file is expected at %s\n" "$DATA_DIR/credentials/kubeconfig/kcp"
             usage
@@ -69,9 +69,9 @@ kcp_kubeconfig() {
 }
 
 switch_org() {
-    KUBECONFIG=${kcp_kcfg} kubectl kcp workspace use ${KCP_ORG}
+    KUBECONFIG=${kcp_kcfg} kubectl kcp workspace use "${KCP_ORG}"
     if ! (KUBECONFIG=${kcp_kcfg} kubectl api-resources >> /dev/null 2>&1); then
-        printf "%s is not a valid organization, wrong kubectl context in use or connectivity issue\n" ${KCP_ORG}
+        printf "%s is not a valid organization, wrong kubectl context in use or connectivity issue\n" "${KCP_ORG}"
 	usage
 	exit 1
     fi

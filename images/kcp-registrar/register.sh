@@ -155,8 +155,8 @@ get_clusters() {
     for kubeconfig in "${files[@]}"; do
         subs=($(KUBECONFIG="$kubeconfig_dir/compute/${kubeconfig}" kubectl config view -o jsonpath='{range .contexts[*]}{.name}{","}{.context.cluster}{"\n"}{end}'))
         for sub in "${subs[@]}"; do
-            context=$(echo -n ${sub} | cut -d ',' -f 1)
-            cluster=$(echo -n ${sub} | cut -d ',' -f 2 | cut -d ':' -f 1)
+            context=$(echo -n "${sub}" | cut -d ',' -f 1)
+            cluster=$(echo -n "${sub}" | cut -d ',' -f 2 | cut -d ':' -f 1)
             if ! (echo "${clusters[@]}" | grep -q "${cluster}") \
                 && (find "$WORKSPACE_DIR/environment/compute" -type d -name "${cluster}" | grep -q "${cluster}" >/dev/null); then
                 clusters+=(${cluster})
