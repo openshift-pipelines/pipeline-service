@@ -76,7 +76,7 @@ parse_args() {
 }
 
 init() {
-  APP_LIST="openshift-gitops ckcp compute"
+  APP_LIST="openshift-gitops rekor ckcp compute"
   cluster_type="openshift"
 
   # Create SRE repository folder
@@ -101,6 +101,8 @@ init() {
   kcp_org="root:default"
   kcp_workspace="pipelines-service-compute"
   kcp_version="$(yq '.images[] | select(.name == "kcp") | .newTag' "$SCRIPT_DIR/openshift/overlays/dev/kustomization.yaml")"
+
+  domain_name=$(kubectl get ingresses.config.openshift.io cluster -o json|jq -r ".spec.domain")
 }
 
 # To ensure that dependencies are satisfied
@@ -222,7 +224,6 @@ install_ckcp() {
   cp -rf "$ckcp_dev_dir" "$ckcp_temp_dir"
 
   local ckcp_route
-  domain_name="$(kubectl get ingresses.config/cluster -o jsonpath='{.spec.domain}')"
   ckcp_route="ckcp-ckcp.$domain_name"
   echo "
 patches:
@@ -294,6 +295,23 @@ patches:
     --kcp-workspace "$kcp_workspace" \
     --work-dir "$WORK_DIR"
   KUBECONFIG_KCP="$WORK_DIR/credentials/kubeconfig/kcp/ckcp-ckcp.${ws_name}.${kcp_workspace}.kubeconfig"
+}
+
+install_rekor() {
+  echo "  - Install: "
+  rekor_dir="$WORK_DIR/manifests/rekor"
+  mkdir -p "$(dirname "$rekor_dir")"
+  cp -rf "$SCRIPT_DIR/rekor" "$rekor_dir"
+  sed -i -e "s/\${domain}/${domain_name}/" "$rekor_dir/$cluster_type/rekor.yaml"
+  kubectl apply -k "$rekor_dir/$cluster_type"
+
+  rekor_url="https://rekor-server.${domain_name}/api/v1/log"
+  echo -n "  - Wait for api on $rekor_url: "
+  while ! curl --fail --insecure --output /dev/null --silent "$rekor_url"; do
+    echo -n .
+    sleep 3
+  done
+  echo "OK"
 }
 
 install_compute() {
