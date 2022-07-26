@@ -145,13 +145,15 @@ A final fix is to uninstall docker and use podman only.
 
 ### Looping with "error: availableReplicas is not found"
 
-This is _not an issue_, few lines like this are expected as the script checks for the ingress controller to be ready before creating the ingress object for it. You can wait for a few minutes or if you don't need Argo CD you can pass `NO_ARGOCD=true` before running the script.
+This is _not an issue_, a few lines like this are expected as the script checks for the ingress controller to be ready before creating the ingress object for it. You can wait for a few minutes or if you don't need Argo CD you can pass `NO_ARGOCD=true` before running the script.
 
 If it is too long and the ingress controller is still not ready, that is probably due to the scarcity of file monitors on the system. In that case, increasing `fs`.inotify.max_user_instances` may help. This can be done either by the solution described [above](#ingress-router-pods-crashloop---too-many-open-files) or by running the following command.
 
 ```bash
 sudo sysctl -w fs.inotify.max_user_instances=256
 ```
+
+If you are using `podman` the issue could be that the `pids_limit` default value of `2048` is too low. Edit `/usr/share/containers/containers.conf` and increase it (e.g. to `4098`). You could disable the limit entirely with `-1`, but it's not recommended as your system would not be protected against fork bombs anymore.
 
 ### "Kind could not be found" when running with sudo
 
