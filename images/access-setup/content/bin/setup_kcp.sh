@@ -138,7 +138,9 @@ generate_kcp_credentials() {
   kubeconfig="$credentials_dir/kcp/$kcp_name.kubeconfig"
 
   printf "    - Create workspace:\n"
-  kubectl kcp workspace use "$KCP_ORG"
+  if [[ "$(kubectl kcp workspace current | cut -d\" -f2)" != "$KCP_ORG" ]]; then
+    kubectl kcp workspace use "$KCP_ORG"
+  fi
   if ! kubectl kcp workspace use "$KCP_WORKSPACE" >/dev/null 2>&1; then
     kubectl kcp workspace create "$KCP_WORKSPACE" --enter >/dev/null
   fi
