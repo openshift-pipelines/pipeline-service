@@ -28,6 +28,7 @@ LABEL build-date= \
       vendor="Pipelines Service" \
       version="0.1"
 WORKDIR /
+RUN microdnf install findutils
 ARG KCP_BRANCH
 ENV KCP_SYNC_TAG=${KCP_BRANCH}
 ENV HOME /tmp/home
