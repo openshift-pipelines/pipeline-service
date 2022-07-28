@@ -9,9 +9,11 @@ We have therefore two scripts to get them running on your local machine with min
 
 Prerequisites:
 
+- [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)
 - [kind](https://github.com/kubernetes-sigs/kind)
 - a container engine: [podman](https://podman.io/) or [docker](https://docs.docker.com/engine/)
 - [git](https://git-scm.com/)
+- [jq](https://stedolan.github.io/jq/)
 
 ## Workload clusters with kind
 
@@ -43,7 +45,9 @@ The script can be customized by setting the following optional environment varia
 | KCP_BRANCH | the branch to use. Mind that the script will do a git checkout, to a default release if the branch is not specified |
 | PARAMS | the parameters to start kcp with |
 
-The script will output the location of the kubeconfig file that can be used to interact with the kcp API.
+The script will output:
+	- the location of the kubeconfig file that can be used to interact with the kcp API.
+	- the location of the kubectl kcp plugin which provides KCP specific sub-command for kubectl
 
 ```console
 ./local/kcp/start.sh

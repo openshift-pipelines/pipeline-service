@@ -19,9 +19,17 @@ wait_command() {
   local wait_seconds="${1:-40}"; shift # 40 seconds as default timeout
 
   until [[ $((wait_seconds--)) -eq 0 ]] || eval "$command &> /dev/null" ; do sleep 1; done
+
+  ((++wait_seconds))
 }
 
 cleanup() {
+    local ret="$?"
+    if [[ $ret -eq 0 ]] || [[ $ret -eq 130 ]];then
+      printf "\nTerminating...\n"
+    else
+      printf "\nExit on failure...\n"
+    fi
     if [[ "${#KCP_PIDS[@]}" -gt 0 ]]; then
       printf "\nCleaning up processes %s\n" "${KCP_PIDS[*]}"
       kill "${KCP_PIDS[@]}"
