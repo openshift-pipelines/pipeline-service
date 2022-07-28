@@ -33,7 +33,7 @@ By default, Argo CD is installed on both clusters. It is possible to deactivate 
 
 ## kcp cluster
 
-[./local/kcp/start.sh](./local/kcp/start.sh) will set up a kcp cluster with ingress controller and envoy.
+[./local/kcp/start.sh](./local/kcp/start.sh) will set up a kcp cluster.
 
 The script can be customized by setting the following optional environment variables:
 

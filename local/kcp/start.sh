@@ -117,15 +117,14 @@ PARAMS="${PARAMS:-}"
 if [[ -z "${PARAMS}" ]]; then
   PARAMS=(
     --token-auth-file "${PARENT_PATH}/kcp-tokens"
-    --discovery-poll-interval 3s
     --profiler-address localhost:6060
     -v 2
   )
 fi
 
 kcp-start
-ingress-ctrler-start
-envoy-start
+# ingress-ctrler-start
+# envoy-start
 create-org
 
 touch "${TMP_DIR}/servers-ready"
