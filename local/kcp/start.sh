@@ -53,14 +53,13 @@ kcp-start() {
   (cd "${TMP_DIR}" && exec "${KCP_DIR}/bin/kcp" start "${PARAMS[@]}") &> "${TMP_DIR}/kcp.log" &
   KCP_PID=$!
   KCP_PIDS+=(${KCP_PID})
+  wait_command "ls ${KUBECONFIG}" 30
   printf "KCP server started: %s\n" $KCP_PID
-
   touch "${TMP_DIR}/kcp-started"
 
-  wait_command "ls ${KUBECONFIG}" 30
   printf "Waiting for KCP to be ready ...\n"
   wait_command "kubectl --kubeconfig=${KUBECONFIG} get --raw /readyz" 30
-  printf "KCP ready: %s\n" $?
+  printf "KCP ready\n"
 }
 
 ingress-ctrler-start() {
@@ -90,7 +89,7 @@ envoy-start() {
 create-org() {
   printf "Creating organization\n"
   kubectl --kubeconfig="${KUBECONFIG}" config use-context root
-  KUBECONFIG="${KUBECONFIG}" kubectl kcp workspace use root
+  KUBECONFIG="${KUBECONFIG}" ${KCP_DIR}/bin/kubectl-kcp workspace use root
   kubectl --kubeconfig="${KUBECONFIG}" create -f "${PARENT_PATH}/pipelines-service-org.yaml"
 }
 
@@ -103,7 +102,6 @@ TMP_DIR="$(mktemp -d -t kcp-pipelines-service.XXXXXXXXX)"
 printf "Temporary directory created: %s\n" "${TMP_DIR}"
 
 KUBECONFIG="${TMP_DIR}/.kcp/admin.kubeconfig"
-printf "KUBECONFIG=%s\n" "${KUBECONFIG}"
 
 source "${PARENT_PATH}/../utils.sh"
 
@@ -123,6 +121,8 @@ if [[ -z "${PARAMS}" ]]; then
 fi
 
 kcp-start
+printf "KUBECONFIG=%s\n" "${KUBECONFIG}"
+printf "kubectl kcp plugin (should be copied to kubectl binary location): %s\n" "${KCP_DIR}/bin/kubectl-kcp"
 # ingress-ctrler-start
 # envoy-start
 create-org

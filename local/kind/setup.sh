@@ -23,6 +23,14 @@ prechecks () {
         printf "Kind could not be found\n"
         exit 1
     fi
+    if ! command -v kubectl &> /dev/null; then
+        printf "kubectl could not be found\n"
+        exit 1
+    fi
+    if ! command -v jq &> /dev/null; then
+        printf "jq could not be found\n"
+        exit 1
+    fi
 
     if [[ "${ALLOW_ROOTLESS}" == "true" ]]; then
         printf "Rootless mode enabled\n"
