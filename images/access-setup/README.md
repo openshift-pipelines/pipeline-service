@@ -8,7 +8,7 @@ responsible for installing/registering all the required resources.
 
 This action needs to be performed only once in the lifetime of the resource
 being initialized. If the resource creation is automated, the initialization
-can be done using the ` ghcr.io/openshift-pipelines/access-setup` image instead of
+can be done using the `quay.io/redhat-pipeline-service/access-setup:main` image instead of
 checking out the repository and running the script.
 
 ## Definitions

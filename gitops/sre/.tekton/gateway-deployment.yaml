@@ -43,7 +43,7 @@ spec:
             - name: source
           steps:
             - name: gateway-deployment
-              image: ghcr.io/openshift-pipelines/gateway-deployment:main
+              image: quay.io/redhat-pipeline-service/gateway-deployment:main
               workingDir: $(workspaces.source.path)
               env:
                 - name: DATA_DIR
