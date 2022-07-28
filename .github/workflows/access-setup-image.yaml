@@ -1,13 +1,13 @@
-name: Build and Publish kcp-registrar Image
+name: Build and Publish cluster-setup Image
 
 on:
   push:
     branches:
       - main
     paths:
-      - "images/kcp-registrar/**"
+      - "images/access-setup/**"
   workflow_dispatch:
-  
+
 jobs:
   build-push:
 
@@ -26,17 +26,15 @@ jobs:
         run: echo "::set-output name=sha_short::$(echo ${{ github.sha }} | cut -b -7)"
 
       # Build and push a kcp-registrar image, tagged with latest and the commit SHA.
-      - name: Build kcp-registrar Image
+      - name: Build access-setup Image
         id: build-image
         uses: redhat-actions/buildah-build@v2
         with:
-          image: kcp-registrar
-          context: ./images/kcp-registrar
+          image: access-setup
+          context: ./images/access-setup
           tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
           containerfiles: |
-            ./images/kcp-registrar/Dockerfile
-          build-args: |
-            KCP_BRANCH=release-0.6
+            ./images/access-setup/Dockerfile
 
       - name: Push to quay.io
         id: push-to-quay

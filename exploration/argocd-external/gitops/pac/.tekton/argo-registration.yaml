@@ -43,7 +43,7 @@ spec:
             - name: source
           steps:
             - name: register-to-argo
-              image: ghcr.io/openshift-pipelines/argocd-registrar:main
+              image: quay.io/redhat-pipeline-service/argocd-registrar:main
               workingDir: $(workspaces.source.path)
               env:
                 - name: ARGO_URL

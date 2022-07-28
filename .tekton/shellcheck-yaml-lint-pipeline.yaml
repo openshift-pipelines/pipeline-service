@@ -41,7 +41,7 @@ spec:
         taskSpec:
           steps:
             - name: run-shellcheck
-              image: ghcr.io/openshift-pipelines/test/shellcheck:main
+              image: quay.io/redhat-pipeline-service/shellcheck:main
               script: |
                 #!/usr/bin/env bash
                 find $(workspaces.source.path) -name "*.sh" -exec  shellcheck --severity=warning  {} +

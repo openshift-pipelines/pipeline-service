@@ -59,7 +59,7 @@ The script will output the location of the kubeconfig file that can be used to i
 Here is an example for running the registration image in a development environment:
 
 ```bash
-podman run --env KCP_ORG='root:pipelines-service' --env KCP_WORKSPACE='compute' --env WORKSPACE_DIR='/workspace' --privileged --volume /home/myusername/plnsvc:/workspace ghcr.io/openshift-pipelines/kcp-registrar:main
+podman run --env KCP_ORG='root:pipelines-service' --env KCP_WORKSPACE='compute' --env WORKSPACE_DIR='/workspace' --privileged --volume /home/myusername/plnsvc:/workspace quay.io/redhat-pipeline-service/kcp-registrar:main
 ```
 
 Make sure that iptables/firewalld is not preventing the communication (tcp initiated from the kind clusters) between the containers running on the kind network and the kcp process on the host.
