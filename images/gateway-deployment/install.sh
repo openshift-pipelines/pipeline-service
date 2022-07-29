@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2022 The pipelines-service Authors.
+# Copyright 2022 The Pipeline Service Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,11 +20,11 @@ set -o pipefail
 
 usage() {
 
-    printf "Usage: KCP_ORG=root:pipelines-service KCP_WORKSPACE=infra DATA_DIR=/workspace ./install.sh\n\n"
+    printf "Usage: KCP_ORG=root:pipeline-service KCP_WORKSPACE=infra DATA_DIR=/workspace ./install.sh\n\n"
 
     # Parameters
     printf "The following parameters need to be passed to the script:\n"
-    printf "KCP_ORG: the organistation for which the workload clusters need to be registered, i.e.: root:pipelines-service\n"
+    printf "KCP_ORG: the organistation for which the workload clusters need to be registered, i.e.: root:pipeline-service\n"
     printf "KCP_WORKSPACE: the name of the workspace where the gateway gets deployed (created if it does not exist), i.e: infra. If the workspace differs from the one where the SyncTarget has been created an APIBinding will need to be added\n"
     printf "DATA_DIR: the location of the cluster files\n"
 }

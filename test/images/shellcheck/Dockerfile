@@ -5,14 +5,14 @@ LABEL build-date= \
     distribution-scope="public" \
     io.k8s.description="This image provides shellcheck binary." \
     io.k8s.display-name="shellcheck" \
-    maintainer="Pipelines Service" \
+    maintainer="Pipeline Service" \
     name="shellcheck" \
     release="0.1" \
     summary="Provides the 0.7.1 shellcheck" \
-    url="https://github.com/openshift-pipelines/pipelines-service/tree/main/images/shellcheck" \
+    url="https://github.com/openshift-pipelines/pipeline-service/tree/main/images/shellcheck" \
     vcs-ref=  \
     vcs-type="git" \
-    vendor="Pipelines Service" \
+    vendor="Pipeline Service" \
     version="0.1"
 WORKDIR /
 RUN mkdir /workspace && chmod 777 /workspace && chown 65532:65532 /workspace

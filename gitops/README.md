@@ -1,10 +1,10 @@
 # Purpose
 
-This directory contains the manifests used to automate the installation of operators and other components leveraged by Pipelines-service on the workload clusters. It provides an opinionated approach to managing their configuration based on GitOps principles.
+This directory contains the manifests used to automate the installation of operators and other components leveraged by Pipeline Service on the workload clusters. It provides an opinionated approach to managing their configuration based on GitOps principles.
 
 ## Why GitOps?
 
-We want to make the onboarding experience to use Pipelines-service as easy and customizable as possible. With that in mind, Pipelines-service is built around the principles of GitOps. Using kustomize, users will be able to set up, modify and update cluster resources without having to disrupt their existing setup. We provide base kustomization.yaml files to help get started, so that users can then add their customizations in the overlay/kustomization.yaml files.
+We want to make the onboarding experience to use Pipeline Service as easy and customizable as possible. With that in mind, Pipeline Service is built around the principles of GitOps. Using kustomize, users will be able to set up, modify and update cluster resources without having to disrupt their existing setup. We provide base kustomization.yaml files to help get started, so that users can then add their customizations in the overlay/kustomization.yaml files.
 
 ## Prerequisites
 
@@ -70,13 +70,13 @@ _Note: Please run these scripts only if you intend not to use PaC to automate th
     a. To install Tekton components
 
     ```
-    $ WORKSPACE_DIR=/home/workspace/pipelines-service/gitops/sre ../images/cluster-setup/install.sh
+    $ WORKSPACE_DIR=/home/workspace/pipeline-service/gitops/sre ../images/cluster-setup/install.sh
     ```
 
     b. To access and setup kcp
 
     ```
-    $ KCP_ORG="root:pipelines-service" KCP_WORKSPACE="compute" WORKSPACE_DIR="/home/workspace/pipelines-service/gitops/sre" ../images/kcp-registrar/register.sh
+    $ KCP_ORG="root:pipeline-service" KCP_WORKSPACE="compute" WORKSPACE_DIR="/home/workspace/pipeline-service/gitops/sre" ../images/kcp-registrar/register.sh
     ```
 
 ### Pipelines As Code (PaC)
@@ -89,7 +89,7 @@ Note:
   - Pipelines as Code that needs to be installed and set up does not necessarily have to be on the workload cluster being used for Pipeline Service. It could be on any cluster as long as we have the URL set up and available.
   - If you already have an existing Pipelines as Code setup, then you could skip this step and just make sure that PaC is able to talk to the repo created in step 1. 
 
-There are a couple of steps that need to be done to use PAC in Pipelines-service.
+There are a couple of steps that need to be done to use PAC in Pipeline Service.
 a. Install Pipelines as Code on the OpenShift Cluster.
 - Following the instructions from [here](https://pipelinesascode.com/docs/install/installation/) for an OpenShift cluster:
   ```
@@ -137,7 +137,7 @@ _Note: mycluster.kubeconfig, mykcp.kubeconfig, mycluster and kustomization.yaml 
 
 $cat kustomization.yaml
 resources:
-  - github.com/openshift-pipelines/pipelines-service/gitops/argocd?ref=main
+  - github.com/openshift-pipelines/pipeline-service/gitops/argocd?ref=main
 ```
 
 Once you merge the PR, PaC will trigger cluster-setup and kcp-registrar Pipelines present under _.tekton_ to set up the cluster and register it with kcp instance.

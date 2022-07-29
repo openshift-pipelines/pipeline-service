@@ -1,4 +1,6 @@
-# Copyright 2022 The Pipelines-service Authors.
+#!/usr/bin/env bash
+
+# Copyright 2022 The Pipeline Service Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.

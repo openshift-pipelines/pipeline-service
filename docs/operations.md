@@ -1,9 +1,9 @@
-# Pipelines-Service operations
+# Pipeline Service operations
 
 ## Introduction
 
-The aim of this document is to introduce various considerations, processes and tasks required for operating Pipelines-Service.
-The primary audience are teams willing to deploy and operate Pipelines-Service.
+The aim of this document is to introduce various considerations, processes and tasks required for operating Pipeline Service.
+The primary audience are teams willing to deploy and operate Pipeline Service.
 The scope is focused on the operational aspects. This document does not go into the details of the implementation as far as it is not required from an operational point of view.
 
 ## Components
@@ -14,15 +14,15 @@ The scope is focused on the operational aspects. This document does not go into 
 
 ### Management
 
-The components of the management layer are prerequisites for the automation and the deployment of the Pipelines-Service platform.
+The components of the management layer are prerequisites for the automation and the deployment of the Pipeline Service platform.
 
 #### GitHub repository
 
-This is the repository where the document you are reading and the components for automating the deployment and operation of Pipelines-Service are made available and maintained.
+This is the repository where the document you are reading and the components for automating the deployment and operation of Pipeline Service are made available and maintained.
 
 #### GitOps repository
 
-The GitOps repository contains the files providing the intended state and configuration of a Pipelines-Service installation.
+The GitOps repository contains the files providing the intended state and configuration of a Pipeline Service installation.
 
 A separate document will be created to present the directory structure and the possible approaches for customization.
 
@@ -32,16 +32,16 @@ Pipelines as Code uses PipelineRuns for automation. An online or offline reposit
 
 #### Argo CD
 
-Pipelines-Service takes a GitOps approach and leverages Argo CD for the purpose. With phase 1, an in-cluster management approach is taken. A separate instance of Argo CD runs on every compute cluster and the interaction with Argo CD is done through the kubernetes API of the cluster.
+Pipeline Service takes a GitOps approach and leverages Argo CD for the purpose. With phase 1, an in-cluster management approach is taken. A separate instance of Argo CD runs on every compute cluster and the interaction with Argo CD is done through the kubernetes API of the cluster.
 
 ### Infrastructure
 
-The infrastructure components are not directly managed by the Pipelines-Service platform. The Pipelines-Service relies however on their availability. They may get managed by the same or a different team depending on the company size and organization.
+The infrastructure components are not directly managed by the Pipeline Service platform. The Pipeline Service relies however on their availability. They may get managed by the same or a different team depending on the company size and organization.
 
 #### kcp
 
 kcp allows decoupling the control plane and compute. It brings better multi-tenancy and greater scalability.
-End users interact with Pipelines-Service through their kcp workspace or a layered product on top of it. They don't need to interact with any of the lower layer components.
+End users interact with Pipeline Service through their kcp workspace or a layered product on top of it. They don't need to interact with any of the lower layer components.
 
 #### Compute clusters
 
@@ -51,7 +51,7 @@ Compute clusters are traditional OpenShift clusters (till now tests and automati
 
 #### Syncer
 
-The syncer is a kcp component in charge of synchronizing resources, e.g. Pipelines and PipelineRuns for our purpose, between kcp workspaces and the underlying compute clusters. Although the syncer is a kcp component its deployment and management is performed by the Pipelines-Service platform.
+The syncer is a kcp component in charge of synchronizing resources, e.g. Pipelines and PipelineRuns for our purpose, between kcp workspaces and the underlying compute clusters. Although the syncer is a kcp component its deployment and management is performed by the Pipeline Service platform.
 
 #### Pipelines Controllers
 
@@ -66,9 +66,9 @@ The gateway is a component that allows Pipelines as Code integration and ensures
 
 ## Personas and responsibilities
 
-### SRE team for Pipelines-Service
+### SRE team for Pipeline Service
 
- The SRE team for Pipelines-Service is responsible for deploying and managing Pipelines-Service on one or more KCP instances. This team may not be in charge of managing the kcp cluster (out of scope of this project) but is in charge of creating workspaces, the content necessary for running Pipelines-Service and associated RBAC. The team is also in charge of managing the addition of compute clusters to the Pipelines-Service platform and of managing the lifecycle of the components running on them.
+ The SRE team for Pipeline Service is responsible for deploying and managing Pipeline Service on one or more KCP instances. This team may not be in charge of managing the kcp cluster (out of scope of this project) but is in charge of creating workspaces, the content necessary for running Pipeline Service and associated RBAC. The team is also in charge of managing the addition of compute clusters to the Pipeline Service platform and of managing the lifecycle of the components running on them.
 
 ### SRE team for OpenShift (other Kubernetes distributions to be added later on) clusters
 
@@ -80,15 +80,15 @@ The SRE team for kcp clusters is responsible for managing kcp as a IaaS independ
 
 ### SRE team for layered products
 
-Pipelines-Service may get integrated in a layered product to offer a user experience tailored for specific scenarios. These layered products may have a dedicated SRE team for managing their operations.
+Pipeline Service may get integrated in a layered product to offer a user experience tailored for specific scenarios. These layered products may have a dedicated SRE team for managing their operations.
 
 ### End users
 
-End users may interact through layered products or directly with the kcp workspaces offered by Pipelines-Service.
+End users may interact through layered products or directly with the kcp workspaces offered by Pipeline Service.
 
-### Pipelines-Service development community
+### Pipeline Service development community
 
-This is the community developing this platform for automating the deployment and management of a highly scalable Pipelines-Service.
+This is the community developing this platform for automating the deployment and management of a highly scalable Pipeline Service.
 
 ## Lifecycle management
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2022 The Pipelines-service Authors.
+# Copyright 2022 The Pipeline Service Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -98,7 +98,7 @@ PARENT_PATH=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 
 kcp-binaries
 
-TMP_DIR="$(mktemp -d -t kcp-pipelines-service.XXXXXXXXX)"
+TMP_DIR="$(mktemp -d -t kcp-pipeline-service.XXXXXXXXX)"
 printf "Temporary directory created: %s\n" "${TMP_DIR}"
 
 KUBECONFIG="${TMP_DIR}/.kcp/admin.kubeconfig"

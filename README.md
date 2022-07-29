@@ -1,8 +1,8 @@
-# Pipelines-service
+# Pipeline Service
 
-Pipelines-service provides a SaaS for pipelines. It leverages Kubernetes, Tekton, Tekton Triggers, Tekton Results, Pipelines as Code together with kcp.
+Pipeline Service provides a SaaS for pipelines. It leverages Kubernetes, Tekton, Tekton Triggers, Tekton Results, Pipelines as Code together with kcp.
 
-## Why Pipelines-service?
+## Why Pipeline Service?
 
 Tekton and Kubernetes provide a great infrastructure for build pipelines. They come however with some limitations.
 
@@ -18,7 +18,7 @@ Pipelines as Code is the veneer that brings to the users a great experience dire
 
 ### Phase 1
 
-In the first phase, Pipelines-service will leverage kcp Transparent-Multi-Cluster capabilities. Tekton and other controllers run directly on Kubernetes workload clusters and process the resources there. kcp syncer ensures that resources (Pipelines, PipelineRuns, etc.) created by users in their workspace are synced onto a workload cluster and the result of the processing is reflected to the user workspace.
+In the first phase, Pipeline Service will leverage kcp Transparent-Multi-Cluster capabilities. Tekton and other controllers run directly on Kubernetes workload clusters and process the resources there. kcp syncer ensures that resources (Pipelines, PipelineRuns, etc.) created by users in their workspace are synced onto a workload cluster and the result of the processing is reflected to the user workspace.
 
 This approach has the great advantage of not requiring any change to the controllers.
 
@@ -34,7 +34,7 @@ Controllers know nothing about kcp.
 
 ### Phase 2
 
-In the second phase, the controllers used by Pipelines-service are made kcp-aware. This eliminates the need to sync the pipeline resources onto workload clusters and to have operators directly bound to any kubernetes cluster.
+In the second phase, the controllers used by Pipeline Service are made kcp-aware. This eliminates the need to sync the pipeline resources onto workload clusters and to have operators directly bound to any kubernetes cluster.
 This brings additional benefits:
 
 - not being tied up to a version of pipeline CRDs installed on a Kubernetes cluster
@@ -53,7 +53,7 @@ Kubernetes workload clusters know nothing about Tekton. They only run resources 
 
 You can deploy this PoC to your Kubernetes cluster with the `build.sh` and `run.sh` scripts in `ckcp` folder.
 
-More info [here](https://github.com/openshift-pipelines/pipelines-service/tree/main/ckcp)
+More info [here](https://github.com/openshift-pipelines/pipeline-service/tree/main/ckcp)
 
 ## Running locally
 
