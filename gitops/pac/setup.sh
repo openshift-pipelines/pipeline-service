@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2022 The pipelines-service Authors.
+# Copyright 2022 The Pipeline Service Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@ controller_install() {
 }
 
 mk_tmpdir () {
-  TMP_DIR="$(mktemp -d -t pac-pipelines-service.XXXXXXXXX)"
+  TMP_DIR="$(mktemp -d -t pac-pipeline-service.XXXXXXXXX)"
   printf "Temporary directory created: %s\n" "${TMP_DIR}"
 }
 

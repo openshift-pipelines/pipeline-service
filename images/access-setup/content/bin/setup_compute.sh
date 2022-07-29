@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2022 The pipelines-service Authors.
+# Copyright 2022 The Pipeline Service Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ Example:
 }
 
 parse_args() {
-  KUSTOMIZATION=${KUSTOMIZATION:-github.com/openshift-pipelines/pipelines-service/gitops/compute/pac-manager?ref=main}
+  KUSTOMIZATION=${KUSTOMIZATION:-github.com/openshift-pipelines/pipeline-service/gitops/compute/pac-manager?ref=main}
   while [[ $# -gt 0 ]]; do
     case "$1" in
     -k | --kubeconfig)
@@ -122,7 +122,7 @@ generate_compute_credentials() {
 
   mkdir -p "$WORK_DIR/environment/compute/$compute_name"
   echo "resources:
-  - github.com/openshift-pipelines/pipelines-service/gitops/argocd?ref=main
+  - github.com/openshift-pipelines/pipeline-service/gitops/argocd?ref=main
 " >"$WORK_DIR/environment/compute/$compute_name/kustomization.yaml"
 }
 

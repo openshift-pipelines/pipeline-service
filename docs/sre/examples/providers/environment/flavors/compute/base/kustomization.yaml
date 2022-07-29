@@ -1,2 +1,2 @@
 resources:
-  - github.com/openshift-pipelines/pipelines-service/gitops/argocd/argo-apps?ref=main
+  - github.com/openshift-pipelines/pipeline-service/gitops/argocd/argo-apps?ref=main

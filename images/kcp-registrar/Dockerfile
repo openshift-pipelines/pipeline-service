@@ -18,14 +18,14 @@ LABEL build-date= \
       distribution-scope="public" \
       io.k8s.description="This image provides binaries and a script to easily register clusters to kcp." \
       io.k8s.display-name="kcp register" \
-      maintainer="Pipelines Service" \
+      maintainer="Pipeline Service" \
       name="kcp-registrar" \
       release="0.1" \
       summary="Provides the latest release of kcp-registrar image." \
-      url="https://github.com/openshift-pipelines/pipelines-service/tree/main/images/kcp-registrar" \
+      url="https://github.com/openshift-pipelines/pipeline-service/tree/main/images/kcp-registrar" \
       vcs-ref=  \
       vcs-type="git" \
-      vendor="Pipelines Service" \
+      vendor="Pipeline Service" \
       version="0.1"
 WORKDIR /
 RUN microdnf install findutils

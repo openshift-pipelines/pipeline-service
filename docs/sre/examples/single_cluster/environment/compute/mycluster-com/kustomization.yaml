@@ -1,4 +1,4 @@
 resources:
-  - "github.com/openshift-pipelines/pipelines-service/gitops/argocd/argocd-apps?ref=main"
+  - "github.com/openshift-pipelines/pipeline-service/gitops/argocd/argocd-apps?ref=main"
 
 # If necessary, additional customization for the cluster would go here

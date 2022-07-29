@@ -63,7 +63,7 @@ The script will output:
 Here is an example for running the registration image in a development environment:
 
 ```bash
-podman run --env KCP_ORG='root:pipelines-service' --env KCP_WORKSPACE='compute' --env WORKSPACE_DIR='/workspace' --privileged --volume /home/myusername/plnsvc:/workspace quay.io/redhat-pipeline-service/kcp-registrar:main
+podman run --env KCP_ORG='root:pipeline-service' --env KCP_WORKSPACE='compute' --env WORKSPACE_DIR='/workspace' --privileged --volume /home/myusername/plnsvc:/workspace quay.io/redhat-pipeline-service/kcp-registrar:main
 ```
 
 Make sure that iptables/firewalld is not preventing the communication (tcp initiated from the kind clusters) between the containers running on the kind network and the kcp process on the host.
@@ -102,7 +102,7 @@ argocd login argocd-server-argocd.apps.127.0.0.1.nip.io:8443
 
 Argo CD web UI is accessible at <https://argocd-server-argocd.apps.127.0.0.1.nip.io:8443/applications>.
 
-GitOps is the preferred approach for deploying the Pipelines Service. The installed instances of ArgoCD can be leveraged for creating organisations in kcp, universal workspaces used by the infrastructure, installing the Tekton controllers and registering the workload clusters.
+GitOps is the preferred approach for deploying the Pipeline Service. The installed instances of ArgoCD can be leveraged for creating organisations in kcp, universal workspaces used by the infrastructure, installing the Tekton controllers and registering the workload clusters.
 
 The cluster where Argo CD runs is automatically registered to Argo CD.
 
@@ -110,7 +110,7 @@ The cluster where Argo CD runs is automatically registered to Argo CD.
 
 As indicated by the kcp start script `ctrl-C` stops all components: kcp, ingress controller and envoy.
 
-The files used by kcp are stored in the directory that was created, whose path was printed out by the script, for example: `/tmp/kcp-pipelines-service.uD5nOWUtU/`
+The files used by kcp are stored in the directory that was created, whose path was printed out by the script, for example: `/tmp/kcp-pipeline-service.uD5nOWUtU/`
 Files in /tmp are usually cleared by a reboot and depending on the operating system may be cleansed when they have not been accessed for 10 days or another elapse of time.
 
 Workload clusters created with kind can be removed with the usual kind command for the purpose `kind delete clusters us-east1 us-west1`

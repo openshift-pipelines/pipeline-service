@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2022 The pipelines-service Authors.
+# Copyright 2022 The Pipeline Service Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,12 +24,12 @@ usage() {
 Usage:
     %s [options]
 
-Deploy Pipelines Service on the clusters as per the configuration in WORKSPACE_DIR.
+Deploy Pipeline Service on the clusters as per the configuration in WORKSPACE_DIR.
 
 Mandatory arguments:
     --kcp-org KCP_ORG
         Organization for which the workload clusters need to be registered.
-        Example: 'root:pipelines-service'.
+        Example: 'root:pipeline-service'.
         Can be set through \$KCP_ORG.
     --kcp-workspace KCP_WORKSPACE
         Name of the workspace where the workload clusters get registered (created if it

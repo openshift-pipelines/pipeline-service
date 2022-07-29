@@ -28,7 +28,7 @@ usage() {
 Usage:
     ${0##*/} [options]
 
-Setup the pipeline service on a cluster running on KCP.
+Setup Pipeline Service on a cluster running on KCP.
 
 Optional arguments:
     -w, --work-dir
@@ -99,7 +99,7 @@ init() {
   KUBECONFIG_MERGED="merged-config.kubeconfig:$KUBECONFIG:$KUBECONFIG_KCP"
   export KUBECONFIG
   kcp_org="root:default"
-  kcp_workspace="pipelines-service-compute"
+  kcp_workspace="pipeline-service-compute"
   kcp_version="$(yq '.images[] | select(.name == "kcp") | .newTag' "$SCRIPT_DIR/openshift/overlays/dev/kustomization.yaml")"
 }
 

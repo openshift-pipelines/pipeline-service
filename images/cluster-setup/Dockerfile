@@ -5,14 +5,14 @@ LABEL build-date= \
       distribution-scope="public" \
       io.k8s.description="This image provides binaries and a script to install tektoncd components on the workload clusters." \
       io.k8s.display-name="cluster setup" \
-      maintainer="Pipelines Service" \
+      maintainer="Pipeline Service" \
       name="cluster-setup" \
       release="0.1" \
       summary="Provides the latest release of cluster-setup image." \
-      url="https://github.com/openshift-pipelines/pipelines-service/tree/main/images/cluster-setup" \
+      url="https://github.com/openshift-pipelines/pipeline-service/tree/main/images/cluster-setup" \
       vcs-ref=  \
       vcs-type="git" \
-      vendor="Pipelines Service" \
+      vendor="Pipeline Service" \
       version="0.1"
 WORKDIR /
 RUN mkdir /workspace && chmod 777 /workspace && chown 65532:65532 /workspace
