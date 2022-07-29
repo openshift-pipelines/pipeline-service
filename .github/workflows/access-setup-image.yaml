@@ -1,4 +1,4 @@
-name: Build and Publish cluster-setup Image
+name: Build and Publish access-setup Image
 
 on:
   push:
@@ -35,6 +35,8 @@ jobs:
           tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
           containerfiles: |
             ./images/access-setup/Dockerfile
+          build-args: |
+            KCP_BRANCH=release-0.6
 
       - name: Push to quay.io
         id: push-to-quay

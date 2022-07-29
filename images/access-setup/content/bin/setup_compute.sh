@@ -107,6 +107,14 @@ init() {
   mkdir -p "$credentials_dir"
 }
 
+check_prerequisites() {
+  # Check that argocd has been installed
+  if [[ $(kubectl api-resources | grep -c "argoproj.io/") = "0" ]]; then
+    echo "ArgoCD must be deployed on the cluster first" >&2
+    exit 1
+  fi
+}
+
 generate_compute_credentials() {
   current_context=$(kubectl config current-context)
   compute_name="$(yq '.contexts[] | select(.name == "'"$current_context"'") | .context.cluster' < "$KUBECONFIG" | sed 's/:.*//')"
@@ -130,6 +138,7 @@ main() {
   parse_args "$@"
   prechecks
   init
+  check_prerequisites
   generate_compute_credentials
 }
 
