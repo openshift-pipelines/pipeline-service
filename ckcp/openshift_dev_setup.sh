@@ -109,11 +109,6 @@ precheck() {
     printf "kcp plugin could not be found\n"
     exit 1
   fi
-
-  if [ "$(kubectl plugin list | grep -c 'kubectl-cert_manager')" -eq 0 ]; then
-    printf "cert_manager plugin could not be found\n"
-    exit 1
-  fi
 }
 
 check_cluster_role() {
