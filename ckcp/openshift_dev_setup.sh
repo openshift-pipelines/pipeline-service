@@ -154,9 +154,9 @@ install_openshift_gitops() {
   local argocd_password
   argocd_password="$(kubectl get secret openshift-gitops-cluster -n $ns -o jsonpath="{.data.admin\.password}" | base64 --decode)"
   echo "test argocd login"
-  sleep 10
+  sleep 60
   curl -k https://$ARGOCD_HOSTNAME
-  argocd login "$ARGOCD_HOSTNAME" --grpc-web --insecure --username admin --password "$argocd_password" >/dev/null
+  argocd login "$ARGOCD_HOSTNAME" --grpc-web --insecure --username admin --password "$argocd_password" --loglevel debug --http-retry-max 10
   echo "OK"
 
   # Register the host cluster as pipeline-cluster
