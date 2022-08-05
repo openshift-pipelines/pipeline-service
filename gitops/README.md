@@ -54,8 +54,8 @@ Create a new Git repo that would have the following structure. You can also use 
 
 ### Generate kubeconfigs
 
-In order to generate the kubeconfig for the cluster and kcp instance with the appropriate permissions using service accounts, we have created a few scripts which are available [here](../images/access_setup/content/bin). 
-The [README.md](../images/access_setup/README.md) describes the steps but essentially, you need the below two commands to generate kubeconfig for your cluster and kcp instance respectively. Please refer to the Readme for more details.
+In order to generate the kubeconfig for the cluster and kcp instance with the appropriate permissions using service accounts, we have created a few scripts which are available [here](../images/access-setup/content/bin). 
+The [README.md](../images/access-setup/README.md) describes the steps but essentially, you need the below two commands to generate kubeconfig for your cluster and kcp instance respectively. Please refer to the Readme for more details.
 
 ```
 - ./setup_compute.sh --kubeconfig /home/.kube/mycluster.kubeconfig --work_dir /repo/sre
