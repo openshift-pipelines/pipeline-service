@@ -1,0 +1,32 @@
+name: Execute local test
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  e2e-shared-server:
+    name: e2e-shared-server
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: v1.17
+
+      - uses: actions/checkout@v3
+        with:
+          repository: kcp-dev/kcp
+          ref: release-0.6
+      - run: |-
+          go mod vendor
+          make install
+          kubectl-kcp --version
+      # Install kind with a local registry
+      - uses: container-tools/kind-action@v1
+        name: Kubernetes KinD Cluster w/local registry
+
+      - run: |-
+          ./local/kind/setup.sh
+
