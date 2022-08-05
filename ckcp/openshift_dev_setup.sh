@@ -153,6 +153,7 @@ install_openshift_gitops() {
   echo -n "  - ArgoCD Login: "
   local argocd_password
   argocd_password="$(kubectl get secret openshift-gitops-cluster -n $ns -o jsonpath="{.data.admin\.password}" | base64 --decode)"
+  echo "test argocd login"
   argocd login "$ARGOCD_HOSTNAME" --grpc-web --insecure --username admin --password "$argocd_password" >/dev/null
   echo "OK"
 
