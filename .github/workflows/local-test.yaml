@@ -10,7 +10,6 @@ jobs:
     name: e2e-shared-server
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with:
           go-version: v1.17
@@ -19,7 +18,8 @@ jobs:
         with:
           repository: kcp-dev/kcp
           ref: release-0.6
-      - run: |-
+      - name: Build KCP plugin
+        run: |-
           go mod vendor
           make install
           kubectl-kcp --version
@@ -27,6 +27,8 @@ jobs:
       - uses: container-tools/kind-action@v1
         name: Kubernetes KinD Cluster w/local registry
 
-      - run: |-
-          ./local/kind/setup.sh
-
+      - uses: actions/checkout@v3
+      - name: Test local setup
+        run: |-
+          pwd
+          ls
