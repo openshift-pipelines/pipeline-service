@@ -90,7 +90,7 @@ create-org() {
   printf "Creating organization\n"
   kubectl --kubeconfig="${KUBECONFIG}" config use-context root
   KUBECONFIG="${KUBECONFIG}" ${KCP_DIR}/bin/kubectl-kcp workspace use root
-  kubectl --kubeconfig="${KUBECONFIG}" create -f "${PARENT_PATH}/pipelines-service-org.yaml"
+  KUBECONFIG="${KUBECONFIG}" ${KCP_DIR}/bin/kubectl-kcp workspace create --type=organization pipeline-service --enter
 }
 
 # Execution
@@ -123,6 +123,7 @@ fi
 kcp-start
 printf "KUBECONFIG=%s\n" "${KUBECONFIG}"
 printf "kubectl kcp plugin (should be copied to kubectl binary location): %s\n" "${KCP_DIR}/bin/kubectl-kcp"
+# old ingress PoC is not working anymore, waiting for kcp-glbc to be usable.
 # ingress-ctrler-start
 # envoy-start
 create-org
