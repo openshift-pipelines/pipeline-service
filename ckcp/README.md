@@ -25,6 +25,10 @@ Long Version:
 8. Run some examples PipelineRuns.
 9. Apply patches to the triggers repo and run the controller, interceptor and eventlistener.
 
+### Dependencies
+
+Before installing the prerequisites, refer [DEPENDENCIES.md](../DEPENDENCIES.md) to verify the versions of products, operators and tools used in Pipeline Service.
+
 ### Pre-requisites
 
 Before you execute the script, you need:
@@ -34,7 +38,7 @@ Before you execute the script, you need:
 3. to install [argocd CLI](https://argo-cd.readthedocs.io/en/stable/cli_installation/)
 4. to install [yq](https://mikefarah.gitbook.io/yq/#install)
 6. to install [kubectl kcp plugin](https://github.com/kcp-dev/kcp/blob/main/docs/kubectl-kcp-plugin.md)
-   Note: ckcp uses the official kcp image in order to run kcp in a pod (latest released versions). It is advisable to use the same version for the kcp plugin as the kcp core API (especially as KCP API is evolving quickly). The current version can be found in this [file](./openshift/overlays/dev/kustomization.yaml) as the 'newTag' variable. Make sure to checkout this branch before installing the plugin.
+   Note: ckcp uses the official kcp image in order to run kcp in a pod (latest released versions). It is advisable to use the same version for the kcp plugin as the kcp core API (especially as KCP API is evolving quickly). The current version can be found in [DEPENDENCIES.md](../DEPENDENCIES.md). Make sure to checkout the branch listed in the doc before installing the plugin.
 
 You can run the openshift_dev_setup.sh script with or without parameters as specified below:  
 Note: Triggers require pipelines to be running and thus running ckcp with triggers alone is not supported.
