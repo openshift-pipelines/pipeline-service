@@ -1,2 +1,2 @@
 resources:
-  - github.com/openshift-pipelines/pipeline-service/gitops/kcp/registration?ref=main
+  - github.com/avinal/pipeline-service/gitops/kcp/registration?ref=avinal/fix-tektonconfig
