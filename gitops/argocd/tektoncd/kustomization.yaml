@@ -3,4 +3,7 @@ kind: Kustomization
 resources:
   - allow-argocd-to-manage.yaml
   - openshift-operator.yaml
-  - tekton-config.yaml
+ # This is breaking the installation.
+ # Commented out for stopping the bleeding
+ # till it gets fixed
+ #  - tekton-config.yaml
