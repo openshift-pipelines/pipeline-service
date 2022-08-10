@@ -17,7 +17,7 @@ KCP_ORG="root:pipeline-service" KCP_WORKSPACE="compute" KCP_SYNC_TAG="release-0.
 | KCP_ORG | contains the organistation for which the workload clusters need to be registered, i.e.: root:pipeline-service|
 | KCP_WORKSPACE | contains the name of the workspace where the workload clusters get registered (created if it does not exist), i.e: compute|
 | KCP_SYNC_TAG | the tag of the kcp syncer image to use (preset in the container image at build time and leveraged by the PipelineRun)|
-| WORKSPACE_DIR | specifies the location of the cluster files<br> - a single file with extension kubeconfig is expected in the subdirectory: `gitops/credentials/kubeconfig/kcp`<br> - kubeconfig files for compute clusters are expected in the subdirectory: `gitops/credentials/kubeconfig/compute`|
+| WORKSPACE_DIR | specifies the location of the cluster files<br> - a single file with extension kubeconfig is expected in the subdirectory: `credentials/kubeconfig/kcp`<br> - kubeconfig files for compute clusters are expected in the subdirectory: `credentials/kubeconfig/compute`|
 
 **Note:**
 Namespace names are limited to [63 characters](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-label-names). SyncTarget names are used as part of the name of the syncer namespace on the target cluster. When the length of the cluster name is less or equal to 43 characters it is used unchanged to populate the SyncTarget name. Otherwise a hash is generated and used as SyncTarget name. To keep a human friendly SyncTarget name, edit the kubeconfig and set the desired cluster name with less than 43 characters.
