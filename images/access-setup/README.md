@@ -45,6 +45,7 @@ The script will:
 2. Generate the kubeconfig for the serviceaccount.
 3. Create a default `kustomization.yaml` for the cluster under `environment/compute
 environment/compute`.
+4. Create shared secrets for tekton-chains and tekton-results
 
 Example: `./setup_compute.sh --kubeconfig /home/.kube/mycluster.kubeconfig --work-dir /path/to/sre/repository`
 
