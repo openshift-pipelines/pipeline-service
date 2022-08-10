@@ -51,6 +51,14 @@ Optional arguments:
         Git repo's ref to be referenced to apply various customizations.
         Can be read from \$GIT_REF.
         Default: %s
+    --tekton-results-database-user TEKTON_RESULTS_DATABASE_USER
+        Username for tekton results database.
+        Can be read from \$TEKTON_RESULTS_DATABASE_USER
+        Default: %s
+    --tekton-results-database-password TEKTON_RESULTS_DATABASE_PASSWORD
+        Password for tekton results database.
+        Can be read from \$TEKTON_RESULTS_DATABASE_PASSWORD
+        Default: %s
     -w, --work-dir WORK_DIR
         Directory into which the credentials folder will be created.
     -d, --debug
@@ -59,13 +67,16 @@ Optional arguments:
         Display this message.
 Example:
     %s -d -k /path/to/compute.kubeconfig
-" "${0##*/}" "$KUSTOMIZATION" "$GIT_URL" "$GIT_REF" "${0##*/}" >&2
+" "${0##*/}" "$KUSTOMIZATION" "$GIT_URL" "$GIT_REF" "$TEKTON_RESULTS_DATABASE_USER" "$TEKTON_RESULTS_DATABASE_PASSWORD" "${0##*/}" >&2
 }
 
 parse_args() {
   KUSTOMIZATION=${KUSTOMIZATION:-github.com/openshift-pipelines/pipeline-service/gitops/compute/pac-manager?ref=main}
   GIT_URL=${GIT_URL:-"https://github.com/openshift-pipelines/pipeline-service.git"}
   GIT_REF=${GIT_REF:="main"}
+  TEKTON_RESULTS_DATABASE_USER=${TEKTON_RESULTS_DATABASE_USER:-}
+  TEKTON_RESULTS_DATABASE_PASSWORD=${TEKTON_RESULTS_DATABASE_PASSWORD:-}
+  
   while [[ $# -gt 0 ]]; do
     case "$1" in
     -k | --kubeconfig)
@@ -83,6 +94,14 @@ parse_args() {
     --git-remote-ref)
       shift
       GIT_REF="$1"
+      ;;
+    --tekton-results-database-user)
+      shift
+      TEKTON_RESULTS_DATABASE_USER="$1"
+      ;;
+    --tekton-results-database-password)
+      shift
+      TEKTON_RESULTS_DATABASE_PASSWORD="$1"
       ;;
     -w | --work-dir)
       shift
@@ -142,6 +161,8 @@ generate_shared_manifests(){
   printf -- "- Generating shared manifests:\n"
   printf -- "  - tekton-chains manifest:\n"
   tekton_chains_manifest 2>&1 | indent 4
+  printf -- "  - tekton-results manifest:\n"
+  tekton_results_manifest 2>&1 | indent 4
 }
 
 tekton_chains_manifest(){
@@ -169,6 +190,32 @@ tekton_chains_manifest(){
     } > "$manifest"
     rm -rf "$manifests_tmp_dir"
     if [ "$(yq ".data" < "$manifest" | grep -cE "^cosign.key:|^cosign.password:|^cosign.pub:")" != "3" ]; then
+      printf "[ERROR] Invalid manifest: '%s'" "$manifest" >&2
+      exit 1
+    fi
+  fi
+  printf "OK\n"
+}
+
+tekton_results_manifest(){
+  manifest="$manifests_dir/compute/tekton-results/tekton-results-secret.yaml"
+  if [ ! -e "$manifest" ]; then
+    manifests_dir="$(dirname "$manifest")"
+    mkdir -p "$manifests_dir"
+    if [[ -z $TEKTON_RESULTS_DATABASE_USER || -z $TEKTON_RESULTS_DATABASE_PASSWORD ]]; then
+      printf "[ERROR] Tekton results database variable is not set, either set the variables using \n \
+      the config.yaml under tekton_results_db \n \
+      Or create '%s' \n" "$manifest" >&2
+      exit 1
+    fi
+
+    {
+      echo "---"
+      kubectl create namespace openshift-pipelines --dry-run=client -o yaml
+      echo "---"
+      kubectl create secret generic -n openshift-pipelines tekton-results-database --from-literal=DATABASE_USER="$TEKTON_RESULTS_DATABASE_USER" --from-literal=DATABASE_PASSWORD="$TEKTON_RESULTS_DATABASE_PASSWORD" --dry-run=client -o yaml
+    } > "$manifest"
+    if [ "$(yq ".data" < "$manifest" | grep -cE "DATABASE_USER|DATABASE_PASSWORD")" != "2" ]; then
       printf "[ERROR] Invalid manifest: '%s'" "$manifest" >&2
       exit 1
     fi

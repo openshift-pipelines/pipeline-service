@@ -147,7 +147,8 @@ test_pipelines() {
   BASE_URL="https://raw.githubusercontent.com/tektoncd/pipeline/v0.32.0"
   manifest="pipelineruns/using_context_variables.yaml"
   # change ubuntu image to ubi to avoid dockerhub registry pull limit
-  curl --fail --silent "$BASE_URL/examples/v1beta1/$manifest" | sed 's|ubuntu|registry.access.redhat.com/ubi8/ubi-minimal:latest|' | sed '/serviceAccountName/d' | KUBECONFIG="$KUBECONFIG_KCP" kubectl create -f -
+  PIPELINE_RUN=$(curl --fail --silent "$BASE_URL/examples/v1beta1/$manifest" | sed 's|ubuntu|registry.access.redhat.com/ubi8/ubi-minimal:latest|' | sed '/serviceAccountName/d' | KUBECONFIG="$KUBECONFIG_KCP" kubectl create -f -)
+  echo "$PIPELINE_RUN"
   
   KUBECONFIG="$KUBECONFIG_KCP" kubectl wait --for=condition=Succeeded  PipelineRun --all --timeout=60s >/dev/null
   echo "Print pipelines custom resources inside kcp"
@@ -156,6 +157,9 @@ test_pipelines() {
   
   KCP_NS_NAME="$(get_namespace)"
   kubectl get pods -n "$KCP_NS_NAME"
+
+  test_results
+
   echo
 }
 
@@ -178,6 +182,51 @@ test_triggers() {
   kill $SVC_FORWARD_PID
   sleep 20
   KUBECONFIG="$KUBECONFIG_KCP" kubectl get pipelineruns
+  echo
+}
+
+test_results() {
+  KCP_NS_NAME="$(get_namespace)"
+  if [[ $PIPELINE_RUN == *"created"* ]]; then
+    PIPELINE_RUN=$(echo "$PIPELINE_RUN" | grep -o -P '(?<=/).*(?= created)')
+  fi
+  echo "[verify_results]"
+  echo "Verify tekton-results has stored the results in the database"
+
+  # Prepare a custom Service Account that will be used for debugging purposes
+  if ! KUBECONFIG="$KUBECONFIG" kubectl get serviceaccount tekton-results-debug -n openshift-pipelines >/dev/null 2>&1; then
+    KUBECONFIG="$KUBECONFIG" kubectl create serviceaccount tekton-results-debug -n openshift-pipelines
+  fi
+  # Grant required privileges to the Service Account
+  if ! KUBECONFIG="$KUBECONFIG" kubectl get clusterrolebinding tekton-results-debug -n openshift-pipelines >/dev/null 2>&1; then
+    KUBECONFIG="$KUBECONFIG" kubectl create clusterrolebinding tekton-results-debug --clusterrole=tekton-results-readonly --serviceaccount=openshift-pipelines:tekton-results-debug
+  fi
+
+  # Proxies the remote Service to localhost.
+  KUBECONFIG="$KUBECONFIG" kubectl port-forward -n openshift-pipelines service/tekton-results-api-service 50051 >/dev/null & 
+  PORTFORWARD_PID=$!
+  echo $PORTFORWARD_PID
+  # download the API Server certificate locally and configure gRPC.
+  KUBECONFIG="$KUBECONFIG" kubectl get secrets tekton-results-tls -n openshift-pipelines --template='{{index .data "tls.crt"}}' | base64 -d > /tmp/results.crt
+  export GRPC_DEFAULT_SSL_ROOTS_FILE_PATH=/tmp/results.crt
+  
+  RESULT_UID=$(kubectl get pipelinerun "$PIPELINE_RUN" -n "$KCP_NS_NAME" -o yaml | yq .metadata.uid)
+  
+  # This is required to pass shellcheck due to the single quotes in the GetResult name parameter.
+  QUERY=("name: \"$KCP_NS_NAME/results/$RESULT_UID\"")
+  RECORD_CMD=("grpc_cli call --channel_creds_type=ssl --ssl_target=tekton-results-api-service.openshift-pipelines.svc.cluster.local --call_creds=access_token=$(kubectl get secrets -n openshift-pipelines -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='tekton-results-debug')].data.token}"| cut -d ' ' -f 2 | base64 --decode) localhost:50051 tekton.results.v1alpha2.Results.GetResult '${QUERY[@]}'")
+  RECORD_RESULT=$(eval "${RECORD_CMD[@]}")
+
+  # kill backgrounded port forwarding process as it is no longer required. 
+  kill "$PORTFORWARD_PID"
+
+  if [[ $RECORD_RESULT == *$RESULT_UID* ]]; then
+    echo "OK"
+  else
+    echo "Failed"
+    echo "[ERROR] Unable to retrieve record $RESULT_UID from pipeline run $PIPELINE_RUN" >&2
+    exit 1
+  fi
   echo
 }
 

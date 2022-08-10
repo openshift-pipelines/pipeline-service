@@ -30,3 +30,8 @@ apps:
 # versions
 version:
   kcp: v0.9.0
+
+# Tekton results database credentials
+tekton_results_db:
+  user:
+  password:

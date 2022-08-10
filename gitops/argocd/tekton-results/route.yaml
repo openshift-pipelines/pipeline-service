@@ -1,0 +1,22 @@
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: tekton-results
+  namespace: openshift-pipelines
+  labels:
+    app.kubernetes.io/part-of: tekton-results
+    app.kubernetes.io/version: v0.4.0
+  annotations:
+    openshift.io/host.generated: 'true'
+spec:
+  to:
+    kind: Service
+    name: tekton-results-api-service
+    weight: 100
+  port:
+    targetPort: grpc
+  tls:
+    termination: reencrypt
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None

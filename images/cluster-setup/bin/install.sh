@@ -134,6 +134,7 @@ install_shared_manifests() {
   if [ "$(kubectl get secret -n tekton-chains signing-secrets --ignore-not-found -o json | jq -r ".immutable")" != "true" ]; then
     kubectl apply -f "$WORKSPACE_DIR/credentials/manifests/compute/tekton-chains/signing-secrets.yaml"
   fi
+  kubectl apply -f "$WORKSPACE_DIR/credentials/manifests/compute/tekton-results/tekton-results-secret.yaml"
 }
 
 install_applications() {

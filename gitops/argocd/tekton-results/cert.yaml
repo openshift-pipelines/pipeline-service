@@ -1,0 +1,59 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: tekton-results-bootstrap
+  namespace: openshift-pipelines
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: tekton-results-tls
+  namespace: openshift-pipelines
+spec:
+  isCA: true
+  commonName: tekton-results-api-service.openshift-pipelines.svc.cluster.local
+  dnsNames:
+    - tekton-results-api-service.openshift-pipelines.svc.cluster.local
+  secretName: tekton-results-tls
+  privateKey:
+    algorithm: RSA
+    size: 2048
+  issuerRef:
+    name: tekton-results-bootstrap
+    kind: Issuer
+    group: cert-manager.io
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: tekton-results-server-issuer
+  namespace: openshift-pipelines
+spec:
+  ca:
+    secretName: tekton-results-tls
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: tekton-results
+  namespace: openshift-pipelines
+spec:
+  secretName: tekton-results-cert
+  duration: 2160h0m0s # 90d
+  renewBefore: 360h0m0s # 15d
+  subject:
+    organizations:
+      - redhat
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  usages:
+    - server auth
+  dnsNames:
+    - tekton-results-api-service.openshift-pipelines.svc.cluster.local
+  issuerRef:
+    name: tekton-results-server-issuer

@@ -34,6 +34,14 @@ Optional arguments:
         Directory in which to create the gitops file structure.
         If the directory already exists, all content will be removed.
         By default a temporary directory will be created in $TMPDIR.
+    --tekton-results-database-user TEKTON_RESULTS_DATABASE_USER
+        Username for tekton results database.
+        Can be read from \$TEKTON_RESULTS_DATABASE_USER
+        Default: %s
+    --tekton-results-database-password TEKTON_RESULTS_DATABASE_PASSWORD
+        Password for tekton results database.
+        Can be read from \$TEKTON_RESULTS_DATABASE_PASSWORD
+        Default: %s
     -d, --debug
         Activate tracing/debug mode.
     -h, --help
@@ -52,6 +60,14 @@ parse_args() {
       WORK_DIR="$1"
       mkdir -p "$WORK_DIR"
       WORK_DIR="$(cd "$1" >/dev/null; pwd)"
+      ;;
+    --tekton-results-database-user)
+      shift
+      TEKTON_RESULTS_DATABASE_USER="$1"
+      ;;
+    --tekton-results-database-password)
+      shift
+      TEKTON_RESULTS_DATABASE_PASSWORD="$1"
       ;;
     -d | --debug)
       set -x
@@ -339,6 +355,13 @@ patches:
 }
 
 install_pipeline_service() {
+
+  TEKTON_RESULTS_DATABASE_USER="$(yq '.tekton_results_db.user' "$CONFIG")"
+  TEKTON_RESULTS_DATABASE_PASSWORD="$(yq '.tekton_results_db.password' "$CONFIG")"
+
+  TEKTON_RESULTS_DATABASE_USER=${TEKTON_RESULTS_DATABASE_USER:="tekton"}
+  TEKTON_RESULTS_DATABASE_PASSWORD=${TEKTON_RESULTS_DATABASE_PASSWORD:=$(openssl rand -base64 20)}
+
   echo "- Setup compute access:"
   "$PROJECT_DIR/images/access-setup/content/bin/setup_compute.sh" \
     ${DEBUG:+"$DEBUG"} \
@@ -346,7 +369,9 @@ install_pipeline_service() {
     --work-dir "$WORK_DIR" \
     --kustomization "$GIT_URL/gitops/compute/pac-manager?ref=$GIT_REF" \
     --git-remote-url "$GIT_URL" \
-    --git-remote-ref "$GIT_REF" 2>&1 |
+    --git-remote-ref "$GIT_REF" \
+    --tekton-results-database-user "$TEKTON_RESULTS_DATABASE_USER" \
+    --tekton-results-database-password "$TEKTON_RESULTS_DATABASE_PASSWORD" 2>&1 |
     indent 2
 
   echo "- Deploy compute:"
@@ -360,6 +385,10 @@ install_pipeline_service() {
   GITOPS_REPO="https://example.git.com/my/repo" GIT_TOKEN="placeholder_token" \
     WEBHOOK_SECRET="placeholder_webhook" \
     "$GITOPS_DIR/pac/setup.sh" | indent 4
+
+  echo -n "- Install tekton-results DB: "
+  kubectl apply -k "$CKCP_DIR/manifests/tekton-results-db/openshift" 2>&1 |
+  indent 4
 
 }
 
