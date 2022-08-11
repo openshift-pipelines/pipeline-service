@@ -31,6 +31,12 @@ usage() {
 
 Generate access credentials for a new compute cluster so it can be managed by pipelines as code
 
+Mandatory arguments:
+    -k, --kubeconfig KUBECONFIG
+        kubeconfig to the kcp instance to configure.
+        The current context will be used.
+        Default value: \$KUBECONFIG
+
 Optional arguments:
     -k, --kubeconfig KUBECONFIG
         kubeconfig to the cluster to configure.

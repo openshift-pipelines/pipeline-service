@@ -31,11 +31,13 @@ usage() {
 
 Generate access credentials for a new KCP instance so it can be managed by pipelines as code
 
-Optional arguments:
+Mandatory arguments:
     -k, --kubeconfig KUBECONFIG
         kubeconfig to the kcp instance to configure.
         The current context will be used.
         Default value: \$KUBECONFIG
+
+Optional arguments:
     --kcp-org KCP_ORG
         Path to the organization workspace.
         Can be read from \$KCP_ORG.
