@@ -62,8 +62,8 @@ In order to generate the kubeconfig for the cluster and kcp instance with the ap
 The [README.md](../images/access-setup/README.md) describes the steps but essentially, you need the below two commands to generate kubeconfig for your cluster and kcp instance respectively. Please refer to the Readme for more details.
 
 ```
-- ./setup_compute.sh --kubeconfig /home/.kube/mycluster.kubeconfig --work_dir /repo/sre
-- ./setup_kcp.sh --kubeconfig /kcp/kcpinstance.kubeconfig --kcp_workspace plnsvc-ws --work_dir /repo/sre
+- ./setup_compute.sh --kubeconfig /home/.kube/mycluster.kubeconfig --work-dir /repo/sre
+- ./setup_kcp.sh --kubeconfig /kcp/kcpinstance.kubeconfig --kcp_workspace plnsvc-ws --work-dir /repo/sre
 ```
 
 ### Run manual scripts
@@ -77,7 +77,7 @@ _Note: Please run these scripts only if you intend not to use PaC to automate th
     $ WORKSPACE_DIR=/home/workspace/pipeline-service/gitops/sre ../images/cluster-setup/install.sh
     ```
 
-    b. To access and setup kcp
+    b. To register the compute clusters into kcp
 
     ```
     $ KCP_ORG="root:pipeline-service" KCP_WORKSPACE="compute" WORKSPACE_DIR="/home/workspace/pipeline-service/gitops/sre" ../images/kcp-registrar/register.sh
