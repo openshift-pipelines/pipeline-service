@@ -37,8 +37,21 @@ get_context() {
     printf "[ERROR] Install jq\n" >&2
     exit 1
   fi
-  token_secret="$(KUBECONFIG="$target" kubectl get sa "$sa" -n "$namespace" -o json |
-    jq -r '.secrets[].name | select(. | test(".*token.*"))')"
+
+  for i in {1..5}
+  do
+    token_secret="$(KUBECONFIG="$target" kubectl get sa "$sa" -n "$namespace" -o json |
+      jq -r '.secrets[]?.name | select(. | test(".*token.*"))')"
+    if [ -n "$token_secret" ]; then
+      break
+    fi
+    sleep 5
+  done
+  if [ -z "$token_secret" ]; then
+      printf "Failed to extract secret token\n"
+      exit 1
+  fi
+
   current_cluster="$(KUBECONFIG="$target" kubectl config view \
     -o jsonpath="{.contexts[?(@.name==\"$current_context\")].context.cluster}")"
 
