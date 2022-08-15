@@ -52,7 +52,7 @@ kcp-start() {
   printf "Starting KCP server ...\n"
   (cd "${TMP_DIR}" && exec "${KCP_DIR}/bin/kcp" start "${PARAMS[@]}") &> "${TMP_DIR}/kcp.log" &
   KCP_PID=$!
-  KCP_PIDS+=(${KCP_PID})
+  KCP_PIDS+=("${KCP_PID}")
   wait_command "ls ${KUBECONFIG}" 30
   printf "KCP server started: %s\n" $KCP_PID
   touch "${TMP_DIR}/kcp-started"
@@ -67,7 +67,7 @@ ingress-ctrler-start() {
   "${KCP_DIR}/bin/ingress-controller" --kubeconfig="${KUBECONFIG}" --context=system:admin --envoy-listener-port=8181 --envoy-xds-port=18000 &> "${TMP_DIR}/ingress-controller.log" &
   INGRESS_CONTROLLER_PID=$!
   printf "Ingress Controller started: %s\n" "${INGRESS_CONTROLLER_PID}"
-  KCP_PIDS+=(${INGRESS_CONTROLLER_PID})
+  KCP_PIDS+=("${INGRESS_CONTROLLER_PID}")
 }
 
 envoy-start() {
@@ -83,14 +83,14 @@ envoy-start() {
   ${CONTAINER_ENGINE} start "${ENVOY_CID}"
   ${CONTAINER_ENGINE} logs -f "${ENVOY_CID}" &> "${TMP_DIR}/envoy.log" &
   echo "Envoy started in container: ${ENVOY_CID}"
-  KCP_CIDS+=(${ENVOY_CID})
+  KCP_CIDS+=("${ENVOY_CID}")
 }
 
 create-org() {
   printf "Creating organization\n"
   kubectl --kubeconfig="${KUBECONFIG}" config use-context root
-  KUBECONFIG="${KUBECONFIG}" ${KCP_DIR}/bin/kubectl-kcp workspace use root
-  KUBECONFIG="${KUBECONFIG}" ${KCP_DIR}/bin/kubectl-kcp workspace create --type=organization pipeline-service --enter
+  KUBECONFIG="${KUBECONFIG}" "${KCP_DIR}/bin/kubectl-kcp" workspace use root
+  KUBECONFIG="${KUBECONFIG}" "${KCP_DIR}/bin/kubectl-kcp" workspace create --type=organization pipeline-service --enter
 }
 
 # Execution
@@ -103,6 +103,7 @@ printf "Temporary directory created: %s\n" "${TMP_DIR}"
 
 KUBECONFIG="${TMP_DIR}/.kcp/admin.kubeconfig"
 
+# shellcheck source=local/utils.sh
 source "${PARENT_PATH}/../utils.sh"
 
 detect_container_engine

@@ -130,11 +130,8 @@ prechecks() {
 # populate kcp_kcfg with the location of the kubeconfig for connecting to kcp
 kcp_kubeconfig() {
     kubeconfig_dir="$WORKSPACE_DIR/credentials/kubeconfig"
-    if files=($(ls "$kubeconfig_dir/kcp/"*.kubeconfig 2>/dev/null)); then
-        if [ ${#files[@]} -ne 1 ]; then
-            exit_error "A single kubeconfig file is expected at $kubeconfig_dir/kcp\n\n"
-        fi
-    else
+    mapfile -t files < <(ls "$kubeconfig_dir/kcp/"*.kubeconfig 2>/dev/null)
+    if [ ${#files[@]} -ne 1 ]; then
         exit_error "A single kubeconfig file is expected at $kubeconfig_dir/kcp\n\n"
     fi
     tmp_dir=$(mktemp -d)
@@ -151,17 +148,17 @@ get_clusters() {
     clusters=()
     contexts=()
     kubeconfigs=()
-    files=($(ls "$kubeconfig_dir/compute"))
+    mapfile -t files < <(ls "$kubeconfig_dir/compute")
     for kubeconfig in "${files[@]}"; do
-        subs=($(KUBECONFIG="$kubeconfig_dir/compute/${kubeconfig}" kubectl config view -o jsonpath='{range .contexts[*]}{.name}{","}{.context.cluster}{"\n"}{end}'))
+        mapfile -t subs < <(KUBECONFIG="$kubeconfig_dir/compute/${kubeconfig}" kubectl config view -o jsonpath='{range .contexts[*]}{.name}{","}{.context.cluster}{"\n"}{end}')
         for sub in "${subs[@]}"; do
             context=$(echo -n "${sub}" | cut -d ',' -f 1)
             cluster=$(echo -n "${sub}" | cut -d ',' -f 2 | cut -d ':' -f 1)
             if ! (echo "${clusters[@]}" | grep -q "${cluster}") \
                 && (find "$WORKSPACE_DIR/environment/compute" -type d -name "${cluster}" | grep -q "${cluster}" >/dev/null); then
-                clusters+=(${cluster})
-                contexts+=(${context})
-                kubeconfigs+=(${kubeconfig})
+                clusters+=("${cluster}")
+                contexts+=("${context}")
+                kubeconfigs+=("${kubeconfig}")
             fi
         done
     done
@@ -193,7 +190,7 @@ get_sync_target_name() {
     fi
 
     local len=${#cluster_name}
-    if [ $len -le 43 ]; then
+    if [ "$len" -le 43 ]; then
         echo "$cluster_name"
     else
         echo -n "$cluster_name" | md5sum | cut -d ' ' -f1
@@ -212,7 +209,7 @@ register() {
         else
             printf "Registering cluster\n"
             syncer_manifest="/tmp/syncer-${clusters[$i]}.yaml"
-            sync_target_name="$(get_sync_target_name ${clusters[$i]})"
+            sync_target_name="$(get_sync_target_name "${clusters[$i]}")"
             KUBECONFIG="${kcp_kcfg}" kubectl kcp workload sync "${sync_target_name}" \
                 --syncer-image "ghcr.io/kcp-dev/kcp/syncer:$KCP_SYNC_TAG" \
                 --resources deployments.apps,services,ingresses.networking.k8s.io,pipelines.tekton.dev,pipelineruns.tekton.dev,tasks.tekton.dev,runs.tekton.dev,networkpolicies.networking.k8s.io \

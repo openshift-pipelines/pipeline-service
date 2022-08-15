@@ -138,7 +138,7 @@ check_deployments() {
     fi
 
     #a loop to check if the deployment is Available and Ready
-    if kubectl wait --for=condition=Available=true deployment/$deploy -n $ns --timeout=100s >/dev/null 2>/dev/null; then
+    if kubectl wait --for=condition=Available=true "deployment/$deploy" -n "$ns" --timeout=100s >/dev/null 2>/dev/null; then
       printf ", Ready\n"
     else
       exit_error "$deploy not ready (timeout)"

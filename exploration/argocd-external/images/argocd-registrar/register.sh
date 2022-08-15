@@ -78,16 +78,16 @@ get_clusters() {
     clusters=()
     contexts=()
     kubeconfigs=()
-    files=($(ls "$DATA_DIR/gitops/sre/credentials/kubeconfig/compute"))
+    mapfile -t files < <(ls "$DATA_DIR/gitops/sre/credentials/kubeconfig/compute")
     for kubeconfig in "${files[@]}"; do
-        subs=($(KUBECONFIG=${DATA_DIR}/gitops/sre/credentials/kubeconfig/compute/${kubeconfig} kubectl config view -o jsonpath='{range .contexts[*]}{.name}{","}{.context.cluster}{"\n"}{end}'))
+        mapfile -t subs < <(KUBECONFIG=${DATA_DIR}/gitops/sre/credentials/kubeconfig/compute/${kubeconfig} kubectl config view -o jsonpath='{range .contexts[*]}{.name}{","}{.context.cluster}{"\n"}{end}')
         for sub in "${subs[@]}"; do
             context=$(echo -n "${sub}" | cut -d ',' -f 1)
             cluster=$(echo -n "${sub}" | cut -d ',' -f 2 | cut -d ':' -f 1)
 	    if ! (echo "${clusters[@]}" | grep "${cluster}"); then
-                clusters+=( ${cluster} )
-                contexts+=( ${context} )
-                kubeconfigs+=( ${kubeconfig} )
+                clusters+=( "${cluster}" )
+                contexts+=( "${context}" )
+                kubeconfigs+=( "${kubeconfig}" )
             fi
         done
     done
