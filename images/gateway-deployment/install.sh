@@ -54,18 +54,13 @@ prechecks () {
 
 # populate kcp_kcfg with the location of the kubeconfig for connecting to kcp
 kcp_kubeconfig() {
-    if files=($(ls "$DATA_DIR/credentials/kubeconfig/kcp/*.kubeconfig" 2>/dev/null)); then
-        if [ ${#files[@]} -ne 1 ]; then
-            printf "A single kubeconfig file is expected at %s\n" "$DATA_DIR/credentials/kubeconfig/kcp"
-            usage
-            exit 1
-        fi
-        kcp_kcfg="${files[0]}"
-    else
+    mapfile -t files < <(ls "$DATA_DIR/credentials/kubeconfig/kcp/*.kubeconfig" 2>/dev/null)
+    if [ ${#files[@]} -ne 1 ]; then
         printf "A single kubeconfig file is expected at %s\n" "$DATA_DIR/credentials/kubeconfig/kcp"
         usage
         exit 1
     fi
+    kcp_kcfg="${files[0]}"
 }
 
 switch_org() {
