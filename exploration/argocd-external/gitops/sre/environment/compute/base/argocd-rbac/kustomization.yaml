@@ -1,5 +1,6 @@
+---
 resources:
-- argo-syncer-role.yaml
-- argo-syncer-rolebinding.yaml
-- argo-tekton-role.yaml
-- argo-tekton-rolebinding.yaml
+  - argo-syncer-role.yaml
+  - argo-syncer-rolebinding.yaml
+  - argo-tekton-role.yaml
+  - argo-tekton-rolebinding.yaml

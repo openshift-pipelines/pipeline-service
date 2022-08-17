@@ -1,4 +1,5 @@
+---
 resources:
-- ci-runner-ns.yaml
-- repository.yaml
-- webhook-cfg-secret.yaml
+  - ci-runner-ns.yaml
+  - repository.yaml
+  - webhook-cfg-secret.yaml

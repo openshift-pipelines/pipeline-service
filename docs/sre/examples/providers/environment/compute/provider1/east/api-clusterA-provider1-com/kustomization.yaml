@@ -1,4 +1,4 @@
+---
 resources:
   - ../../../../flavors/compute/base
-
 # If necessary, additional customization for the cluster would go here

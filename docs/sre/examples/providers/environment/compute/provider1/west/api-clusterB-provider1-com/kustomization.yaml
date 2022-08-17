@@ -1,12 +1,12 @@
+---
 resources:
   - ../../../../flavors/compute/base
-
 patches:
-- patch: |-
-    - op: replace
-      path: /spec/source/targetRevision
-      value: release-1.1.rc1
-  target:
-    kind: Application
-    name: tektoncd
-    namespace: openshift-gitops
+  - patch: |-
+      - op: replace
+        path: /spec/source/targetRevision
+        value: release-1.1.rc1
+    target:
+      kind: Application
+      name: tektoncd
+      namespace: openshift-gitops
