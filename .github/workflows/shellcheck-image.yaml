@@ -1,5 +1,5 @@
+---
 name: Build and Publish shellcheck Image
-
 on:
   push:
     branches:
@@ -7,24 +7,19 @@ on:
     paths:
       - "test/images/shellcheck/**"
   workflow_dispatch:
-  
 jobs:
   build-push:
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     outputs:
       sha_short: ${{ steps.vars.outputs.sha_short }}
-
     steps:
       - uses: actions/checkout@v3
-
       - name: Get the short sha
         id: vars
         run: echo "::set-output name=sha_short::$(echo ${{ github.sha }} | cut -b -7)"
-
       # Build and push a shellcheck image, tagged with latest and the commit SHA.
       - name: Build shellcheck Image
         id: build-image
@@ -35,7 +30,6 @@ jobs:
           tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
           containerfiles: |
             ./test/images/shellcheck/Dockerfile
-
       - name: Push to quay.io
         id: push-to-quay
         uses: redhat-actions/push-to-registry@v2
@@ -45,6 +39,5 @@ jobs:
           registry: quay.io/redhat-pipeline-service
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
-
       - name: Print image url
         run: echo "Image pushed to ${{ steps.push-to-quay.outputs.registry-paths }}"

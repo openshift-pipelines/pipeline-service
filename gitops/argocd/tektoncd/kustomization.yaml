@@ -1,9 +1,10 @@
+---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - allow-argocd-to-manage.yaml
   - openshift-operator.yaml
- # This is breaking the installation.
- # Commented out for stopping the bleeding
- # till it gets fixed
- #  - tekton-config.yaml
+  # This is breaking the installation.
+  # Commented out for stopping the bleeding
+  # till it gets fixed
+  #  - tekton-config.yaml
