@@ -36,7 +36,7 @@ jobs:
           containerfiles: |
             ./images/kcp-registrar/Dockerfile
           build-args: |
-            KCP_BRANCH=release-0.6
+            KCP_BRANCH=release-0.7
 
       - name: Push to quay.io
         id: push-to-quay
