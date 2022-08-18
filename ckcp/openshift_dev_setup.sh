@@ -8,19 +8,14 @@ SCRIPT_DIR="$(
   pwd
 )"
 
+# shellcheck source=ckcp/hack/util/update-git-reference.sh
+source "$SCRIPT_DIR/hack/util/update-git-reference.sh"
+
 GITOPS_DIR="$(dirname "$SCRIPT_DIR")/gitops"
 CKCP_DIR="$(dirname "$SCRIPT_DIR")/ckcp"
+CONFIG="$CKCP_DIR/config.yaml"
+
 KUBECONFIG=${KUBECONFIG:-$HOME/.kube/config}
-CR_TO_SYNC=(
-            deployments.apps
-            services
-            ingresses.networking.k8s.io
-            pipelines.tekton.dev
-            pipelineruns.tekton.dev
-            runs.tekton.dev
-            tasks.tekton.dev
-            networkpolicies.networking.k8s.io
-          )
 
 usage() {
   TMPDIR=$(dirname "$(mktemp -u)")
@@ -76,8 +71,37 @@ parse_args() {
 }
 
 init() {
-  APP_LIST="openshift-gitops compute ckcp register-compute"
-  cluster_type="openshift"
+  APP_LIST=(
+            "openshift-gitops"
+            "ckcp"
+           )
+  # get the list of APPS to be installed
+  read -ra APPS <<< "$(yq eval '.APPS | join(" ")' "$CONFIG")"
+  for app in  "${APPS[@]}"
+  do
+    APP_LIST+=("$app")
+  done
+
+  # get cluster type
+  cluster_type=$(yq '.CLUSTER_TYPE // "openshift"' "$CONFIG")
+
+  GIT_URL=$(yq '.GIT_URL // "https://github.com/openshift-pipelines/pipeline-service.git"' "$CONFIG")
+  GIT_REF=$(yq '.GIT_REF // "main"' "$CONFIG")
+
+  # get list of CRs to sync
+  read -ra CR_TO_SYNC <<< "$(yq eval '.CR_TO_SYNC | join(" ")' "$CONFIG")"
+  if (( "${#CR_TO_SYNC[@]}" <= 0 )); then
+    CR_TO_SYNC=(
+                "deployments.apps"
+                "services"
+                "ingresses.networking.k8s.io"
+                "pipelines.tekton.dev"
+                "pipelineruns.tekton.dev"
+                "runs.tekton.dev"
+                "tasks.tekton.dev"
+                "networkpolicies.networking.k8s.io"
+              )
+  fi
 
   # Create SRE repository folder
   WORK_DIR="${WORK_DIR:-}"
@@ -89,6 +113,8 @@ init() {
     rm -rf "$WORK_DIR"
   fi
   cp -rf "$GITOPS_DIR/sre" "$WORK_DIR"
+  update_git_reference "$GIT_URL" "$GIT_REF" "$WORK_DIR/environment/kcp/kustomization.yaml"
+
   for dir in kcp compute; do
     mkdir -p "$WORK_DIR/credentials/kubeconfig/$dir"
   done
@@ -269,15 +295,19 @@ patches:
     --kubeconfig "$KUBECONFIG_KCP" \
     --kcp-org "$kcp_org" \
     --kcp-workspace "$kcp_workspace" \
-    --work-dir "$WORK_DIR"
+    --work-dir "$WORK_DIR" \
+    --kustomization "$GIT_URL/gitops/kcp/pac-manager?ref=$GIT_REF"
   KUBECONFIG_KCP="$WORK_DIR/credentials/kubeconfig/kcp/ckcp-ckcp.${ws_name}.${kcp_workspace}.kubeconfig"
 }
 
-install_compute() {
+install_pipeline_service() {
   echo "  - Setup compute access:"
   "$SCRIPT_DIR/../images/access-setup/content/bin/setup_compute.sh" \
     --kubeconfig "$KUBECONFIG" \
-    --work-dir "$WORK_DIR"
+    --work-dir "$WORK_DIR" \
+    --kustomization "$GIT_URL/gitops/compute/pac-manager?ref=$GIT_REF" \
+    --git-remote-url "$GIT_URL" \
+    --git-remote-ref "$GIT_REF"
 
   echo "  - Deploy compute:"
   "$SCRIPT_DIR/../images/cluster-setup/install.sh" --workspace-dir "$WORK_DIR"
@@ -291,7 +321,7 @@ install_compute() {
 
 }
 
-install_register_compute() {
+register_compute() {
   echo "  - Register compute to KCP"
   "$(dirname "$SCRIPT_DIR")/images/kcp-registrar/register.sh" \
     --kcp-org "root:default" \
@@ -335,11 +365,12 @@ main() {
   init
   precheck
   check_cluster_role
-  for APP in $APP_LIST; do
+  for APP in "${APP_LIST[@]}"; do
     echo "[$APP]"
     install_"$(echo "$APP" | tr '-' '_')"
     echo
   done
+  register_compute
 }
 
 if [ "${BASH_SOURCE[0]}" == "$0" ]; then
