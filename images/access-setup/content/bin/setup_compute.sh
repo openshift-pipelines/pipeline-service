@@ -39,13 +39,17 @@ Mandatory arguments:
         Default value: \$KUBECONFIG
 
 Optional arguments:
-    -k, --kubeconfig KUBECONFIG
-        kubeconfig to the cluster to configure.
-        The current context will be used.
-        Default value: \$KUBECONFIG
     --kustomization KUSTOMIZATION
         path to the directory holding the kustomization.yaml to apply.
         Can be read from \$KUSTOMIZATION.
+        Default: %s
+    --git-remote-url GIT_URL
+        Git repo to be referenced to apply various customizations.
+        Can be read from \$GIT_URL.
+        Default: %s
+    --git-remote-ref GIT_REF
+        Git repo's ref to be referenced to apply various customizations.
+        Can be read from \$GIT_REF.
         Default: %s
     -w, --work-dir WORK_DIR
         Directory into which the credentials folder will be created.
@@ -60,6 +64,8 @@ Example:
 
 parse_args() {
   KUSTOMIZATION=${KUSTOMIZATION:-github.com/openshift-pipelines/pipeline-service/gitops/compute/pac-manager?ref=main}
+  GIT_URL=${GIT_URL:-"https://github.com/openshift-pipelines/pipeline-service.git"}
+  GIT_REF=${GIT_REF:="main"}
   while [[ $# -gt 0 ]]; do
     case "$1" in
     -k | --kubeconfig)
@@ -69,6 +75,14 @@ parse_args() {
     --kustomization)
       shift
       KUSTOMIZATION="$1"
+      ;;
+    --git-remote-url)
+      shift
+      GIT_URL="$1"
+      ;;
+    --git-remote-ref)
+      shift
+      GIT_REF="$1"
       ;;
     -w | --work-dir)
       shift
@@ -137,7 +151,7 @@ generate_compute_credentials() {
 
   mkdir -p "$WORK_DIR/environment/compute/$compute_name"
   echo "resources:
-  - github.com/openshift-pipelines/pipeline-service/gitops/argocd?ref=main
+  - $GIT_URL/gitops/argocd?ref=$GIT_REF
 " >"$WORK_DIR/environment/compute/$compute_name/kustomization.yaml"
 }
 

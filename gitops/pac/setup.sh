@@ -21,7 +21,7 @@ set -o pipefail
 usage() {
 
     printf 'Usage: KUBECONFIG="path-to-kubeconfig" GITOPS_REPO="https://gitops.com/group/project" GIT_TOKEN="XXXXXXXXX" WEBHOOK_SECRET="YYYYYYYYYY" ./setup.sh\n\n'
-    
+
     # Parameters
     printf "The following parameters need to be passed to the script:\n"
     printf "KUBECONFIG: the path to the kubeconfig file used to connect to the cluster where Pipelines as Code will be installed\n"
