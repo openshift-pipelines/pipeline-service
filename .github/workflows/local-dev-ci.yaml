@@ -17,17 +17,17 @@ jobs:
     steps:
       - uses: actions/setup-go@v3
         with:
-          go-version: v1.17
+          go-version: v1.18
       # Install kind with a local registry
       - uses: container-tools/kind-action@v1
         name: Kubernetes kind Cluster w/local registry
         with:
-          kubectl_version: v1.23.3
+          kubectl_version: v1.24.3
       - name: Checkout kcp repository
         uses: actions/checkout@v3
         with:
           repository: kcp-dev/kcp
-          ref: release-0.6
+          ref: release-0.7
       - name: Build kcp binaries
         run: |-
           make install
