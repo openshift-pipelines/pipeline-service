@@ -38,7 +38,7 @@ get_context() {
     exit 1
   fi
 
-  for i in {1..5}
+  for _ in {1..5}
   do
     token_secret="$(KUBECONFIG="$target" kubectl get sa "$sa" -n "$namespace" -o json |
       jq -r '.secrets[]?.name | select(. | test(".*token.*"))')"
