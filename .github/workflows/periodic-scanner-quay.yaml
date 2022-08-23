@@ -1,0 +1,36 @@
+---
+name: Fetch security scan results from quay
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Fetch results
+        id: fetch-results
+        run: |
+          ./test/images/clair-scan/scan.sh | tee /tmp/clair-scan.log
+          echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
+        env:
+          AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
+
+      - name: Check results
+        id: check-results
+        if: always()
+        run: |
+          res=(${{ steps.fetch-results.outputs.VULNERABILITIES_EXIST }})
+          if [[ "${res[*]}" =~ "1" ]];then
+            echo "Vulnerabilities found. Please check the fetch-results step for further details."
+            exit 1
+          else
+            echo "No Vulnerabilities found"
+          fi

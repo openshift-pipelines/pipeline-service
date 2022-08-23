@@ -1,0 +1,186 @@
+---
+name: Fetch security scan results from quay
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  scans:
+    runs-on: ubuntu-latest
+    outputs:
+      access-setup-output: ${{ steps.access-setup-scan.outputs.VULNERABILITIES_EXIST }}
+      cluster-setup-output: ${{ steps.cluster-setup-scan.outputs.VULNERABILITIES_EXIST }}
+      gateway-deployment-output: ${{ steps.gateway-deployment-scan.outputs.VULNERABILITIES_EXIST }}
+      kcp-registrar-output: ${{ steps.kcp-registrar-scan.outputs.VULNERABILITIES_EXIST }}
+      shellcheck-output: ${{ steps.shellcheck-scan.outputs.VULNERABILITIES_EXIST }}
+      vulnerability-scan-output: ${{ steps.vulnerability-scan.outputs.VULNERABILITIES_EXIST }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            access-setup:
+            - 'images/access-setup/**'
+            cluster-setup:
+              - 'images/cluster-setup/**'
+            gateway-deployment:
+              - 'images/gateway-deployment/**'
+            kcp-registrar:
+              - 'images/kcp-registrar/**'
+            shellcheck:
+              - 'test/images/shellcheck/**'
+            vulnerability:
+              - 'test/images/vulnerability-scan/**'
+
+      - name: access-setup scan
+        continue-on-error: true
+        id: access-setup-scan
+        if: steps.filter.outputs.access-setup == 'true'
+        run: |
+          ./test/images/clair-scan/scan-image.sh | tee /tmp/clair-scan.log
+          echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
+        env:
+          AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
+          IMAGE_NAME: access-setup
+
+      - name: cluster-setup scan
+        continue-on-error: true
+        id: cluster-setup-scan
+        if: steps.filter.outputs.cluster-setup == 'true'
+        run: |
+          ./test/images/clair-scan/scan-image.sh | tee /tmp/clair-scan.log
+          echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
+        env:
+          AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
+          IMAGE_NAME: cluster-setup
+
+      - name: gateway-deployment scan
+        continue-on-error: true
+        id: gateway-deployment-scan
+        if: steps.filter.outputs.gateway-deployment == 'true'
+        run: |
+          ./test/images/clair-scan/scan-image.sh | tee /tmp/clair-scan.log
+          echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
+        env:
+          AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
+          IMAGE_NAME: gateway-deployment
+
+      - name: kcp-registrar scan
+        continue-on-error: true
+        id: kcp-registrar-scan
+        if: steps.filter.outputs.kcp-registrar == 'true'
+        run: |
+          ./test/images/clair-scan/scan-image.sh | tee /tmp/clair-scan.log
+          echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
+        env:
+          AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
+          IMAGE_NAME: kcp-registrar
+
+      - name: shellcheck scan
+        continue-on-error: true
+        id: shellcheck-scan
+        if: steps.filter.outputs.shellcheck == 'true'
+        run: |
+          ./test/images/clair-scan/scan-image.sh | tee /tmp/clair-scan.log
+          echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
+        env:
+          AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
+          IMAGE_NAME: shellcheck
+
+      - name: vulnerability scan
+        continue-on-error: true
+        id: vulnerability-scan
+        if: steps.filter.outputs.shellcheck == 'true'
+        run: |
+          ./test/images/clair-scan/scan-image.sh | tee /tmp/clair-scan.log
+          echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
+        env:
+          AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
+          IMAGE_NAME: vulnerability-scan
+
+  check-results:
+    runs-on: ubuntu-latest
+    needs: scans
+    if: always()
+    steps:
+      - name: Check access setup results
+        id: check-access-setup-results
+        if: always()
+        run: |
+          res=${{ needs.scans.outputs.access-setup-output }}
+          res=${res:=0}
+          if [[ $res != 0 ]]; then
+            echo "Vulnerabilities found with access-setup image. Please check scans job for more details."
+            exit 1
+          else
+            echo "No vulnerabilities found"
+          fi
+
+      - name: Check cluster setup results
+        id: check-cluster-setup-results
+        if: always()
+        run: |
+          res=${{ needs.scans.outputs.cluster-setup-output }}
+          res=${res:=0}
+          if [[ $res != 0 ]]; then
+            echo "Vulnerabilities found with cluster-setup image. Please check scans job for more details."
+            exit 1
+          else
+            echo "No vulnerabilities found"
+          fi
+
+      - name: Check gateway deployment results
+        id: check-gateway-deployment-results
+        if: always()
+        run: |
+          res=${{ needs.scans.outputs.gateway-deployment-output }}
+          res=${res:=0}
+          if [[ $res != 0 ]]; then
+            echo "Vulnerabilities found with gateway-deployment image. Please check scans job for more details."
+            exit 1
+          else
+            echo "No vulnerabilities found"
+          fi
+
+      - name: Check kcp registrar results
+        id: check-kcp-registrar-results
+        if: always()
+        run: |
+          res=${{ needs.scans.outputs.kcp-registrar-output }}
+          res=${res:=0}
+          if [[ $res != 0 ]]; then
+            echo "Vulnerabilities found with kcp-registrar image. Please check scans job for more details."
+            exit 1
+          else
+            echo "No vulnerabilities found"
+          fi
+
+      - name: Check shellcheck results
+        id: check-shellcheck-results
+        if: always()
+        run: |
+          res=${{ needs.scans.outputs.shellcheck-output }}
+          res=${res:=0}
+          if [[ $res != 0 ]]; then
+            echo "Vulnerabilities found with shellcheck image. Please check scans job for more details."
+            exit 1
+          else
+            echo "No vulnerabilities found"
+          fi
+
+      - name: Check vulnerability-scan results
+        id: check-vulnerability-scan-results
+        if: always()
+        run: |
+          res=${{ needs.scans.outputs.vulnerability-scan-output }}
+          res=${res:=0}
+          if [[ $res != 0 ]]; then
+            echo "Vulnerabilities found with vulnerability-scan image. Please check scans job for more details."
+            exit 1
+          else
+            echo "No vulnerabilities found"
+          fi
