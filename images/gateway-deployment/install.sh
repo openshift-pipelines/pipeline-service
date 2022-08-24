@@ -79,7 +79,7 @@ switch_ws() {
 
     else
        printf "creating workspace %s\n" "${KCP_WORKSPACE}"
-       KUBECONFIG=${kcp_kcfg} kubectl kcp workspace create "${KCP_WORKSPACE}" --enter
+       KUBECONFIG=${kcp_kcfg} kubectl kcp workspace create "${KCP_WORKSPACE}" --type=universal --enter
     fi
 }
 
