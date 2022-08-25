@@ -73,6 +73,7 @@ parse_args() {
 init() {
   APP_LIST=(
             "openshift-gitops"
+            "cert-manager"
             "ckcp"
            )
   # get the list of APPS to be installed
@@ -191,22 +192,31 @@ install_openshift_gitops() {
   echo "OK"
 }
 
+install_cert_manager(){
+  APP="cert-manager-operator"
+  echo -n "  - OpenShift-Cert-Manager: "
+  kubectl apply -f "$GITOPS_DIR/argocd/argo-apps/$APP.yaml" >/dev/null 2>&1
+  check_cert_manager
+}
+
 check_cert_manager() {
   # perform a dry-run create of a cert-manager
   # Certificate resource in order to verify that CRDs are installed and all the
   # required webhooks are reachable by the K8S API server.
-  echo -n "  - openshift-cert-manager-operator: "
+  local i=0
   until kubectl create -f "$CKCP_DIR/openshift/base/certs.yaml" --dry-run=client >/dev/null 2>&1; do
     echo -n "."
     sleep 5
+    i=$((i+1))
+    if [ "$i" == 12 ]; then
+      echo "[ERROR] Failed to deploy OpenShift Cert-Manager operator on the host cluster."
+      exit 1
+    fi
   done
   echo "OK"
 }
 
 install_ckcp() {
-  # Install cert manager operator
-  check_cert_manager
-
   APP="ckcp"
 
   local ns="$APP"
