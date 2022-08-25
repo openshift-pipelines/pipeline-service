@@ -1,0 +1,14 @@
+---
+# Hadolint configuration file
+
+# configure ignore rules
+# see https://github.com/hadolint/hadolint#rules for a list of available rules.
+
+ignored: []
+failure-threshold: info
+format: tty
+no-color: false
+no-fail: false
+trustedRegistries:
+  - quay.io
+  - registry.access.redhat.com
