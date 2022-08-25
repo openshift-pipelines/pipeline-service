@@ -15,7 +15,7 @@ LABEL build-date= \
       vendor="Pipeline Service" \
       version="0.1"
 WORKDIR /
-RUN microdnf install findutils gzip tar
+RUN microdnf install -y findutils-4.6.0 gzip-1.9 tar-1.30 && microdnf clean all
 ARG KCP_BRANCH
 ENV KCP_SYNC_TAG=${KCP_BRANCH}
 ENV HOME /tmp/home
@@ -27,8 +27,9 @@ RUN JQ_VERSION=1.6 && \
 RUN KUBE_VERSION=v1.24.0 && \
     curl --fail -L -o /usr/local/bin/kubectl "https://dl.k8s.io/release/$KUBE_VERSION/bin/linux/amd64/kubectl" && \
     chmod 755 /usr/local/bin/kubectl
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN KCP_VERSION=v0.7.4 && \
-    curl -L -o /tmp/kubectl-kcp.tgz "https://github.com/kcp-dev/kcp/releases/download/$KCP_VERSION/kubectl-kcp-plugin_${KCP_VERSION:1}_linux_amd64.tar.gz" && \
+    curl -L -o /tmp/kubectl-kcp.tgz "https://github.com/kcp-dev/kcp/releases/download/$KCP_VERSION/kubectl-kcp-plugin_$(printf '%s' "$KCP_VERSION" | sed 's/v//')_linux_amd64.tar.gz" && \
     tar -C /usr/local -xzvf /tmp/kubectl-kcp.tgz bin/kubectl-kcp && \
     rm /tmp/kubectl-kcp.tgz
 COPY ./register.sh /usr/local/bin/register.sh

@@ -21,7 +21,7 @@ RUN mkdir $HOME && chmod 777 $HOME && chown 65532:65532 $HOME
 RUN KUBE_VERSION=v1.24.0 && \
     curl -L -o /usr/local/bin/kubectl "https://dl.k8s.io/release/$KUBE_VERSION/bin/linux/amd64/kubectl" && \
     chmod 755 /usr/local/bin/kubectl
-RUN microdnf install findutils git
+RUN microdnf install -y findutils-4.6.0 git-2.31.1 && microdnf clean all
 COPY ./install.sh /usr/local/bin/install.sh
 USER 65532:65532
 VOLUME /workspace
