@@ -1,0 +1,15 @@
+---
+check: []
+compact: false
+evaluate-variables: true
+framework:
+  - kubernetes
+  - dockerfile
+  - github_actions
+  - kustomize
+skip-download: false
+output: cli
+quiet: true
+skip-check: []
+skip-fixes: true
+soft-fail: true
