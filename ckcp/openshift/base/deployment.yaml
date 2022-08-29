@@ -18,6 +18,7 @@ spec:
       containers:
         - name: kcp
           image: kcp
+          imagePullPolicy: Always
           ports:
             - containerPort: 6443
           command:
@@ -66,6 +67,7 @@ spec:
           resources:
             limits:
               memory: 2Gi
+              cpu: 200m
             requests:
               cpu: 100m
               memory: 178Mi

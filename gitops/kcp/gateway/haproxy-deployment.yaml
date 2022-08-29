@@ -19,6 +19,9 @@ spec:
         - name: gateway
           image: docker.io/haproxytech/haproxy-debian@sha256:7086aaf61dfe7f07fa36eafd4bb567a60564f7dd6fcf7cdafdfbbab19c01f0ba
           resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
             requests:
               cpu: 100m
               memory: 256Mi
@@ -31,6 +34,30 @@ spec:
               mountPath: /usr/local/etc/haproxy/haproxy.cfg
               subPath: haproxy.cfg
               readOnly: true
+          livenessProbe:
+            failureThreshold: 3
+            successThreshold: 1
+            initialDelaySeconds: 0
+            timeoutSeconds: 1
+            tcpSocket:
+              port: 80
+            periodSeconds: 10
+          startupProbe:
+            failureThreshold: 20
+            successThreshold: 1
+            initialDelaySeconds: 0
+            timeoutSeconds: 1
+            tcpSocket:
+              port: 80
+            periodSeconds: 1
+          readinessProbe:
+            failureThreshold: 3
+            successThreshold: 1
+            initialDelaySeconds: 0
+            timeoutSeconds: 1
+            tcpSocket:
+              port: 80
+            periodSeconds: 10
       volumes:
         - name: config
           configMap:

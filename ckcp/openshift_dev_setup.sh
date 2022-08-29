@@ -265,7 +265,7 @@ patches:
         value: $ckcp_route " >>"$ckcp_temp_dir/kustomization.yaml"
 
   echo -n "  - kcp $kcp_version: "
-  kubectl apply -k "$ckcp_temp_dir" >/dev/null 2>&1
+  kubectl apply -k "$ckcp_temp_dir" >/dev/null
   # Check if ckcp pod status is Ready
   kubectl wait --for=condition=Ready -n $ns pod -l=app=kcp-in-a-pod --timeout=90s >/dev/null
   # Clean up kustomize temp dir

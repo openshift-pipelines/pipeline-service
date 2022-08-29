@@ -4,3 +4,5 @@ resources:
   - haproxy-deployment.yaml
   - haproxy-ingress.yaml
   - haproxy-service.yaml
+
+namespace: haproxy

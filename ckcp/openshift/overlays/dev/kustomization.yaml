@@ -7,4 +7,5 @@ images:
   - name: kcp
     newName: ghcr.io/kcp-dev/kcp
     newTag: release-0.7
+
 namespace: ckcp
