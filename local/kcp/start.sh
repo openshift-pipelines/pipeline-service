@@ -21,6 +21,7 @@ set -o nounset
 printf "The following optional parameters can be passed to the script:\n"
 printf "KCP_DIR: a directory with kcp source code, default to a git clone of kcp in the system temp directory\n"
 printf "KCP_BRANCH: the kcp branch to use. Mind that the script will do a git checkout, to a default release if the branch is not specified\n"
+printf "KCP_RUNTIME_DIR: the location of the kcp runtime files, default to a temporary directory\n"
 printf "PARAMS: the parameters to start kcp with\n\n"
 
 precheck() {
@@ -50,12 +51,12 @@ kcp-binaries() {
 
 kcp-start() {
   printf "Starting KCP server ...\n"
-  (cd "${TMP_DIR}" && exec "${KCP_DIR}/bin/kcp" start "${PARAMS[@]}") &> "${TMP_DIR}/kcp.log" &
+  (cd "${KCP_RUNTIME_DIR}" && exec "${KCP_DIR}/bin/kcp" start "${PARAMS[@]}") &> "${KCP_RUNTIME_DIR}/kcp.log" &
   KCP_PID=$!
   KCP_PIDS+=("${KCP_PID}")
   wait_command "ls ${KUBECONFIG}" 30
   printf "KCP server started: %s\n" $KCP_PID
-  touch "${TMP_DIR}/kcp-started"
+  touch "${KCP_RUNTIME_DIR}/kcp-started"
 
   printf "Waiting for KCP to be ready ...\n"
   wait_command "kubectl --kubeconfig=${KUBECONFIG} get --raw /readyz" 30
@@ -64,7 +65,7 @@ kcp-start() {
 
 ingress-ctrler-start() {
   printf "Starting Ingress Controller\n"
-  "${KCP_DIR}/bin/ingress-controller" --kubeconfig="${KUBECONFIG}" --context=system:admin --envoy-listener-port=8181 --envoy-xds-port=18000 &> "${TMP_DIR}/ingress-controller.log" &
+  "${KCP_DIR}/bin/ingress-controller" --kubeconfig="${KUBECONFIG}" --context=system:admin --envoy-listener-port=8181 --envoy-xds-port=18000 &> "${KCP_RUNTIME_DIR}/ingress-controller.log" &
   INGRESS_CONTROLLER_PID=$!
   printf "Ingress Controller started: %s\n" "${INGRESS_CONTROLLER_PID}"
   KCP_PIDS+=("${INGRESS_CONTROLLER_PID}")
@@ -76,12 +77,12 @@ envoy-start() {
   if [[ "${CONTAINER_ENGINE}" != "docker" ]]; then
     bootstrapAddress="host.containers.internal"
   fi
-  sed "s/BOOTSTRAP_ADDRESS/$bootstrapAddress/" "${PARENT_PATH}/envoy-bootstrap.yaml" > "${TMP_DIR}/envoy-bootstrap.yaml"
+  sed "s/BOOTSTRAP_ADDRESS/$bootstrapAddress/" "${PARENT_PATH}/envoy-bootstrap.yaml" > "${KCP_RUNTIME_DIR}/envoy-bootstrap.yaml"
   ${CONTAINER_ENGINE} create --rm -t --net=kind -p 8181:8181 docker.io/envoyproxy/envoy-dev:d803505d919aff1c4207b353c3b430edfa047010
   ENVOY_CID=$(${CONTAINER_ENGINE} ps -q -n1)
-  ${CONTAINER_ENGINE} cp "${TMP_DIR}/envoy-bootstrap.yaml" "${ENVOY_CID}:/etc/envoy/envoy.yaml"
+  ${CONTAINER_ENGINE} cp "${KCP_RUNTIME_DIR}/envoy-bootstrap.yaml" "${ENVOY_CID}:/etc/envoy/envoy.yaml"
   ${CONTAINER_ENGINE} start "${ENVOY_CID}"
-  ${CONTAINER_ENGINE} logs -f "${ENVOY_CID}" &> "${TMP_DIR}/envoy.log" &
+  ${CONTAINER_ENGINE} logs -f "${ENVOY_CID}" &> "${KCP_RUNTIME_DIR}/envoy.log" &
   echo "Envoy started in container: ${ENVOY_CID}"
   KCP_CIDS+=("${ENVOY_CID}")
 }
@@ -98,10 +99,12 @@ PARENT_PATH=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 
 kcp-binaries
 
-TMP_DIR="$(mktemp -d -t kcp-pipeline-service.XXXXXXXXX)"
-printf "Temporary directory created: %s\n" "${TMP_DIR}"
+KCP_RUNTIME_DIR="${KCP_RUNTIME_DIR:-}"
+KCP_RUNTIME_DIR="${KCP_RUNTIME_DIR:-$(mktemp -d -t kcp-pipeline-service.XXXXXXXXX)}"
+mkdir -p "$KCP_RUNTIME_DIR"
+printf "kcp runtime files in: %s\n" "${KCP_RUNTIME_DIR}"
 
-KUBECONFIG="${TMP_DIR}/.kcp/admin.kubeconfig"
+KUBECONFIG="${KCP_RUNTIME_DIR}/.kcp/admin.kubeconfig"
 
 # shellcheck source=local/utils.sh
 source "${PARENT_PATH}/../utils.sh"
@@ -129,7 +132,7 @@ printf "kubectl kcp plugin (should be copied to kubectl binary location): %s\n" 
 # envoy-start
 create-org
 
-touch "${TMP_DIR}/servers-ready"
+touch "${KCP_RUNTIME_DIR}/servers-ready"
 
 printf "\n"
 printf "Use ctrl-C to stop all components\n"
