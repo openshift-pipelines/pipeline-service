@@ -37,6 +37,32 @@ spec:
           env:
             - name: EXTERNAL_HOSTNAME
               value: ckcp-ckcp.apps.domain.org
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: livez
+              port: 6443
+              scheme: HTTPS
+            initialDelaySeconds: 45
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 10
+          startupProbe:
+            httpGet:
+              path: readyz
+              port: 6443
+              scheme: HTTPS
+            initialDelaySeconds: 10
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 18
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: readyz
+              port: 6443
+              scheme: HTTPS
           resources:
             limits:
               memory: 2Gi
