@@ -81,8 +81,6 @@ precheck_binary() {
 }
 
 init() {
-  precheck_binary "kubectl" "yq" "curl"
-
   APP_LIST=(
             "openshift-gitops"
             "cert-manager"
@@ -384,6 +382,7 @@ check_cr_sync() {
 
 main() {
   parse_args "$@"
+  precheck_binary "kubectl" "yq" "curl" "argocd"
   init
   precheck
   check_cluster_role
