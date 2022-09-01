@@ -22,7 +22,8 @@ printf "The following optional parameters can be passed to the script:\n"
 printf "KCP_DIR: a directory with kcp source code, default to a git clone of kcp in the system temp directory\n"
 printf "KCP_BRANCH: the kcp branch to use. Mind that the script will do a git checkout, to a default release if the branch is not specified\n"
 printf "KCP_RUNTIME_DIR: the location of the kcp runtime files, default to a temporary directory\n"
-printf "PARAMS: the parameters to start kcp with\n\n"
+printf "PARAMS: the parameters to start kcp with. They need to be provided as a list, e.g. \n"
+printf "        \"(--token-auth-file ./local/kcp/kcp-tokens --profiler-address localhost:6060 -v 6)\"\n\n"
 
 precheck() {
   if ! command -v "$1" &> /dev/null
