@@ -70,7 +70,19 @@ parse_args() {
   done
 }
 
+# Checks if a binary is present on the local system
+precheck_binary() {
+  for binary in "$@"; do
+    command -v "$binary" >/dev/null 2>&1 || {
+      echo >&2 "openshift_dev_setup.sh requires '$binary' command-line utility to be installed on your local machine. Aborting..."
+      exit 1
+    }
+  done
+}
+
 init() {
+  precheck_binary "kubectl" "yq" "curl"
+
   APP_LIST=(
             "openshift-gitops"
             "cert-manager"
