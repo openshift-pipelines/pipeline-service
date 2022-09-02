@@ -172,7 +172,7 @@ install_openshift_gitops() {
   #############################################################################
   # Wait for the URL to be available
   #############################################################################
-  echo -n "  - ArgoCD dashboard: "
+  echo -n "  - Argo CD dashboard: "
   test_cmd="kubectl get route/openshift-gitops-server --ignore-not-found -n $ns -o jsonpath={.spec.host}"
   ARGOCD_HOSTNAME="$(${test_cmd})"
   until curl --fail --insecure --output /dev/null --silent "https://$ARGOCD_HOSTNAME"; do
@@ -181,13 +181,13 @@ install_openshift_gitops() {
     ARGOCD_HOSTNAME="$(${test_cmd})"
   done
   echo "OK"
-  echo "  - ArgoCD URL: https://$ARGOCD_HOSTNAME"
+  echo "  - Argo CD URL: https://$ARGOCD_HOSTNAME"
 
   #############################################################################
   # Post install
   #############################################################################
-  # Log into ArgoCD
-  echo -n "  - ArgoCD Login: "
+  # Log into Argo CD
+  echo -n "  - Argo CD Login: "
   local argocd_password
   argocd_password="$(kubectl get secret openshift-gitops-cluster -n $ns -o jsonpath="{.data.admin\.password}" | base64 --decode)"
   argocd login "$ARGOCD_HOSTNAME" --grpc-web --insecure --username admin --password "$argocd_password" >/dev/null
@@ -195,7 +195,7 @@ install_openshift_gitops() {
 
   # Register the host cluster as pipeline-cluster
   local cluster_name="plnsvc"
-  echo -n "  - Register host cluster to ArgoCD as '$cluster_name': "
+  echo -n "  - Register host cluster to Argo CD as '$cluster_name': "
   if ! KUBECONFIG="$KUBECONFIG_MERGED" argocd cluster get "$cluster_name" >/dev/null 2>&1; then
     argocd cluster add "$(yq e ".current-context" <"$KUBECONFIG")" --name="$cluster_name" --upsert --yes >/dev/null
   fi

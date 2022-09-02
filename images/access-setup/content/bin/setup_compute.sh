@@ -131,7 +131,7 @@ init() {
 check_prerequisites() {
   # Check that argocd has been installed
   if [[ $(kubectl api-resources | grep -c "argoproj.io/") = "0" ]]; then
-    echo "ArgoCD must be deployed on the cluster first" >&2
+    echo "Argo CD must be deployed on the cluster first" >&2
     exit 1
   fi
 }
