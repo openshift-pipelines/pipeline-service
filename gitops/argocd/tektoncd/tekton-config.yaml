@@ -4,7 +4,7 @@ kind: TektonConfig
 metadata:
   name: config
   annotations:
-    # An ArgoCD wave annotation ensures that some resources are always ready
+    # An Argo CD wave annotation ensures that some resources are always ready
     # before next step. By default everything is a part of wave "0".
     # Refer <https://argo-cd.readthedocs.io/en/release-1.8/user-guide/sync-waves/>
     argocd.argoproj.io/sync-wave: "1"

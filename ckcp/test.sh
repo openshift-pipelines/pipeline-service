@@ -36,7 +36,6 @@ get_namespace() {
 }
 
 
-#install pipelines/triggers based on args
 if [ $# -eq 0 ]; then
   echo "No args passed; exiting now! ckcp is running in a pod"
 else

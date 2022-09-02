@@ -54,6 +54,7 @@ Create a new Git repo that would have the following structure. You can also use 
     - kcp
 - environment
   - compute
+  - kcp
 ```
 
 ### Generate kubeconfigs
@@ -136,7 +137,7 @@ _Note: mycluster.kubeconfig, mykcp.kubeconfig, mycluster and kustomization.yaml 
 - environment
     - compute
       - mycluster                   //folder with the same name as your cluster
-        - kustomization.yaml        //kustomization file which points to ArgoCD resources
+        - kustomization.yaml        //kustomization file which points to Argo CD resources
 
 
 $cat kustomization.yaml
