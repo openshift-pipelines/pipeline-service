@@ -1,0 +1,190 @@
+---
+name: Build and push images to quay
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    outputs:
+      sha_short: ${{ steps.vars.outputs.sha_short }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Get the short sha
+        id: vars
+        run: echo "::set-output name=sha_short::$(echo ${{ github.sha }} | cut -b -7)"
+
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            access-setup:
+            - 'images/access-setup/**'
+            cluster-setup:
+              - 'images/cluster-setup/**'
+            gateway-deployment:
+              - 'images/gateway-deployment/**'
+            kcp-registrar:
+              - 'images/kcp-registrar/**'
+            shellcheck:
+              - 'test/images/shellcheck/**'
+            vulnerability:
+              - 'test/images/vulnerability-scan/**'
+
+      # Build and push access-setup image, tagged with latest and the commit SHA.
+      - name: Build access-setup Image
+        id: build-image-access-setup
+        if: steps.filter.outputs.access-setup == 'true'
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: access-setup
+          context: ./images/access-setup
+          tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
+          containerfiles: |
+            ./images/access-setup/Dockerfile
+          build-args: |
+            KCP_BRANCH=release-0.7
+      - name: Push to quay.io
+        id: push-to-quay-access-setup
+        if: steps.filter.outputs.access-setup == 'true'
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-image-access-setup.outputs.image }}
+          tags: ${{ steps.build-image-access-setup.outputs.tags }} ${{ github.ref_name }}
+          registry: quay.io/redhat-pipeline-service
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_TOKEN }}
+      - name: Print image url
+        if: steps.filter.outputs.access-setup == 'true'
+        run: echo "Image pushed to ${{ steps.push-to-quay-access-setup.outputs.registry-paths }}"
+
+      # Build and push cluster-setup image, tagged with latest and the commit SHA.
+      - name: Build cluster-setup Image
+        id: build-image-cluster-image
+        if: steps.filter.outputs.cluster-setup == 'true'
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: cluster-setup
+          context: ./images/cluster-setup
+          tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
+          containerfiles: |
+            ./images/cluster-setup/Dockerfile
+      - name: Push to quay.io
+        id: push-to-quay-cluster-setup
+        if: steps.filter.outputs.cluster-setup == 'true'
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-image-cluster-image.outputs.image }}
+          tags: ${{ steps.build-image-cluster-image.outputs.tags }} ${{ github.ref_name }}
+          registry: quay.io/redhat-pipeline-service
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_TOKEN }}
+      - name: Print image url
+        if: steps.filter.outputs.cluster-setup == 'true'
+        run: echo "Image pushed to ${{ steps.push-to-quay-cluster-setup.outputs.registry-paths }}"
+
+      # Build and push gateway-deployment image, tagged with latest and the commit SHA.
+      - name: Build gateway-deployment Image
+        id: build-image-gateway-deployment
+        if: steps.filter.outputs.gateway-deployment == 'true'
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: gateway-deployment
+          context: ./images/gateway-deployment
+          tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
+          containerfiles: |
+            ./images/gateway-deployment/Dockerfile
+      - name: Push to quay.io
+        id: push-to-quay-gateway-deployment
+        if: steps.filter.outputs.gateway-deployment == 'true'
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-image-gateway-deployment.outputs.image }}
+          tags: ${{ steps.build-image-gateway-deployment.outputs.tags }} ${{ github.ref_name }}
+          registry: quay.io/redhat-pipeline-service
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_TOKEN }}
+      - name: Print image url
+        if: steps.filter.outputs.gateway-deployment == 'true'
+        run: echo "Image pushed to ${{ steps.push-to-quay-gateway-deployment.outputs.registry-paths }}"
+
+      # Build and push kcp-registrar image, tagged with latest and the commit SHA.
+      - name: Build kcp-registrar Image
+        id: build-image-kcp-registrar
+        if: steps.filter.outputs.kcp-registrar == 'true'
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: kcp-registrar
+          context: ./images/kcp-registrar
+          tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
+          containerfiles: |
+            ./images/kcp-registrar/Dockerfile
+          build-args: |
+            KCP_BRANCH=release-0.7
+      - name: Push to quay.io
+        id: push-to-quay-kcp-registrar
+        if: steps.filter.outputs.kcp-registrar == 'true'
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-image-kcp-registrar.outputs.image }}
+          tags: ${{ steps.build-image-kcp-registrar.outputs.tags }} ${{ github.ref_name }}
+          registry: quay.io/redhat-pipeline-service
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_TOKEN }}
+      - name: Print image url
+        if: steps.filter.outputs.kcp-registrar == 'true'
+        run: echo "Image pushed to ${{ steps.push-to-quay-kcp-registrar.outputs.registry-paths }}"
+
+      # Build and push shellcheck image, tagged with latest and the commit SHA.
+      - name: Build shellcheck Image
+        id: build-image-shellcheck
+        if: steps.filter.outputs.shellcheck == 'true'
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: shellcheck
+          context: ./test/images/shellcheck
+          tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
+          containerfiles: |
+            ./test/images/shellcheck/Dockerfile
+      - name: Push to quay.io
+        id: push-to-quay-shellcheck
+        if: steps.filter.outputs.shellcheck == 'true'
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-image-shellcheck.outputs.image }}
+          tags: ${{ steps.build-image-shellcheck.outputs.tags }} ${{ github.ref_name }}
+          registry: quay.io/redhat-pipeline-service
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_TOKEN }}
+      - name: Print image url
+        if: steps.filter.outputs.shellcheck == 'true'
+        run: echo "Image pushed to ${{ steps.push-to-quay-shellcheck.outputs.registry-paths }}"
+
+      # Build and push vulnerability-scan image, tagged with latest and the commit SHA.
+      - name: Build vulnerability Image
+        id: build-image-vulnerability-scan
+        if: steps.filter.outputs.vulnerability == 'true'
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: vulnerability-scan
+          context: ./test/images/vulnerability-scan
+          tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
+          containerfiles: |
+            ./test/images/vulnerability-scan/Dockerfile
+      - name: Push to quay.io
+        id: push-to-quay-vulnerability-scan
+        if: steps.filter.outputs.vulnerability == 'true'
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-image-vulnerability-scan.outputs.image }}
+          tags: ${{ steps.build-image-vulnerability-scan.outputs.tags }} ${{ github.ref_name }}
+          registry: quay.io/redhat-pipeline-service
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_TOKEN }}
+      - name: Print image url
+        if: steps.filter.outputs.vulnerability == 'true'
+        run: echo "Image pushed to ${{ steps.push-to-quay-vulnerability-scan.outputs.registry-paths }}"
