@@ -11,6 +11,9 @@ SCRIPT_DIR="$(
 # shellcheck source=ckcp/hack/util/update-git-reference.sh
 source "$SCRIPT_DIR/hack/util/update-git-reference.sh"
 
+# shellcheck source=images/cluster-setup/bin/utils.sh
+source "$SCRIPT_DIR/../images/cluster-setup/bin/utils.sh"
+
 GITOPS_DIR="$(dirname "$SCRIPT_DIR")/gitops"
 CKCP_DIR="$(dirname "$SCRIPT_DIR")/ckcp"
 CONFIG="$CKCP_DIR/config.yaml"
@@ -195,35 +198,23 @@ install_openshift_gitops() {
 
   # Register the host cluster as pipeline-cluster
   local cluster_name="plnsvc"
-  echo -n "  - Register host cluster to Argo CD as '$cluster_name': "
+  echo "  - Register host cluster to ArgoCD as '$cluster_name': "
   if ! KUBECONFIG="$KUBECONFIG_MERGED" argocd cluster get "$cluster_name" >/dev/null 2>&1; then
     argocd cluster add "$(yq e ".current-context" <"$KUBECONFIG")" --name="$cluster_name" --upsert --yes >/dev/null
   fi
-  echo "OK"
+  echo "    OK"
 }
 
 install_cert_manager(){
   APP="cert-manager-operator"
-  echo -n "  - OpenShift-Cert-Manager: "
+  echo "  - OpenShift-Cert-Manager: "
   kubectl apply -f "$GITOPS_DIR/argocd/argo-apps/$APP.yaml" >/dev/null
   check_cert_manager
 }
 
 check_cert_manager() {
-  # perform a dry-run create of a cert-manager
-  # Certificate resource in order to verify that CRDs are installed and all the
-  # required webhooks are reachable by the K8S API server.
-  local i=0
-  until kubectl create -f "$CKCP_DIR/openshift/base/certs.yaml" --dry-run=client >/dev/null 2>&1; do
-    echo -n "."
-    sleep 5
-    i=$((i+1))
-    if [ "$i" == 12 ]; then
-      echo "[ERROR] Failed to deploy OpenShift Cert-Manager operator on the host cluster."
-      exit 1
-    fi
-  done
-  echo "OK"
+  certManagerDeployments=("cert-manager" "cert-manager-cainjector" "cert-manager-webhook")
+  check_deployments "openshift-cert-manager" "${certManagerDeployments[@]}"
 }
 
 install_ckcp() {
@@ -275,20 +266,18 @@ patches:
         value: $ckcp_route " >>"$ckcp_temp_dir/kustomization.yaml"
 
   echo -n "  - kcp $kcp_version: "
-  kubectl apply -k "$ckcp_temp_dir" >/dev/null
+  # Deploy ckcp until all resources are successfully appied to OCP cluster 
+  local i=0
+  while ! error_msg=$(kubectl apply -k "$ckcp_temp_dir" 2>&1 1>/dev/null); do
+    sleep 10
+    i=$((i+1))
+    if [ $i -gt 12 ]; then
+      printf "\n Failed to deploy ckcp \n"
+      exit_error "$error_msg"
+    fi
+  done
   # Check if ckcp pod status is Ready
-  local error="false"
-  kubectl wait --for=condition=Ready -n "$ns" pod -l=app=kcp-in-a-pod --timeout=120s >/dev/null 2>&1 || error="true"
-  if [ "$error" == "true" ]; then
-    printf "Debug: print out pod state\n"
-    kubectl -n "$ns" describe pods
-
-    printf "Debug: print out pod logs\n"
-    kubectl -n "$ns" logs "$(kubectl -n "$ns" get pods -l=app=kcp-in-a-pod -o name)"
-
-    exit 1
-  fi
-
+  kubectl wait --for=condition=Ready -n $ns pod -l=app=kcp-in-a-pod --timeout=90s >/dev/null
   # Clean up kustomize temp dir
   rm -rf "$ckcp_temp_dir"
 
@@ -341,7 +330,7 @@ install_pipeline_service() {
     --git-remote-ref "$GIT_REF"
 
   echo "  - Deploy compute:"
-  "$SCRIPT_DIR/../images/cluster-setup/install.sh" --workspace-dir "$WORK_DIR"
+  "$SCRIPT_DIR/../images/cluster-setup/bin/install.sh" --workspace-dir "$WORK_DIR"
 
   echo "  - Install Pipelines as Code:"
   # Passing dummy values to the parameters of the pac/setup.sh script

@@ -18,6 +18,14 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+SCRIPT_DIR="$(
+  cd "$(dirname "$0")" >/dev/null
+  pwd
+)"
+
+# shellcheck source=images/cluster-setup/bin/utils.sh
+source "$SCRIPT_DIR/utils.sh"
+
 usage() {
 
   printf "
@@ -68,12 +76,6 @@ parse_args() {
   done
 }
 
-exit_error() {
-  printf "\n[ERROR] %s\n" "$@" >&2
-  printf "Exiting script.\n"
-  exit 1
-}
-
 # populate clusters with the cluster names taken from the kubeconfig
 # populate contexts with the context name taken from the kubeconfig
 # populate kubeconfigs with the associated kubeconfig for each cluster name
@@ -120,30 +122,6 @@ install_tektoncd() {
     kubectl apply -k "$CONFIG_DIR"
   done
   printf "\n"
-}
-
-check_deployments() {
-  local ns="$1"
-  shift
-  local deployments=("$@")
-
-  for deploy in "${deployments[@]}"; do
-    printf "    - %s: " "$deploy"
-
-    #a loop to check if the deployment exists
-    if ! timeout 300s bash -c "while ! kubectl get deployment/$deploy -n $ns >/dev/null 2>/dev/null; do printf '.'; sleep 10; done"; then
-      exit_error "$deploy not found (timeout)"
-    else
-      printf "Exists"
-    fi
-
-    #a loop to check if the deployment is Available and Ready
-    if kubectl wait --for=condition=Available=true "deployment/$deploy" -n "$ns" --timeout=100s >/dev/null 2>/dev/null; then
-      printf ", Ready\n"
-    else
-      exit_error "$deploy not ready (timeout)"
-    fi
-  done
 }
 
 postchecks() {
