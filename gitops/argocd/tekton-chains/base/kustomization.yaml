@@ -1,0 +1,17 @@
+---
+resources:
+  #
+  # For now we'll use the official release directly rather than downloading
+  # it and checking it in.
+  #
+  # To list available releases:
+  #  curl -s https://storage.googleapis.com/tekton-releases/ | xq | grep -E 'chains/.*/release.yaml'
+  #
+  - https://storage.googleapis.com/tekton-releases/chains/previous/v0.9.0/release.yaml
+  - allow-argocd-to-manage.yaml
+  - chains-secrets-config.yaml
+
+patchesStrategicMerge:
+  - chains-config.yaml
+  - chains-controller-deployment.yaml
+  - signing-secrets.yaml

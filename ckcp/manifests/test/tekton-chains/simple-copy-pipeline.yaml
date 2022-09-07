@@ -1,0 +1,71 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  annotations:
+  name: simple-copy
+spec:
+  params:
+    - description: Reference of the image the pipeline will copy from.
+      name: image-src
+      type: string
+    - description: Reference of the image the pipeline will copy to.
+      name: image-dst
+      type: string
+  results:
+    - description: Reference of the image the pipeline will produce.
+      name: IMAGE_URL
+      value: $(tasks.image-copy.results.IMAGE_URL)
+    - description: Digest of the image the pipeline will produce.
+      name: IMAGE_DIGEST
+      value: $(tasks.image-copy.results.IMAGE_DIGEST)
+  tasks:
+    - name: image-copy
+      taskSpec:
+        description: >-
+          Task to copy a container image from a container repository to another.
+        params:
+          - name: IMAGE_SRC
+            description: Reference of the image buildah will pull.
+          - name: IMAGE_DST
+            description: Reference of the image buildah will push.
+          - name: BUILDER_IMAGE
+            description: The location of the buildah builder image.
+            default: quay.io/buildah/stable:v1.18.0
+        workspaces:
+          - name: sslcertdir
+            optional: true
+        results:
+          - name: IMAGE_DIGEST
+            description: Digest of the image just built.
+          - name: IMAGE_URL
+            description: Reference of the image the pipeline will produce.
+        steps:
+          - name: copy
+            image: $(params.BUILDER_IMAGE)
+            script: |
+              [[ "$(workspaces.sslcertdir.bound)" == "true" ]] && CERT_DIR_FLAG="--cert-dir $(workspaces.sslcertdir.path)"
+              echo "# Pulling image from: $(params.IMAGE_SRC)"
+              buildah \
+                ${CERT_DIR_FLAG} \
+                pull \
+                $(params.IMAGE_SRC)
+              echo "# Pushing image to: $(params.IMAGE_DST)"
+              buildah \
+                ${CERT_DIR_FLAG} \
+                push \
+                --digestfile /tmp/image-digest \
+                $(params.IMAGE_SRC) docker://$(params.IMAGE_DST)
+              cat "/tmp/image-digest" | tee $(results.IMAGE_DIGEST.path)
+              echo "$(params.IMAGE_DST)" | tee $(results.IMAGE_URL.path)
+            volumeMounts:
+              - name: varlibcontainers
+                mountPath: /var/lib/containers
+        volumes:
+          - name: varlibcontainers
+            emptyDir: {}
+      params:
+        - name: IMAGE_SRC
+          value: $(params.image-src)
+        - name: IMAGE_DST
+          value: $(params.image-dst)

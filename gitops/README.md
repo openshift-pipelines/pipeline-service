@@ -22,7 +22,9 @@ Before installing the prerequisites, refer [DEPENDENCIES.md](../DEPENDENCIES.md)
 
 Following the Phase 1 architecture described [here](../docs/images/phase1.png), we structured GitOps to set up an OpenShift cluster, i.e.,
 
-- Install pipelines and triggers components on the physical cluster via GitOps Application.
+- Install various dependencies on the physical cluster via GitOps Applications.
+  - tekton pipelines and triggers
+  - tekton chains (with the shared `signing-secrets` secret stored in `credentials/manifests/compute/tekton-chains`)
 - Log into kcp, and register the clusters using the credentials for accessing kcp shared instance.
 
 Post this, a user will be able to log in to kcp workspace and start creating PipelineRuns :)

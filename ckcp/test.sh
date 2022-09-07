@@ -12,7 +12,7 @@ usage() {
 
     # Parameters
     printf "WORK_DIR: the location of the gitops files\n"
-    printf "CASES: comma separated list of test cases. Test cases must be any of 'pipelines' or 'triggers'. Pipelines test cases are run by default.\n"
+    printf "CASES: comma separated list of test cases. Test cases must be any of 'chains', 'pipelines' or 'triggers'. 'chains' and 'pipelines' are run by default.\n"
 }
 
 prechecks() {
@@ -59,10 +59,79 @@ compute_kubeconfig() {
 }
 
 init() {
+  SCRIPT_DIR=$(
+    cd "$(dirname "$0")" >/dev/null
+    pwd
+  )
   KUBECONFIG_KCP="$(kcp_kubeconfig)"
   KUBECONFIG="$(compute_kubeconfig)"
   export KUBECONFIG
-  CASES="${CASES:-"pipelines"}"
+  CASES="${CASES:-"chains,pipelines"}"
+}
+
+test_chains() {
+  echo "[test_chains]"
+
+  ns="test-tekton-chains"
+  echo "Reset namespace '$ns'"
+  kubectl get namespace "$ns" >/dev/null && kubectl delete namespace "$ns"
+  kubectl create namespace "$ns"
+  kubectl apply -k "$SCRIPT_DIR/manifests/test/tekton-chains" -n "$ns"
+
+  # Wait for pipelines to set up all the components
+  while [ "$(kubectl get applications -n openshift-gitops tekton-chains -o json | jq -r ".status.sync.status")" != "Synced" ] || \
+    [ "$(kubectl get serviceaccounts -n test-tekton-chains | grep -cE "^pipeline ")" != "1" ]; do
+    echo -n "."
+    sleep 2
+  done
+  echo "OK"
+
+  # Trigger the pipeline
+  image_src="quay.io/aptible/alpine:latest"
+  image_name="$(basename "$image_src")"
+  image_dst="image-registry.openshift-image-registry.svc:5000/$ns/$image_name"
+  tkn -n "$ns" pipeline start simple-copy \
+      --param image-src="$image_src" \
+      --param image-dst="$image_dst" \
+      --workspace name=shared,pvc,claimName="tekton-build" \
+      --showlog
+  pipeline_name="$(kubectl get -n "$ns" pipelineruns -o json | jq -r ".items[0].metadata.name")"
+
+  echo -n "Pipeline signed: "
+  signed="$(kubectl get pipelineruns -n "$ns" "$pipeline_name" -o jsonpath='{.metadata.annotations.chains\.tekton\.dev/signed}')"
+  retry_timer=0
+  polling_interval=2
+  until [ -n "$signed" ] || [ "$retry_timer" -ge 30 ]; do
+    echo -n "."
+    sleep $polling_interval
+    retry_timer=$(( retry_timer + polling_interval ))
+    signed="$(kubectl get pipelineruns -n "$ns" "$pipeline_name" -o jsonpath='{.metadata.annotations.chains\.tekton\.dev/signed}')"
+  done
+  if [ "$signed" = "true" ]; then
+    echo "OK"
+  else
+    echo "Failed"
+    echo "[ERROR] Unsigned pipeline ($pipeline_name)" >&2
+    exit 1
+  fi
+
+  echo -n "Image signed: "
+  signed="$(kubectl get -n "$ns" imagestreamtags | grep -cE ":sha256-[0-9a-f]*\.att|:sha256-[0-9a-f]*\.sig" || true)"
+  # No need to reset $retry_timer
+  until [ "$signed" = "2" ] || [ "$retry_timer" -ge 30 ]; do
+    echo -n "."
+    sleep $polling_interval
+    retry_timer=$(( retry_timer + polling_interval ))
+    signed="$(kubectl get -n "$ns" imagestreamtags | grep -cE ":sha256-[0-9a-f]*\.att|:sha256-[0-9a-f]*\.sig" || true)"
+  done
+  if [ "$signed" = "2" ]; then
+    echo "OK"
+  else
+    echo "Failed"
+    echo "[ERROR] Unsigned image" >&2
+    exit 1
+  fi
+  echo
 }
 
 test_pipelines() {
@@ -87,9 +156,11 @@ test_pipelines() {
   
   KCP_NS_NAME="$(get_namespace)"
   kubectl get pods -n "$KCP_NS_NAME"
+  echo
 }
 
 test_triggers() {
+  echo "[test_triggers]"
   echo "Simulating a Github PR through a curl request which creates a TaskRun (from tektoncd/triggers/examples)"
   KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f https://raw.githubusercontent.com/tektoncd/triggers/v0.18.0/examples/v1beta1/github/github-eventlistener-interceptor.yaml
   KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f https://raw.githubusercontent.com/tektoncd/triggers/v0.18.0/examples/v1beta1/github/secret.yaml
@@ -107,6 +178,7 @@ test_triggers() {
   kill $SVC_FORWARD_PID
   sleep 20
   KUBECONFIG="$KUBECONFIG_KCP" kubectl get pipelineruns
+  echo
 }
 
 main() {
@@ -116,7 +188,7 @@ main() {
   for case in "${cases[@]}"
   do
     case $case in
-    pipelines|triggers)
+    chains|pipelines|triggers)
       test_"$case"
       ;;
     *)
