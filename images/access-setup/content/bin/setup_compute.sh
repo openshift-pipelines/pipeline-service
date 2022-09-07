@@ -59,7 +59,7 @@ Optional arguments:
         Display this message.
 Example:
     %s -d -k /path/to/compute.kubeconfig
-" "${0##*/}" "$KUSTOMIZATION" "${0##*/}" >&2
+" "${0##*/}" "$KUSTOMIZATION" "$GIT_URL" "$GIT_REF" "${0##*/}" >&2
 }
 
 parse_args() {
@@ -125,7 +125,9 @@ init() {
   WORK_DIR="${WORK_DIR:-$SCRIPT_DIR/work}"
 
   credentials_dir="$WORK_DIR/credentials/kubeconfig"
+  manifests_dir="$WORK_DIR/credentials/manifests"
   mkdir -p "$credentials_dir"
+  mkdir -p "$manifests_dir"
 }
 
 check_prerequisites() {
@@ -134,6 +136,42 @@ check_prerequisites() {
     echo "Argo CD must be deployed on the cluster first" >&2
     exit 1
   fi
+}
+
+generate_shared_manifests(){
+  printf "[Shared manifests]\n"
+
+  printf "    - tekton-chains signing key: "
+  manifest="$manifests_dir/compute/tekton-chains/signing-secrets.yaml"
+  if [ ! -e "$manifest" ]; then
+    printf "\n"
+    manifests_tmp_dir="$(dirname "$manifest")/tmp"
+    mkdir -p "$manifests_tmp_dir"
+    cosign_passwd="$( head -c 12 /dev/urandom | base64 )"
+    echo -n "$cosign_passwd" > "$manifests_tmp_dir/cosign.password"
+    cosign_image="quay.io/redhat-appstudio/appstudio-utils:eb94f28fe2d7c182f15e659d0fdb66f87b0b3b6b"
+    podman run \
+      --rm \
+      --env COSIGN_PASSWORD="$cosign_passwd" \
+      --volume "$manifests_tmp_dir":/workspace:z \
+      --workdir /workspace \
+      --entrypoint /usr/bin/cosign \
+      "$cosign_image" generate-key-pair
+    {
+      echo "---"
+      kubectl create namespace tekton-chains --dry-run=client -o yaml
+      echo "---"
+      kubectl create secret generic -n tekton-chains signing-secrets --from-file="$manifests_tmp_dir" --dry-run=client -o yaml | \
+        yq '. += {"immutable" :true}' | \
+        yq "sort_keys(.)"
+    } > "$manifest"
+    rm -rf "$manifests_tmp_dir"
+    if [ "$(yq ".data" "$manifest" | grep -cE "^cosign.key:|^cosign.password:|^cosign.pub:")" != "3" ]; then
+      printf "[ERROR] Invalid manifest: '%s'" "$manifest" >&2
+      exit 1
+    fi
+  fi
+  printf "OK\n"
 }
 
 generate_compute_credentials() {
@@ -149,10 +187,14 @@ generate_compute_credentials() {
   get_context "pac-manager" "pipelines-as-code" "pac-manager" "$kubeconfig"
   printf "%s\n" "$kubeconfig"
 
-  mkdir -p "$WORK_DIR/environment/compute/$compute_name"
-  echo "resources:
-  - $GIT_URL/gitops/argocd?ref=$GIT_REF
-" >"$WORK_DIR/environment/compute/$compute_name/kustomization.yaml"
+  printf "    - Generate kustomization.yaml: "
+  manifests_dir="$WORK_DIR/environment/compute/$compute_name"
+  mkdir -p "$manifests_dir"
+  echo -n "---
+resources:
+  - git::$GIT_URL/gitops/argocd?ref=$GIT_REF
+" >"$manifests_dir/kustomization.yaml"
+  printf "%s\n" "$manifests_dir/kustomization.yaml"
 }
 
 main() {
@@ -160,6 +202,7 @@ main() {
   prechecks
   init
   check_prerequisites
+  generate_shared_manifests
   generate_compute_credentials
 }
 

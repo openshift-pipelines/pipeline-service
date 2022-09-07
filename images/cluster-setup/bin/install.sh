@@ -113,15 +113,26 @@ switch_cluster() {
   fi
 }
 
-install_tektoncd() {
-  printf "Installing tektoncd components on the cluster via Openshift GitOps... \n"
+install_clusters() {
   for i in "${!clusters[@]}"; do
     printf "    - %s:\n" "${clusters[$i]}"
     switch_cluster
-    CONFIG_DIR=$(find "${WORKSPACE_DIR}/environment/compute" -type d -name "${clusters[$i]}")
-    kubectl apply -k "$CONFIG_DIR"
+    install_shared_manifests
+    install_applications
   done
-  printf "\n"
+}
+
+install_shared_manifests() {
+  printf "      - Installing shared manifests... \n"
+  if [ "$(kubectl get secret -n tekton-chains signing-secrets --ignore-not-found -o json | jq -r ".immutable")" != "true" ]; then
+    kubectl apply -f "$WORKSPACE_DIR/credentials/manifests/compute/tekton-chains/signing-secrets.yaml"
+  fi
+}
+
+install_applications() {
+  printf "      - Installing applications via Openshift GitOps... \n"
+  CONFIG_DIR=$(find "${WORKSPACE_DIR}/environment/compute" -type d -name "${clusters[$i]}")
+  kubectl apply -k "$CONFIG_DIR"
 }
 
 postchecks() {
@@ -134,6 +145,9 @@ postchecks() {
     tektonDeployments=("tekton-pipelines-controller" "tekton-triggers-controller" "tekton-triggers-core-interceptors")
     check_deployments "openshift-pipelines" "${tektonDeployments[@]}"
 
+    certManagerDeployments=("tekton-chains-controller")
+    check_deployments "tekton-chains" "${certManagerDeployments[@]}"
+
     certManagerDeployments=("cert-manager" "cert-manager-cainjector" "cert-manager-webhook")
     check_deployments "openshift-cert-manager" "${certManagerDeployments[@]}"
   done
@@ -142,7 +156,7 @@ postchecks() {
 main() {
   parse_args "$@"
   get_clusters
-  install_tektoncd
+  install_clusters
   postchecks
 }
 
