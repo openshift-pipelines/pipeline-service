@@ -23,7 +23,7 @@ printf "KCP_DIR: a directory with kcp source code, default to a git clone of kcp
 printf "KCP_BRANCH: the kcp branch to use. Mind that the script will do a git checkout, to a default release if the branch is not specified\n"
 printf "KCP_RUNTIME_DIR: the location of the kcp runtime files, default to a temporary directory\n"
 printf "PARAMS: the parameters to start kcp with. They need to be provided as a list, e.g. \n"
-printf "        \"(--token-auth-file ./local/kcp/kcp-tokens --profiler-address localhost:6060 -v 6)\"\n\n"
+printf "        \"--token-auth-file ./local/kcp/kcp-tokens --profiler-address localhost:6060 -v 6\"\n\n"
 
 precheck() {
   if ! command -v "$1" &> /dev/null
@@ -52,7 +52,7 @@ kcp-binaries() {
 
 kcp-start() {
   printf "Starting KCP server ...\n"
-  (cd "${KCP_RUNTIME_DIR}" && exec "${KCP_DIR}/bin/kcp" start "${PARAMS[@]}") &> "${KCP_RUNTIME_DIR}/kcp.log" &
+  (cd "${KCP_RUNTIME_DIR}" && exec "${KCP_DIR}/bin/kcp" start ${PARAMS}) &> "${KCP_RUNTIME_DIR}/kcp.log" &
   KCP_PID=$!
   KCP_PIDS+=("${KCP_PID}")
   wait_command "ls ${KUBECONFIG}" 30
@@ -118,11 +118,9 @@ KCP_CIDS=()
 
 PARAMS="${PARAMS:-}"
 if [[ -z "${PARAMS}" ]]; then
-  PARAMS=(
-    --token-auth-file "${PARENT_PATH}/kcp-tokens"
-    --profiler-address localhost:6060
-    -v 2
-  )
+  PARAMS="--token-auth-file ${PARENT_PATH}/kcp-tokens \
+    --profiler-address localhost:6060 \
+    -v 2"
 fi
 
 kcp-start
