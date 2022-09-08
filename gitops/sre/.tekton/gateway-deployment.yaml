@@ -33,7 +33,7 @@ spec:
             value: $(params.repo_url)
           - name: revision
             value: $(params.revision)
-      - name: kcp-register
+      - name: deploy-gateway
         runAfter:
           - fetch-repository
         workspaces:
@@ -51,6 +51,8 @@ spec:
                   value: $(workspaces.source.path)
                 - name: KCP_ORG
                   value: "pipeline-service"
+                - name: KCP_WORKSPACE
+                  value: "gateway"
   workspaces:
     - name: source
       volumeClaimTemplate:

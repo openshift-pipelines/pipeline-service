@@ -1,0 +1,3 @@
+---
+resources:
+  - github.com/openshift-pipelines/pipeline-service/gitops/kcp/gateway?ref=main
