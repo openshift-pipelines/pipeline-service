@@ -20,7 +20,7 @@ set -o nounset
 # Parameters
 printf "The following optional parameters can be passed to the script:\n"
 printf "KCP_DIR: a directory with kcp source code, default to a git clone of kcp in the system temp directory\n"
-printf "KCP_BRANCH: the kcp branch to use. Mind that the script will do a git checkout, to a default release if the branch is not specified\n"
+printf "KCP_TAG: the kcp tag to use. Mind that the script will do a git checkout, to a default release if the tag is not specified\n"
 printf "KCP_RUNTIME_DIR: the location of the kcp runtime files, default to a temporary directory\n"
 printf "PARAMS: the parameters to start kcp with. They need to be provided as a list, e.g. \n"
 printf "        \"(--token-auth-file ./local/kcp/kcp-tokens --profiler-address localhost:6060 -v 6)\"\n\n"
@@ -42,8 +42,8 @@ kcp-binaries() {
     git clone https://github.com/kcp-dev/kcp.git
     KCP_DIR="${KCP_PARENT_DIR}/kcp"
     pushd kcp
-    KCP_BRANCH="${KCP_BRANCH:-release-0.7}"
-    git checkout "${KCP_BRANCH}"
+    KCP_TAG="${KCP_TAG:-v0.8.0}"
+    git checkout tags/"${KCP_TAG}" -b "${KCP_TAG}"
     make build
     popd
     popd

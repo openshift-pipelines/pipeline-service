@@ -17,7 +17,7 @@ LABEL build-date= \
 WORKDIR /
 RUN microdnf install -y findutils-4.6.0 gzip-1.9 tar-1.30 && microdnf clean all
 ARG KCP_BRANCH
-ENV KCP_SYNC_TAG=${KCP_BRANCH}
+ENV KCP_SYNC_TAG=${KCP_TAG}
 ENV HOME /tmp/home
 RUN mkdir /workspace && chmod 777 /workspace && chown 65532:65532 /workspace
 RUN mkdir $HOME && chmod 777 $HOME

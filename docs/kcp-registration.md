@@ -9,7 +9,7 @@ The registration is meant to be triggered from [Pipelines as Code](https://pipel
 Alternatively the registration can be performed by manually calling the registration script in the image directory:
 
 ```bash
-KCP_ORG="root:pipeline-service" KCP_WORKSPACE="compute" KCP_SYNC_TAG="release-0.7" WORKSPACE_DIR="/workspace" ./register.sh
+KCP_ORG="root:pipeline-service" KCP_WORKSPACE="compute" KCP_SYNC_TAG="v0.8.0" WORKSPACE_DIR="/workspace" ./register.sh
 ```
 
 | Name | Description |

@@ -46,8 +46,6 @@ jobs:
           tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
           containerfiles: |
             ./images/access-setup/Dockerfile
-          build-args: |
-            KCP_BRANCH=release-0.7
       - name: Push to quay.io
         id: push-to-quay-access-setup
         if: steps.filter.outputs.access-setup == 'true'
@@ -124,7 +122,7 @@ jobs:
           containerfiles: |
             ./images/kcp-registrar/Dockerfile
           build-args: |
-            KCP_BRANCH=release-0.7
+            KCP_TAG=v0.8.0
       - name: Push to quay.io
         id: push-to-quay-kcp-registrar
         if: steps.filter.outputs.kcp-registrar == 'true'
