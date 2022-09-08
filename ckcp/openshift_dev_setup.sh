@@ -111,11 +111,12 @@ init() {
                 "deployments.apps"
                 "services"
                 "ingresses.networking.k8s.io"
+		"networkpolicies.networking.k8s.io"
                 "pipelines.tekton.dev"
                 "pipelineruns.tekton.dev"
                 "runs.tekton.dev"
                 "tasks.tekton.dev"
-                "networkpolicies.networking.k8s.io"
+		"repositories.pipelinesascode.tekton.dev"
               )
   fi
 

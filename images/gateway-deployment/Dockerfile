@@ -1,14 +1,14 @@
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6
 LABEL build-date= \
       com.redhat.build-host= \
-      description="This image provides binaries and a script to deploy gateway on kcp." \
+      description="This image provides binaries and a script to deploy the gateway component on kcp." \
       distribution-scope="public" \
-      io.k8s.description="This image provides binaries and a script to deploy gateway on kcp." \
+      io.k8s.description="This image provides binaries and a script to deploy the gateway component on kcp." \
       io.k8s.display-name="gateway deployment" \
       maintainer="Pipeline Service" \
       name="gateway-deployment" \
       release="0.1" \
-      summary="Provides the latest release of gateway-deployment image." \
+      summary="Provides the latest release of the gateway-deployment image." \
       url="https://github.com/openshift-pipelines/pipeline-service/tree/main/images/gateway-deployment" \
       vcs-ref=  \
       vcs-type="git" \

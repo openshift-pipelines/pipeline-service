@@ -51,7 +51,7 @@ Optional arguments:
         variable is unset.
     -s, --crs-to-sync
         A comma separated list of Custom Resources to sync with kcp.
-        Default: deployments.apps,services,ingresses.networking.k8s.io,pipelines.tekton.dev,pipelineruns.tekton.dev,tasks.tekton.dev,runs.tekton.dev,networkpolicies.networking.k8s.io
+        Default: deployments.apps,services,ingresses.networking.k8s.io,networkpolicies.networking.k8s.io,pipelines.tekton.dev,pipelineruns.tekton.dev,tasks.tekton.dev,runs.tekton.dev,repositories.pipelinesascode.tekton.dev
     -d, --debug
         Activate tracing/debug mode.
     -h, --help
@@ -135,7 +135,7 @@ prechecks() {
         exit_error "WORKSPACE_DIR not set\n\n"
     fi
 
-    CRS_TO_SYNC="${CRS_TO_SYNC:-deployments.apps,services,ingresses.networking.k8s.io,pipelines.tekton.dev,pipelineruns.tekton.dev,tasks.tekton.dev,runs.tekton.dev,networkpolicies.networking.k8s.io}"
+    CRS_TO_SYNC="${CRS_TO_SYNC:-deployments.apps,services,ingresses.networking.k8s.io,networkpolicies.networking.k8s.io,pipelines.tekton.dev,pipelineruns.tekton.dev,tasks.tekton.dev,runs.tekton.dev,repositories.pipelinesascode.tekton.dev}"
 
     WORKSPACE_DIR="$(cd "$WORKSPACE_DIR" >/dev/null && pwd)" || exit_error "WORKSPACE_DIR '$WORKSPACE_DIR' cannot be accessed\n\n"
 }
@@ -219,6 +219,10 @@ register_cluster() {
             --resources "$CRS_TO_SYNC"\
             --output-file "$syncer_manifest"
         add_ca_cert_to_syncer_manifest "${kcp_kcfg}" "$syncer_manifest"
+        # Add annotations required by kcp-glbc
+        KUBECONFIG="${kcp_kcfg}" kubectl annotate --overwrite synctarget "${sync_target_name}" featuregates.experimental.workload.kcp.dev/advancedscheduling='true'
+        KUBECONFIG="${kcp_kcfg}" kubectl label --overwrite synctarget "${sync_target_name}" kuadrant.dev/synctarget="${sync_target_name}"
+
         KUBECONFIG="${WORKSPACE_DIR}/credentials/kubeconfig/compute/${kubeconfigs[$i]}" kubectl apply \
             --context "${contexts[$i]}" -f "$syncer_manifest"
 }

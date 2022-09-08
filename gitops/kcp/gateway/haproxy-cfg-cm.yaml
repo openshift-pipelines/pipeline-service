@@ -25,13 +25,12 @@ data:
         mode http
         tcp-request inspect-delay 5s
         tcp-request content accept if HTTP
-
-        acl PATH_pac path_beg -i /pac/
-        use_backend be_el_pac if PATH_pac
+        acl PAC hdr(X-Github-Event) -m found
+        use_backend be_el_pac if PAC
 
     backend be_el_pac
         mode http
         option redispatch
         option forwardfor
         timeout check 5000ms
-        server el-pac el-pipelines-as-code-interceptor.openshift-pipelines.svc.cluster.local:8080
+        server el-pac pipelines-as-code-controller.openshift-pipelines.svc.cluster.local:8080

@@ -1,4 +1,5 @@
 ---
+namespace: gateway
 resources:
   - haproxy-cfg-cm.yaml
   - haproxy-deployment.yaml
