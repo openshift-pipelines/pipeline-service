@@ -305,8 +305,13 @@ patches:
   # Workaround to prevent the creation of a new workspace until KCP is ready.
   # This fixes `error: creating a workspace under a Universal type workspace is not supported`.
   ws_name=$(echo "$kcp_org" | cut -d: -f2)
+  local sec=0
   while ! KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspace create "$ws_name" --type root:organization --ignore-existing >/dev/null; do
+    if  [ "$sec" -gt 100 ]; then
+      exit 1
+    fi
     sleep 5
+    sec=$((sec + 5))
   done
   KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspace use "$ws_name"
 
@@ -364,7 +369,7 @@ check_cr_sync() {
   while [[ "$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources -o name 2>&1 | grep -Ewc "$cr_regexp")" -ne ${#CR_TO_SYNC[@]} ]]; do
     wait_period=$((wait_period + 10))
     #when timeout, print out the CR resoures that is not synced to KCP
-    if [ $wait_period -gt 300 ]; then
+    if [ "$wait_period" -gt 300 ]; then
       echo "Failed to sync following resources to KCP: "
       cr_synced=$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources -o name)
       for cr in "${CR_TO_SYNC[@]}"; do
