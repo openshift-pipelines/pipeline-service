@@ -42,7 +42,7 @@ kcp-binaries() {
     git clone https://github.com/kcp-dev/kcp.git
     KCP_DIR="${KCP_PARENT_DIR}/kcp"
     pushd kcp
-    KCP_TAG="${KCP_TAG:-v0.8.0}"
+    KCP_TAG="${KCP_TAG:-v0.8.2}"
     git checkout tags/"${KCP_TAG}" -b "${KCP_TAG}"
     make build
     popd
