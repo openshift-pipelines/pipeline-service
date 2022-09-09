@@ -116,14 +116,8 @@ setupTraps
 KCP_PIDS=()
 KCP_CIDS=()
 
-PARAMS="${PARAMS:-}"
-if [[ -z "${PARAMS}" ]]; then
-  PARAMS=(
-    --token-auth-file "${PARENT_PATH}/kcp-tokens"
-    --profiler-address localhost:6060
-    -v 2
-  )
-fi
+PARAMS="${PARAMS:-"--token-auth-file ${PARENT_PATH}/kcp-tokens --profiler-address localhost:6060 -v 2"}"
+mapfile -d ' ' -t PARAMS < <(echo -n "$PARAMS")
 
 kcp-start
 printf "KUBECONFIG=%s\n" "${KUBECONFIG}"
