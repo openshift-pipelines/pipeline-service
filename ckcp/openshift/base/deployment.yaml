@@ -76,6 +76,14 @@ spec:
               mountPath: /etc/kcp/tls/requestheader-client
             - name: kubeconfig
               mountPath: /etc/kcp/config
+          securityContext:
+            capabilities:
+              drop:
+                - ALL
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
       volumes:
         - name: kcp-certs
           secret:
