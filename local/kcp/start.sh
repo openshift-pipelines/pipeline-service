@@ -36,8 +36,12 @@ precheck() {
 KCP_DIR="${KCP_DIR:-}"
 kcp-binaries() {
   if [[ -z "${KCP_DIR}" ]]; then
+    KCP_DIR="$(mktemp -d -t kcp.XXXXXXXXX)/kcp"
+  fi
+  if [[ ! -d "$KCP_DIR" ]]; then
     precheck git
-    KCP_PARENT_DIR="$(mktemp -d -t kcp.XXXXXXXXX)"
+    KCP_PARENT_DIR="$(cd "$(dirname "$KCP_DIR")" >/dev/null; pwd)"
+    mkdir -p "${KCP_PARENT_DIR}"
     pushd "${KCP_PARENT_DIR}"
     git clone https://github.com/kcp-dev/kcp.git
     KCP_DIR="${KCP_PARENT_DIR}/kcp"
@@ -48,6 +52,7 @@ kcp-binaries() {
     popd
     popd
   fi
+  KCP_DIR="$(cd "$KCP_DIR" >/dev/null; pwd)"
 }
 
 kcp-start() {
