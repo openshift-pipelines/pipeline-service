@@ -18,6 +18,11 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+SCRIPT_DIR="$(
+  cd "$(dirname "$0")" >/dev/null
+  pwd
+)"
+
 usage() {
 
     printf "
@@ -218,6 +223,10 @@ register_cluster() {
             --syncer-image "ghcr.io/kcp-dev/kcp/syncer:$KCP_SYNC_TAG" \
             --resources "$CRS_TO_SYNC"\
             --output-file "$syncer_manifest"
+        # Set a restricted security context
+        patch="$(dirname "$SCRIPT_DIR")/data/syncer-patch.yaml" yq -i \
+          'select(.kind == "Deployment").spec.template.spec.containers[0].securityContext |= load(strenv(patch))' \
+          "$syncer_manifest"
         add_ca_cert_to_syncer_manifest "${kcp_kcfg}" "$syncer_manifest"
         # Add annotations required by kcp-glbc
         # Commenting the below line, which adds an annotation, as this is causing issues with the syncer being unable to sync the status from synctarget back to the kcp workspace.

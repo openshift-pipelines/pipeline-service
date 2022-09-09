@@ -1,0 +1,8 @@
+---
+capabilities:
+  drop:
+    - ALL
+allowPrivilegeEscalation: false
+runAsNonRoot: true
+seccompProfile:
+  type: RuntimeDefault

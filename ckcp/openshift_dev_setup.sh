@@ -396,7 +396,7 @@ register_compute() {
   resources="$(printf '%s,' "${CRS_TO_SYNC[@]}")"
   resources=${resources%,}
   echo "- Register compute to KCP"
-  "$PROJECT_DIR/images/kcp-registrar/register.sh" \
+  "$PROJECT_DIR/images/kcp-registrar/bin/register.sh" \
     ${DEBUG:+"$DEBUG"} \
     --kcp-org "root:default" \
     --kcp-workspace "$kcp_workspace" \

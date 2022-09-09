@@ -35,9 +35,11 @@ RUN KCP_VERSION_SHORT="0.9.0" && \
     curl --fail -sSL -o "/tmp/kubectl-kcp.tgz" "https://github.com/kcp-dev/kcp/releases/download/$KCP_VERSION/kubectl-kcp-plugin_${KCP_VERSION_SHORT}_linux_amd64.tar.gz" && \
     tar -C "/usr/local" -xzvf "/tmp/kubectl-kcp.tgz" "bin/kubectl-kcp" && \
     rm "/tmp/kubectl-kcp.tgz"
-COPY ./register.sh /usr/local/bin/register.sh
-RUN chmod 755 "/usr/local/bin/register.sh"
+RUN mkdir /opt/kcp-registrar
+COPY bin /opt/kcp-registrar/bin
+COPY data /opt/kcp-registrar/data
+RUN chmod 755 /opt/kcp-registrar/bin/*.sh
 USER 65532:65532
 VOLUME /workspace
 WORKDIR /workspace
-CMD ["/usr/local/bin/register.sh"]
+CMD ["/opt/kcp-registrar/bin/register.sh"]
