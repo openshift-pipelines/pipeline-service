@@ -112,3 +112,10 @@ Considerations for testing a new component:-
 4. Onboarding a new component requires creating a new Argo CD application in [argo-apps](../gitops/argocd/argo-apps/) and adding it to [kustomization.yaml](../gitops/argocd/argo-apps/kustomization.yaml).
 5. For testing, users need to modify only the git source path and ref of their Argo CD application to reflect their own Git repo.
 6. A user can also choose a different version of kcp than the one running by default by changing the value of [version.kcp](../config/config.yaml).
+
+### Reset ckcp
+
+One can reset `ckcp` and all the resources deployed by it using:-
+```bash
+./ckcp/hack/util/reset_ckcp.sh --work-dir /path/to/my_dir
+```
