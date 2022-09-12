@@ -16,7 +16,7 @@ source "$SCRIPT_DIR/../images/cluster-setup/bin/utils.sh"
 
 GITOPS_DIR="$(dirname "$SCRIPT_DIR")/gitops"
 CKCP_DIR="$(dirname "$SCRIPT_DIR")/ckcp"
-CONFIG="$CKCP_DIR/config.yaml"
+CONFIG="$(dirname "$SCRIPT_DIR")/config/config.yaml"
 
 KUBECONFIG=${KUBECONFIG:-$HOME/.kube/config}
 
@@ -90,7 +90,7 @@ init() {
             "ckcp"
            )
   # get the list of APPS to be installed
-  read -ra APPS <<< "$(yq eval '.APPS | join(" ")' "$CONFIG")"
+  read -ra APPS <<< "$(yq eval '.apps | join(" ")' "$CONFIG")"
   for app in  "${APPS[@]}"
   do
     APP_LIST+=("$app")
@@ -99,11 +99,11 @@ init() {
   # get cluster type
   cluster_type=$(yq '.CLUSTER_TYPE // "openshift"' "$CONFIG")
 
-  GIT_URL=$(yq '.GIT_URL // "https://github.com/openshift-pipelines/pipeline-service.git"' "$CONFIG")
-  GIT_REF=$(yq '.GIT_REF // "main"' "$CONFIG")
+  GIT_URL=$(yq '.git_url // "https://github.com/openshift-pipelines/pipeline-service.git"' "$CONFIG")
+  GIT_REF=$(yq '.git_ref // "main"' "$CONFIG")
 
   # get list of CRs to sync
-  read -ra CR_TO_SYNC <<< "$(yq eval '.CR_TO_SYNC | join(" ")' "$CONFIG")"
+  read -ra CR_TO_SYNC <<< "$(yq eval '.cr_to_sync | join(" ")' "$CONFIG")"
   if (( "${#CR_TO_SYNC[@]}" <= 0 )); then
     CR_TO_SYNC=(
                 "deployments.apps"
@@ -140,7 +140,7 @@ init() {
   export KUBECONFIG
   kcp_org="root:default"
   kcp_workspace="pipeline-service-compute"
-  kcp_version="$(yq '.images[] | select(.name == "kcp") | .newTag' "$SCRIPT_DIR/openshift/overlays/dev/kustomization.yaml")"
+  kcp_version="$(yq '.version.kcp' "$CONFIG")"
 }
 
 # To ensure that dependencies are satisfied

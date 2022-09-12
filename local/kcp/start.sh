@@ -33,7 +33,14 @@ precheck() {
   fi
 }
 
+SCRIPT_DIR="$(
+  cd "$(dirname "$0")" >/dev/null
+  pwd
+)"
+CONFIG="$(dirname "$(dirname "$SCRIPT_DIR")")/config/config.yaml"
+KCP_VERSION=$(yq '.version.kcp' "$CONFIG")
 KCP_DIR="${KCP_DIR:-}"
+
 kcp-binaries() {
   if [[ -z "${KCP_DIR}" ]]; then
     KCP_DIR="$(mktemp -d -t kcp.XXXXXXXXX)/kcp"
@@ -46,7 +53,7 @@ kcp-binaries() {
     git clone https://github.com/kcp-dev/kcp.git
     KCP_DIR="${KCP_PARENT_DIR}/kcp"
     pushd kcp
-    KCP_TAG="${KCP_TAG:-v0.8.0}"
+    KCP_TAG="${KCP_TAG:-$KCP_VERSION}"
     git checkout tags/"${KCP_TAG}" -b "${KCP_TAG}"
     make build
     popd
