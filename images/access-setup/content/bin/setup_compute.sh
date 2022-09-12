@@ -139,12 +139,14 @@ check_prerequisites() {
 }
 
 generate_shared_manifests(){
-  printf "[Shared manifests]\n"
+  printf -- "- Generating shared manifests:\n"
+  printf -- "  - tekton-chains manifest:\n"
+  tekton_chains_manifest 2>&1 | indent 4
+}
 
-  printf "    - tekton-chains signing key: "
+tekton_chains_manifest(){
   manifest="$manifests_dir/compute/tekton-chains/signing-secrets.yaml"
   if [ ! -e "$manifest" ]; then
-    printf "\n"
     manifests_tmp_dir="$(dirname "$manifest")/tmp"
     mkdir -p "$manifests_tmp_dir"
     cosign_passwd="$( head -c 12 /dev/urandom | base64 )"
@@ -177,15 +179,15 @@ generate_shared_manifests(){
 generate_compute_credentials() {
   current_context=$(kubectl config current-context)
   compute_name="$(yq '.contexts[] | select(.name == "'"$current_context"'") | .context.cluster' < "$KUBECONFIG" | sed 's/:.*//')"
-  printf "[Compute cluster: %s]\n" "$compute_name"
+  printf "[Compute: %s]\n" "$compute_name"
   kubeconfig="$credentials_dir/compute/$compute_name.kubeconfig"
 
-  printf "    - Create ServiceAccount for Pipelines as Code:\n"
-  kubectl apply -k "$KUSTOMIZATION"
+  printf -- "- Create ServiceAccount for Pipelines as Code:\n"
+  kubectl apply -k "$KUSTOMIZATION" | indent 4
 
-  printf "    - Generate kubeconfig: "
+  printf -- "- Generate kubeconfig:\n"
   get_context "pac-manager" "pipelines-as-code" "pac-manager" "$kubeconfig"
-  printf "%s\n" "$kubeconfig"
+  printf "KUBECONFIG=%s\n" "$kubeconfig" | indent 4
 
   printf "    - Generate kustomization.yaml: "
   manifests_dir="$WORK_DIR/environment/compute/$compute_name"

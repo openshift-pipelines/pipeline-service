@@ -65,3 +65,7 @@ get_context() {
   KUBECONFIG="$target" kubectl config view --flatten --minify >"$target.new"
   mv "$target.new" "$target"
 }
+
+function indent () {
+        sed "s/^/$(printf "%$1s")/"
+}
