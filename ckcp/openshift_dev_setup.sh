@@ -149,6 +149,13 @@ precheck() {
     printf "kcp plugin could not be found\n"
     exit 1
   fi
+
+  kubectl_kcp_version=$(kubectl-kcp --version | cut -d '-' -f 2)
+  if [ "${kubectl_kcp_version}" != "${kcp_version}" ]; then
+    printf "[ERROR] kcp plugin version mismatch: expected '%s', got '%s'\n" "$kcp_version" "$kubectl_kcp_version" >&2
+    printf "Please install kcp plugin with version '%s'\n" "$kcp_version"
+    exit 1
+  fi
 }
 
 check_cluster_role() {
