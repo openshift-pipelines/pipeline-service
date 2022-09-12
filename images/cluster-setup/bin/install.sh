@@ -84,10 +84,8 @@ get_clusters() {
     clusters=()
     contexts=()
     kubeconfigs=()
-    printf "Extracting files under the kubeconfig dir and reading the content in each file \n"
     mapfile -t files < <(find "$WORKSPACE_DIR/credentials/kubeconfig/compute/" -name \*.kubeconfig)
     for kubeconfig in "${files[@]}"; do
-        printf "  - %s\n" "$kubeconfig"
         mapfile -t subs < <(KUBECONFIG=${kubeconfig} kubectl config view -o jsonpath='{range .contexts[*]}{.name}{","}{.context.cluster}{"\n"}{end}')
         for sub in "${subs[@]}"; do
             context=$(echo -n "${sub}" | cut -d ',' -f 1)
@@ -96,11 +94,9 @@ get_clusters() {
                 clusters+=( "${cluster}" )
                 contexts+=( "${context}" )
                 kubeconfigs+=( "${kubeconfig}" )
-                printf "    - %s --- %s --- %s \n" "$cluster" "$context" "$kubeconfig"
             fi
         done
     done
-    printf "\n"
 }
 
 switch_cluster() {
@@ -115,41 +111,41 @@ switch_cluster() {
 
 install_clusters() {
   for i in "${!clusters[@]}"; do
-    printf "    - %s:\n" "${clusters[$i]}"
-    switch_cluster
-    install_shared_manifests
-    install_applications
+    printf "[Compute %s:\n" "${clusters[$i]}]"
+    switch_cluster | indent 2
+    printf -- "- Installing shared manifests... \n"
+    install_shared_manifests | indent 4
+    printf -- "- Installing applications via Openshift GitOps... \n"
+    install_applications | indent 4
   done
 }
 
 install_shared_manifests() {
-  printf "      - Installing shared manifests... \n"
   if [ "$(kubectl get secret -n tekton-chains signing-secrets --ignore-not-found -o json | jq -r ".immutable")" != "true" ]; then
     kubectl apply -f "$WORKSPACE_DIR/credentials/manifests/compute/tekton-chains/signing-secrets.yaml"
   fi
 }
 
 install_applications() {
-  printf "      - Installing applications via Openshift GitOps... \n"
   CONFIG_DIR=$(find "${WORKSPACE_DIR}/environment/compute" -type d -name "${clusters[$i]}")
   kubectl apply -k "$CONFIG_DIR"
 }
 
 postchecks() {
-  printf "Checking deployment status\n"
+  printf -- "- Checking deployment status\n"
   #checking if the pipelines and triggers pods are up and running
   for i in "${!clusters[@]}"; do
     switch_cluster
-    printf "  - %s:\n" "${clusters[$i]}"
+    printf -- "  [Compute %s:\n" "${clusters[$i]}]"
 
     tektonDeployments=("tekton-pipelines-controller" "tekton-triggers-controller" "tekton-triggers-core-interceptors")
-    check_deployments "openshift-pipelines" "${tektonDeployments[@]}"
+    check_deployments "openshift-pipelines" "${tektonDeployments[@]}" | indent 4
 
     certManagerDeployments=("tekton-chains-controller")
-    check_deployments "tekton-chains" "${certManagerDeployments[@]}"
+    check_deployments "tekton-chains" "${certManagerDeployments[@]}" | indent 4
 
     certManagerDeployments=("cert-manager" "cert-manager-cainjector" "cert-manager-webhook")
-    check_deployments "openshift-cert-manager" "${certManagerDeployments[@]}"
+    check_deployments "openshift-cert-manager" "${certManagerDeployments[@]}" | indent 4
   done
 }
 

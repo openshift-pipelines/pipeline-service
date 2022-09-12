@@ -103,6 +103,10 @@ exit_error() {
     exit 1
 }
 
+function indent () {
+        sed "s/^/$(printf "%$1s")/"
+}
+
 prechecks() {
     KCP_ORG=${KCP_ORG:-}
     if [[ -z "${KCP_ORG}" ]]; then
@@ -197,10 +201,8 @@ get_sync_target_name() {
     fi
 }
 
-register() {
-    local sync_target_name
-    for i in "${!clusters[@]}"; do
-        printf -- "- %s (%s/%s)\n" "${clusters[$i]}" "$((i+1))" "${#clusters[@]}"
+register_cluster() {
+      local sync_target_name
         syncer_manifest="/tmp/syncer-${clusters[$i]}.yaml"
         sync_target_name="$(get_sync_target_name "${clusters[$i]}")"
         KUBECONFIG="${kcp_kcfg}" kubectl kcp workload sync "${sync_target_name}" \
@@ -210,7 +212,6 @@ register() {
         add_ca_cert_to_syncer_manifest "${kcp_kcfg}" "$syncer_manifest"
         KUBECONFIG="${WORKSPACE_DIR}/credentials/kubeconfig/compute/${kubeconfigs[$i]}" kubectl apply \
             --context "${contexts[$i]}" -f "$syncer_manifest"
-    done
 }
 
 add_ca_cert_to_syncer_manifest() {
@@ -222,8 +223,7 @@ add_ca_cert_to_syncer_manifest() {
     host="$(KUBECONFIG="${config}" kubectl config view --minify | yq '.clusters[0].cluster.server' | cut -d/ -f3)"
     # hostname may include port number, remove it if it's there
     servername="$(echo "$host" | cut -d: -f1)"
-    ca_cert="$(openssl s_client -showcerts -servername "${servername}" -connect "${host}" </dev/null | openssl x509 | base64 -w 0)"
-
+    ca_cert="$(openssl s_client -showcerts -servername "${servername}" -connect "${host}" </dev/null 2>/dev/null | openssl x509 | base64 -w 0)"
     ca_cert="${ca_cert}" yq -i '(select(.stringData.kubeconfig != null)) .stringData.kubeconfig |= (fromyaml | .clusters[].cluster."certificate-authority-data" = env(ca_cert) | to_yaml)' "${manifest}"
 }
 
@@ -231,7 +231,7 @@ configure_synctarget_ws() {
     manifests_source="$WORKSPACE_DIR/environment/kcp"
     if [[ -d "$manifests_source" ]]; then
         printf "Configuring KCP workspace\n"
-        KUBECONFIG=${kcp_kcfg} kubectl apply -k "$manifests_source"
+        KUBECONFIG=${kcp_kcfg} kubectl apply -k "$manifests_source" | indent 2
     fi
 }
 
@@ -249,7 +249,10 @@ main() {
     fi
     get_clusters
     printf "Registering clusters to kcp\n"
-    register
+    for i in "${!clusters[@]}"; do
+        printf -- "- %s (%s/%s)\n" "${clusters[$i]}" "$((i+1))" "${#clusters[@]}"
+        register_cluster 2>&1 | indent 2
+    done
     configure_synctarget_ws
 }
 

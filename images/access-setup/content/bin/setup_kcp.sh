@@ -140,19 +140,19 @@ generate_kcp_credentials() {
   printf "[KCP: %s]\n" "$kcp_name"
   kubeconfig="$credentials_dir/kcp/$kcp_name.kubeconfig"
 
-  printf "    - Create workspace:\n"
-  kubectl kcp workspace use "$KCP_ORG"
+  printf -- "- Create workspace:\n"
+  kubectl kcp workspace use "$KCP_ORG" | indent 4
   if ! kubectl kcp workspace use "$KCP_WORKSPACE" >/dev/null 2>&1; then
     kubectl kcp workspace create "$KCP_WORKSPACE" --type=universal --enter >/dev/null
   fi
-  kubectl kcp workspace current
+  kubectl kcp workspace current | indent 4
 
-  printf "    - Create service account:\n"
-  kubectl apply -k "$KUSTOMIZATION"
+  printf -- "- Create service account:\n"
+  kubectl apply -k "$KUSTOMIZATION" | indent 4
 
-  printf "    - Generate kubeconfig: "
+  printf -- "- Generate kubeconfig:\n"
   get_context "pac-manager" "pipelines-as-code" "pac-manager" "$kubeconfig"
-  printf "%s\n" "$kubeconfig"
+  printf "KUBECONFIG=%s\n" "$kubeconfig" | indent 4
 }
 
 main() {

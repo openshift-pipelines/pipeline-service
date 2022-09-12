@@ -175,14 +175,14 @@ install_openshift_gitops() {
   #############################################################################
   # Install the gitops operator
   #############################################################################
-  echo -n "  - OpenShift-GitOps: "
+  echo -n "- OpenShift-GitOps: "
   kubectl apply -k "$CKCP_DIR/openshift-operators/$APP" >/dev/null
   echo "OK"
 
   #############################################################################
   # Wait for the URL to be available
   #############################################################################
-  echo -n "  - Argo CD dashboard: "
+  echo -n "- Argo CD dashboard: "
   test_cmd="kubectl get route/openshift-gitops-server --ignore-not-found -n $ns -o jsonpath={.spec.host}"
   ARGOCD_HOSTNAME="$(${test_cmd})"
   until curl --fail --insecure --output /dev/null --silent "https://$ARGOCD_HOSTNAME"; do
@@ -191,13 +191,13 @@ install_openshift_gitops() {
     ARGOCD_HOSTNAME="$(${test_cmd})"
   done
   echo "OK"
-  echo "  - Argo CD URL: https://$ARGOCD_HOSTNAME"
+  echo "- Argo CD URL: https://$ARGOCD_HOSTNAME"
 
   #############################################################################
   # Post install
   #############################################################################
   # Log into Argo CD
-  echo -n "  - Argo CD Login: "
+  echo -n "- Argo CD Login: "
   local argocd_password
   argocd_password="$(kubectl get secret openshift-gitops-cluster -n $ns -o jsonpath="{.data.admin\.password}" | base64 --decode)"
   argocd login "$ARGOCD_HOSTNAME" --grpc-web --insecure --username admin --password "$argocd_password" >/dev/null
@@ -205,18 +205,20 @@ install_openshift_gitops() {
 
   # Register the host cluster as pipeline-cluster
   local cluster_name="plnsvc"
-  echo "  - Register host cluster to ArgoCD as '$cluster_name': "
   if ! KUBECONFIG="$KUBECONFIG_MERGED" argocd cluster get "$cluster_name" >/dev/null 2>&1; then
+    echo "- Register host cluster to ArgoCD as '$cluster_name': "
     argocd cluster add "$(yq e ".current-context" <"$KUBECONFIG")" --name="$cluster_name" --upsert --yes >/dev/null
-  fi
-  echo "    OK"
+    echo "  OK"
+	else
+    echo "- Register host cluster to ArgoCD as '$cluster_name': OK"
+	fi
 }
 
 install_cert_manager(){
   APP="cert-manager-operator"
-  echo "  - OpenShift-Cert-Manager: "
+  echo "- OpenShift-Cert-Manager: "
   kubectl apply -f "$GITOPS_DIR/argocd/argo-apps/$APP.yaml" >/dev/null
-  check_cert_manager
+  check_cert_manager | indent 2
 }
 
 check_cert_manager() {
@@ -272,7 +274,7 @@ patches:
         description: This value refers to the hostAddress defined in the Route.
         value: $ckcp_route " >>"$ckcp_temp_dir/kustomization.yaml"
 
-  echo -n "  - kcp $kcp_version: "
+  echo -n "- kcp $kcp_version: "
   # Deploy ckcp until all resources are successfully appied to OCP cluster 
   local i=0
   while ! error_msg=$(kubectl apply -k "$ckcp_temp_dir" 2>&1 1>/dev/null); do
@@ -303,7 +305,7 @@ patches:
   echo "OK"
 
   # Check if external ip is assigned and replace kcp's external IP in the kubeconfig file
-  echo -n "  - Route: "
+  echo -n "- Route: "
   if grep -q "ckcp-ckcp.apps.domain.org" "$KUBECONFIG_KCP"; then
     yq e -i "(.clusters[].cluster.server) |= sub(\"ckcp-ckcp.apps.domain.org:6443\", \"$ckcp_route:443\")" "$KUBECONFIG_KCP"
   fi
@@ -313,60 +315,62 @@ patches:
   # This fixes `error: creating a workspace under a Universal type workspace is not supported`.
   ws_name=$(echo "$kcp_org" | cut -d: -f2)
   local sec=0
-  while ! KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspace create "$ws_name" --type root:organization --ignore-existing >/dev/null; do
+  while ! KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspace create "$ws_name" --type root:organization --ignore-existing &>/dev/null; do
     if  [ "$sec" -gt 100 ]; then
       exit 1
     fi
     sleep 5
     sec=$((sec + 5))
   done
-  KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspace use "$ws_name"
 
-  echo "  - Setup kcp access:"
+  echo "- Setup kcp access:"
   "$SCRIPT_DIR/../images/access-setup/content/bin/setup_kcp.sh" \
     --kubeconfig "$KUBECONFIG_KCP" \
     --kcp-org "$kcp_org" \
     --kcp-workspace "$kcp_workspace" \
     --work-dir "$WORK_DIR" \
-    --kustomization "$GIT_URL/gitops/kcp/pac-manager?ref=$GIT_REF"
+    --kustomization "$GIT_URL/gitops/kcp/pac-manager?ref=$GIT_REF" |
+    indent 2
   KUBECONFIG_KCP="$WORK_DIR/credentials/kubeconfig/kcp/ckcp-ckcp.${ws_name}.${kcp_workspace}.kubeconfig"
 }
 
 install_pipeline_service() {
-  echo "  - Setup compute access:"
+  echo "- Setup compute access:"
   "$SCRIPT_DIR/../images/access-setup/content/bin/setup_compute.sh" \
     --kubeconfig "$KUBECONFIG" \
     --work-dir "$WORK_DIR" \
     --kustomization "$GIT_URL/gitops/compute/pac-manager?ref=$GIT_REF" \
     --git-remote-url "$GIT_URL" \
-    --git-remote-ref "$GIT_REF"
+    --git-remote-ref "$GIT_REF" 2>&1 |
+    indent 2
 
-  echo "  - Deploy compute:"
-  "$SCRIPT_DIR/../images/cluster-setup/bin/install.sh" --workspace-dir "$WORK_DIR"
+  echo "- Deploy compute:"
+  "$SCRIPT_DIR/../images/cluster-setup/bin/install.sh" --workspace-dir "$WORK_DIR" | indent 2
 
-  echo "  - Install Pipelines as Code:"
+  echo "- Install Pipelines as Code:"
   # Passing dummy values to the parameters of the pac/setup.sh script
   # because we only want to install the runner side of resources.
   GITOPS_REPO="https://example.git.com/my/repo" GIT_TOKEN="placeholder_token" \
     WEBHOOK_SECRET="placeholder_webhook" \
-    "$GITOPS_DIR/pac/setup.sh"
+    "$GITOPS_DIR/pac/setup.sh" | indent 4
 
 }
 
 register_compute() {
-  echo "  - Register compute to KCP"
+  echo "- Register compute to KCP"
   "$(dirname "$SCRIPT_DIR")/images/kcp-registrar/register.sh" \
     --kcp-org "root:default" \
     --kcp-workspace "$kcp_workspace" \
     --kcp-sync-tag "$kcp_version" \
-    --workspace-dir "$WORK_DIR"
+    --workspace-dir "$WORK_DIR" |
+    indent 4
 
   check_cr_sync
 }
 
 check_cr_sync() {
   # Wait until CRDs are synced to KCP
-  echo -n "  - Sync CRDs to KCP: "
+  echo -n "- Sync CRDs to KCP: "
   local cr_regexp
   cr_regexp="$(
     IFS=\|
@@ -400,9 +404,10 @@ main() {
   check_cluster_role
   for APP in "${APP_LIST[@]}"; do
     echo "[$APP]"
-    install_"$(echo "$APP" | tr '-' '_')"
+    install_"$(echo "$APP" | tr '-' '_')" | indent 2
     echo
   done
+  echo [sync]
   register_compute
 }
 

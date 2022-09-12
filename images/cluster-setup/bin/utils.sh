@@ -26,7 +26,7 @@ check_deployments() {
   local deployments=("$@")
 
   for deploy in "${deployments[@]}"; do
-    printf "    - %s: " "$deploy"
+    printf -- "- %s: " "$deploy"
 
     #a loop to check if the deployment exists
     if ! timeout 300s bash -c "while ! kubectl get deployment/$deploy -n $ns >/dev/null 2>/dev/null; do printf '.'; sleep 10; done"; then
@@ -46,4 +46,8 @@ check_deployments() {
       exit 1
     fi
   done
+}
+
+function indent () {
+        sed "s/^/$(printf "%$1s")/"
 }
