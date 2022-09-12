@@ -1,0 +1,31 @@
+---
+name: Upgrade kcp
+on:
+  # Runs every Sunday at 00:00:00
+  schedule:
+    - cron: "0 0 * * 0"
+  workflow_dispatch:
+
+jobs:
+  kcp-upgrade:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source branch
+        uses: actions/checkout@v3
+        with:
+          ref: main
+
+      - name: Check if a new kcp version exists and update the files if it does
+        run: |
+          ./images/kcp-upgrade/upgrade.sh
+
+      - name: Create PR
+        id: create-pull-request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          token: ${{ secrets.UPGRADE_TOKEN }}
+          commit-message: Upgrade kcp to the latest available version
+          branch: upgrade_kcp
+          delete-branch: true
+          title: 'Upgrade kcp to the latest version'

@@ -50,7 +50,7 @@ The test.sh script runs certain examples from tektoncd repo for pipelines and tr
     #Runs both tests
 ```
 
-Once the script is done executing, notice that the 8 CRDs (marked in bold below) we specified in [config.yaml](./config.yaml) are synced after we registered our physical cluster with kcp.
+Once the script is done executing, notice that the 8 CRDs (marked in bold below) we specified in [config.yaml](..config/config.yaml) are synced after we registered our physical cluster with kcp.
 
 <pre>
 KUBECONFIG=work/kubeconfig/admin.kubeconfig kubectl api-resources
@@ -104,10 +104,11 @@ synctargets                                    workload.kcp.dev/v1alpha1        
 
 ### Development - Onboarding a new component
 
-`ckcp` can be used to develop/test a new component on the Pipeline Service by changing parameters in [config.yaml](./config.yaml).
+`ckcp` can be used to develop/test a new component on the Pipeline Service by changing parameters in [config.yaml](..config/config.yaml).
 Considerations for testing a new component:-
-1. We are deploying various applications using the GitOps approach and hence a user would need to change the values of `GIT_URL` and `GIT_REF` to reflect their own Git repo.
-2. A user can modify the applications to be deployed on the compute by modifying [APPS](./config.yaml).
-3. A user can modify the Custom Resources to be synced by the KCP Syncer by modifying [CR_TO_SYNC](./config.yaml).
+1. We are deploying various applications using the GitOps approach and hence a user would need to change the values of `git_url` and `GIT_REF` to reflect their own Git repo.
+2. A user can modify the applications to be deployed on the compute by modifying [apps](..config/config.yaml).
+3. A user can modify the Custom Resources to be synced by the KCP Syncer by modifying [cr_to_sync](..config/config.yaml).
 4. Onboarding a new component requires creating a new Argo CD application in [argo-apps](../gitops/argocd/argo-apps/) and adding it to [kustomization.yaml](../gitops/argocd/argo-apps/kustomization.yaml).
-5. For testing, users need to modify the git source path and ref of their Argo CD application and [parent Argo CD application](../gitops/argocd/argocd.yaml) which ultimately triggers all the Argo CD applications in [argo-apps](../gitops/argocd/argo-apps/) dir to reflect their own Git repo.
+5. For testing, users need to modify only the git source path and ref of their Argo CD application to reflect their own Git repo.
+6. A user can also choose a different version of kcp than the one running by default by changing the value of [version.kcp](../config/config.yaml).
