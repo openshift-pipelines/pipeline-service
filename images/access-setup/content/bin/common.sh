@@ -40,26 +40,23 @@ get_context() {
 
   for _ in {1..5}
   do
-    token_secret="$(KUBECONFIG="$target" kubectl get sa "$sa" -n "$namespace" -o json |
-      jq -r '.secrets[]?.name | select(. | test(".*token.*"))')"
-    if [ -n "$token_secret" ]; then
+    mapfile -t sa_tokens < <(KUBECONFIG="$target"  kubectl -n "$namespace" get secrets -o json|
+               jq -r --arg SA "$sa" '.items[] | select(.type=="kubernetes.io/service-account-token" and .metadata.annotations["kubernetes.io/service-account.name"]==$SA)| .metadata.name')
+    if [ ${#sa_tokens[@]} -ne 0 ]; then
       break
     fi
     sleep 5
   done
-  if [ -z "$token_secret" ]; then
-      printf "Failed to extract secret token\n"
+  if [ ${#sa_tokens[@]} -eq 0 ]; then
+      printf "Failed to get service account token\n"
       exit 1
   fi
+  sa_token_data=$(KUBECONFIG="$target" kubectl get secret "${sa_tokens[0]}" -n "$namespace" -o jsonpath="{.data.token}"|base64 -d)
 
   current_cluster="$(KUBECONFIG="$target" kubectl config view \
     -o jsonpath="{.contexts[?(@.name==\"$current_context\")].context.cluster}")"
 
-  KUBECONFIG="$target" kubectl config set-credentials "$sa" --token="$(
-    KUBECONFIG="$target" kubectl get secret "$token_secret" -n "$namespace" -o jsonpath="{.data.token}" |
-      base64 -d
-  )" &>/dev/null
-  
+  KUBECONFIG="$target" kubectl config set-credentials "$sa" --token="$sa_token_data" &>/dev/null
   KUBECONFIG="$target" kubectl config set-context "$sa_context" --user="$sa" --cluster="$current_cluster" &>/dev/null
   KUBECONFIG="$target" kubectl config use-context "$sa_context" &>/dev/null
   KUBECONFIG="$target" kubectl config view --flatten --minify >"$target.new"

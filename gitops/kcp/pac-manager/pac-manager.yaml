@@ -4,3 +4,12 @@ kind: ServiceAccount
 metadata:
   name: pac-manager
   namespace: pipelines-as-code
+---
+apiVersion: v1
+kind: Secret
+type: kubernetes.io/service-account-token
+metadata:
+  name: pac-manager-token
+  namespace: pipelines-as-code
+  annotations:
+    kubernetes.io/service-account.name: pac-manager
