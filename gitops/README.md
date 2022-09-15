@@ -13,9 +13,9 @@ Before installing the prerequisites, refer [DEPENDENCIES.md](../DEPENDENCIES.md)
 ## Prerequisites
 
 - OpenShift cluster
-- OpenShift Pipelines Operator installed (instructions [here](https://docs.openshift.com/container-platform/4.10/cicd/pipelines/installing-pipelines.html))
+- OpenShift Pipelines Operator installed (instructions [here](https://docs.openshift.com/container-platform/4.11/cicd/pipelines/installing-pipelines.html))
   Note: To be installed *only* for the first cluster
-- OpenShift GitOps operator installed (instructions [here](https://docs.openshift.com/container-platform/4.10/cicd/gitops/installing-openshift-gitops.html))
+- OpenShift GitOps operator installed (instructions [here](https://docs.openshift.com/container-platform/4.11/cicd/gitops/installing-openshift-gitops.html))
 - Pipelines as Code installed and set up to talk to this repo  (instructions [here](./pac/README.md) and [here](https://pipelinesascode.com/docs/install/installation/))
 
 ## Components

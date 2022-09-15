@@ -21,7 +21,7 @@ Before installing the prerequisites, refer [DEPENDENCIES.md](../DEPENDENCIES.md)
 Before you execute the script, you need:
 
 1. to have a _kubernetes/openshift_ cluster with at least 6 CPU cores and 16GB RAM.
-2. to install [oc](https://docs.openshift.com/container-platform/4.10/cli_reference/openshift_cli/getting-started-cli.html)
+2. to install [oc](https://docs.openshift.com/container-platform/4.11/cli_reference/openshift_cli/getting-started-cli.html)
 3. to install [argocd CLI](https://argo-cd.readthedocs.io/en/stable/cli_installation/)
 4. to install [yq](https://mikefarah.gitbook.io/yq/#install)
 6. to install [kubectl kcp plugin](https://github.com/kcp-dev/kcp/blob/main/docs/kubectl-kcp-plugin.md)
