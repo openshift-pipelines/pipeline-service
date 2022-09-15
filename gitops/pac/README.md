@@ -14,8 +14,7 @@ When a kubeconfig file gets added to a GitOps repository Pipelines as Code trigg
 
 This directory contains the manifests used for installing Pipelines as Code and registering the runners.
 
-Pipelines as Code comes pre-installed with the OpenShift Pipelines Operator. This is what should be used for its [installation on OpenShift](https://docs.openshift.com/container-platform/4.10/cicd/pipelines/installing-pipelines.html).
-_Note: Currently, as we are using OpenShift Pipelines Operator version 1.7 ([here](../../gitops/argocd/tektoncd/openshift-operator.yaml)), it is shipped with Pipelines as Code 0.5.x. Since we require PaC version 0.9.0 or above, we recommend installing the latest version by running the script with the flag CONTROLLER_INSTALL set to true._  
+Pipelines as Code comes pre-installed with the OpenShift Pipelines Operator. This is what should be used for its [installation on OpenShift](https://docs.openshift.com/container-platform/4.11/cicd/pipelines/installing-pipelines.html).
 The runner registration still needs to be done if it hasn't been done already.
 
 A webhook and credentials need to be added on the provider side of the git repository. Follow the [Pipelines as Code instructions](https://pipelinesascode.com/docs/install/) specific to your provider for the purpose.
