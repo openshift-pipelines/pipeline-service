@@ -212,7 +212,7 @@ register() {
             sync_target_name="$(get_sync_target_name "${clusters[$i]}")"
             KUBECONFIG="${kcp_kcfg}" kubectl kcp workload sync "${sync_target_name}" \
                 --syncer-image "ghcr.io/kcp-dev/kcp/syncer:$KCP_SYNC_TAG" \
-                --resources deployments.apps,services,ingresses.networking.k8s.io,pipelines.tekton.dev,pipelineruns.tekton.dev,tasks.tekton.dev,runs.tekton.dev,networkpolicies.networking.k8s.io \
+                --resources deployments.apps,services,ingresses.networking.k8s.io,pipelines.tekton.dev,pipelineruns.tekton.dev,tasks.tekton.dev,taskruns.tekton.dev,networkpolicies.networking.k8s.io \
                 --output-file "$syncer_manifest"
             KUBECONFIG="${WORKSPACE_DIR}/credentials/kubeconfig/compute/${kubeconfigs[$i]}" kubectl apply \
                 --context "${contexts[$i]}" -f "$syncer_manifest"

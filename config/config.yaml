@@ -18,8 +18,8 @@ cr_to_sync:
   - ingresses.networking.k8s.io
   - pipelines.tekton.dev
   - pipelineruns.tekton.dev
-  - runs.tekton.dev
   - tasks.tekton.dev
+  - taskruns.tekton.dev
   - networkpolicies.networking.k8s.io
 
 # Applications to be deployed on the cluster

@@ -93,7 +93,7 @@ locations                                      scheduling.kcp.dev/v1alpha1      
 placements                                     scheduling.kcp.dev/v1alpha1            false        Placement
 <br>pipelineruns                      pr,prs       tekton.dev/v1beta1                     true         PipelineRun</br>
 <br>pipelines                                      tekton.dev/v1beta1                     true         Pipeline</br>
-<br>runs                                           tekton.dev/v1alpha1                    true         Run</br>
+<br>taskruns                                       tekton.dev/v1alpha1                    true         TaskRun</br>
 <br>tasks                                          tekton.dev/v1beta1                     true         Task</br>
 clusterworkspaces                              tenancy.kcp.dev/v1alpha1               false        ClusterWorkspace
 clusterworkspacetypes                          tenancy.kcp.dev/v1alpha1               false        ClusterWorkspaceType
