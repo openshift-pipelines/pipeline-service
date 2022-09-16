@@ -207,9 +207,24 @@ register() {
             --syncer-image "ghcr.io/kcp-dev/kcp/syncer:$KCP_SYNC_TAG" \
             --resources deployments.apps,services,ingresses.networking.k8s.io,pipelines.tekton.dev,pipelineruns.tekton.dev,tasks.tekton.dev,runs.tekton.dev,networkpolicies.networking.k8s.io \
             --output-file "$syncer_manifest"
+        add_ca_cert_to_syncer_manifest "${kcp_kcfg}" "$syncer_manifest"
         KUBECONFIG="${WORKSPACE_DIR}/credentials/kubeconfig/compute/${kubeconfigs[$i]}" kubectl apply \
             --context "${contexts[$i]}" -f "$syncer_manifest"
     done
+}
+
+add_ca_cert_to_syncer_manifest() {
+    config=$1
+    manifest=$2
+    # Display a minified version of the kubeconfig that only includes the current context. Pick
+    # the first server from the list (there should only ever be one due to --minify). Extract
+    # the host name from the server URL.
+    host="$(KUBECONFIG="${config}" kubectl config view --minify | yq '.clusters[0].cluster.server' | cut -d/ -f3)"
+    # hostname may include port number, remove it if it's there
+    servername="$(echo "$host" | cut -d: -f1)"
+    ca_cert="$(openssl s_client -showcerts -servername "${servername}" -connect "${host}" </dev/null | openssl x509 | base64 -w 0)"
+
+    ca_cert="${ca_cert}" yq -i '(select(.stringData.kubeconfig != null)) .stringData.kubeconfig |= (fromyaml | .clusters[].cluster."certificate-authority-data" = env(ca_cert) | to_yaml)' "${manifest}"
 }
 
 configure_synctarget_ws() {
