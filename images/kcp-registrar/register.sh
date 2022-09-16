@@ -39,7 +39,7 @@ Mandatory arguments:
     --kcp-sync-tag KCP_SYNC_TAG
         Tag of the kcp syncer image to use (preset in the container image at build time
         and leveraged by the PipelineRun).
-        Example: 'v0.8.0'
+        Example: 'v0.8.2'
         Can be set through \$KCP_SYNC_TAG.
 
 Optional arguments:
@@ -55,7 +55,7 @@ Optional arguments:
         Display this message.
 
 Example:
-    KCP_SYNC_TAG='v0.8.0' %s --kcp-org 'root:my_org' --kcp-workspace 'my_workspace' --workspace_dir /path/to/my_dir
+    KCP_SYNC_TAG='v0.8.2' %s --kcp-org 'root:my_org' --kcp-workspace 'my_workspace' --workspace_dir /path/to/my_dir
 " "${0##*/}" "${0##*/}" >&2
 }
 
