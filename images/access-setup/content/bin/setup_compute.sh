@@ -166,7 +166,7 @@ generate_shared_manifests(){
         yq "sort_keys(.)"
     } > "$manifest"
     rm -rf "$manifests_tmp_dir"
-    if [ "$(yq ".data" "$manifest" | grep -cE "^cosign.key:|^cosign.password:|^cosign.pub:")" != "3" ]; then
+    if [ "$(yq ".data" < "$manifest" | grep -cE "^cosign.key:|^cosign.password:|^cosign.pub:")" != "3" ]; then
       printf "[ERROR] Invalid manifest: '%s'" "$manifest" >&2
       exit 1
     fi
