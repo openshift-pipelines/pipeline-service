@@ -113,10 +113,20 @@ install_clusters() {
   for i in "${!clusters[@]}"; do
     printf "[Compute %s:\n" "${clusters[$i]}]"
     switch_cluster | indent 2
+
     printf -- "- Installing shared manifests... \n"
     install_shared_manifests | indent 4
     printf -- "- Installing applications via Openshift GitOps... \n"
     install_applications | indent 4
+
+    #checking if the pipelines and triggers pods are up and running
+    printf -- "- Checking deployment status\n"
+    tektonDeployments=("tekton-pipelines-controller" "tekton-triggers-controller" "tekton-triggers-core-interceptors")
+    check_deployments "openshift-pipelines" "${tektonDeployments[@]}" | indent 4
+    certManagerDeployments=("tekton-chains-controller")
+    check_deployments "tekton-chains" "${certManagerDeployments[@]}" | indent 4
+    certManagerDeployments=("cert-manager" "cert-manager-cainjector" "cert-manager-webhook")
+    check_deployments "openshift-cert-manager" "${certManagerDeployments[@]}" | indent 4
   done
 }
 
@@ -131,29 +141,10 @@ install_applications() {
   kubectl apply -k "$CONFIG_DIR"
 }
 
-postchecks() {
-  printf -- "- Checking deployment status\n"
-  #checking if the pipelines and triggers pods are up and running
-  for i in "${!clusters[@]}"; do
-    switch_cluster
-    printf -- "  [Compute %s:\n" "${clusters[$i]}]"
-
-    tektonDeployments=("tekton-pipelines-controller" "tekton-triggers-controller" "tekton-triggers-core-interceptors")
-    check_deployments "openshift-pipelines" "${tektonDeployments[@]}" | indent 4
-
-    certManagerDeployments=("tekton-chains-controller")
-    check_deployments "tekton-chains" "${certManagerDeployments[@]}" | indent 4
-
-    certManagerDeployments=("cert-manager" "cert-manager-cainjector" "cert-manager-webhook")
-    check_deployments "openshift-cert-manager" "${certManagerDeployments[@]}" | indent 4
-  done
-}
-
 main() {
   parse_args "$@"
   get_clusters
   install_clusters
-  postchecks
 }
 
 if [ "${BASH_SOURCE[0]}" == "$0" ]; then
