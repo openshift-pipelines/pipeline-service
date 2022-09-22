@@ -31,6 +31,9 @@ jobs:
             kcp-registrar:
               - 'images/kcp-registrar/**'
             shellcheck:
+              - 'config/dependencies.yaml'
+              - 'test/images/devenv/**'
+            shellcheck:
               - 'test/images/shellcheck/**'
             vulnerability:
               - 'test/images/vulnerability-scan/**'
@@ -136,6 +139,31 @@ jobs:
       - name: Print image url
         if: steps.filter.outputs.kcp-registrar == 'true'
         run: echo "Image pushed to ${{ steps.push-to-quay-kcp-registrar.outputs.registry-paths }}"
+
+      # Build and push devenv image, tagged with the branch name and the commit SHA.
+      - name: Build devenv Image
+        id: build-image-devenv
+        if: steps.filter.outputs.devenv == 'true'
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: devenv
+          context: .
+          tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
+          containerfiles: |
+            ./test/images/devenv/Dockerfile
+      - name: Push to quay.io
+        id: push-to-quay-devenv
+        if: steps.filter.outputs.devenv == 'true'
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-image-devenv.outputs.image }}
+          tags: ${{ steps.build-image-devenv.outputs.tags }} ${{ github.ref_name }}
+          registry: quay.io/redhat-pipeline-service
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_TOKEN }}
+      - name: Print image url
+        if: steps.filter.outputs.devenv == 'true'
+        run: echo "Image pushed to ${{ steps.push-to-quay-devenv.outputs.registry-paths }}"
 
       # Build and push shellcheck image, tagged with latest and the commit SHA.
       - name: Build shellcheck Image
