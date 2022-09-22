@@ -41,3 +41,4 @@
 | yq                 | 4.25.3 (>=4.18.1) | Required for parsing things; used in various scripts throughout the project | Certain features are not supported with versions < 4.18.1. Use Latest version to avoid any issues                                                                |
 | docker             | 20.10.x           | For local development only                                                  | Only one of docker or podman is required. No requirement to use a particular version; users can install the latest version available at the time                 |
 | podman             | 4.0.0             | For local development only                                                  | Only one of docker or podman is required. No requirement to use a particular version; users can install the latest version available at the time                 |
+| openssl            | 3.0.2             | To manipulate certificate information during cluster regsitration           | |
