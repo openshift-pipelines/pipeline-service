@@ -62,7 +62,7 @@ detect_container_engine() {
     if [[ "${ALLOW_ROOTLESS}" == "true" ]]; then
         CONTAINER_ENGINE=podman
     fi
-    if ! command -v podman; then
+    if ! command -v podman >/dev/null; then
         CONTAINER_ENGINE=docker
         return
     fi
