@@ -7,16 +7,17 @@ SCRIPT_DIR="$(
   cd "$(dirname "$0")" >/dev/null
   pwd
 )"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 # shellcheck source=ckcp/hack/util/update-git-reference.sh
 source "$SCRIPT_DIR/hack/util/update-git-reference.sh"
 
 # shellcheck source=images/cluster-setup/bin/utils.sh
-source "$SCRIPT_DIR/../images/cluster-setup/bin/utils.sh"
+source "$PROJECT_DIR/images/cluster-setup/bin/utils.sh"
 
-GITOPS_DIR="$(dirname "$SCRIPT_DIR")/gitops"
-CKCP_DIR="$(dirname "$SCRIPT_DIR")/ckcp"
-CONFIG="$(dirname "$SCRIPT_DIR")/config/config.yaml"
+GITOPS_DIR="$PROJECT_DIR/gitops"
+CKCP_DIR="$PROJECT_DIR/ckcp"
+CONFIG="$PROJECT_DIR/config/config.yaml"
 
 KUBECONFIG=${KUBECONFIG:-$HOME/.kube/config}
 
@@ -54,6 +55,7 @@ parse_args() {
       ;;
     -d | --debug)
       set -x
+      DEBUG="--debug"
       ;;
     -h | --help)
       usage
@@ -324,7 +326,8 @@ patches:
   done
 
   echo "- Setup kcp access:"
-  "$SCRIPT_DIR/../images/access-setup/content/bin/setup_kcp.sh" \
+  "$PROJECT_DIR/images/access-setup/content/bin/setup_kcp.sh" \
+    "$DEBUG" \
     --kubeconfig "$KUBECONFIG_KCP" \
     --kcp-org "$kcp_org" \
     --kcp-workspace "$kcp_workspace" \
@@ -336,7 +339,8 @@ patches:
 
 install_pipeline_service() {
   echo "- Setup compute access:"
-  "$SCRIPT_DIR/../images/access-setup/content/bin/setup_compute.sh" \
+  "$PROJECT_DIR/images/access-setup/content/bin/setup_compute.sh" \
+    "$DEBUG" \
     --kubeconfig "$KUBECONFIG" \
     --work-dir "$WORK_DIR" \
     --kustomization "$GIT_URL/gitops/compute/pac-manager?ref=$GIT_REF" \
@@ -345,7 +349,9 @@ install_pipeline_service() {
     indent 2
 
   echo "- Deploy compute:"
-  "$SCRIPT_DIR/../images/cluster-setup/bin/install.sh" --workspace-dir "$WORK_DIR" | indent 2
+  "$PROJECT_DIR/images/cluster-setup/bin/install.sh" \
+    "$DEBUG" \
+    --workspace-dir "$WORK_DIR" | indent 2
 
   echo "- Install Pipelines as Code:"
   # Passing dummy values to the parameters of the pac/setup.sh script
@@ -358,7 +364,8 @@ install_pipeline_service() {
 
 register_compute() {
   echo "- Register compute to KCP"
-  "$(dirname "$SCRIPT_DIR")/images/kcp-registrar/register.sh" \
+  "$PROJECT_DIR/images/kcp-registrar/register.sh" \
+    "$DEBUG" \
     --kcp-org "root:default" \
     --kcp-workspace "$kcp_workspace" \
     --kcp-sync-tag "$kcp_version" \
