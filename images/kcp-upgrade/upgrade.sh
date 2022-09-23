@@ -23,9 +23,9 @@ SCRIPT_DIR="$(
   pwd
 )"
 CONFIG="$(dirname "$(dirname "$SCRIPT_DIR")")/config/config.yaml"
-current_kcp_version="$(yq '.version.kcp' "$CONFIG")"
+current_kcp_version="$(yq '.version.kcp' "$CONFIG" | sed 's/v//' )"
 
-latest_kcp_version=$(curl -s https://api.github.com/repos/kcp-dev/kcp/releases/latest | yq '.tag_name')
+latest_kcp_version="$(curl -s https://api.github.com/repos/kcp-dev/kcp/releases/latest | yq '.tag_name' | sed 's/v//' )"
 
 if [[ "$current_kcp_version" != "$latest_kcp_version" ]]; then
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" .github/workflows/build-push-images.yaml
@@ -33,6 +33,7 @@ if [[ "$current_kcp_version" != "$latest_kcp_version" ]]; then
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" DEPENDENCIES.md
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" ckcp/openshift/overlays/dev/kustomization.yaml
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" docs/kcp-registration.md
+  sed -i "s,$current_kcp_version,$latest_kcp_version,g" images/kcp-registrar/Dockerfile
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" images/kcp-registrar/register.sh
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" config/config.yaml
 else
