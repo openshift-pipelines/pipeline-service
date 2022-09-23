@@ -327,7 +327,7 @@ patches:
 
   echo "- Setup kcp access:"
   "$PROJECT_DIR/images/access-setup/content/bin/setup_kcp.sh" \
-    "$DEBUG" \
+    ${DEBUG:+"$DEBUG"} \
     --kubeconfig "$KUBECONFIG_KCP" \
     --kcp-org "$kcp_org" \
     --kcp-workspace "$kcp_workspace" \
@@ -340,7 +340,7 @@ patches:
 install_pipeline_service() {
   echo "- Setup compute access:"
   "$PROJECT_DIR/images/access-setup/content/bin/setup_compute.sh" \
-    "$DEBUG" \
+    ${DEBUG:+"$DEBUG"} \
     --kubeconfig "$KUBECONFIG" \
     --work-dir "$WORK_DIR" \
     --kustomization "$GIT_URL/gitops/compute/pac-manager?ref=$GIT_REF" \
@@ -350,7 +350,7 @@ install_pipeline_service() {
 
   echo "- Deploy compute:"
   "$PROJECT_DIR/images/cluster-setup/bin/install.sh" \
-    "$DEBUG" \
+    ${DEBUG:+"$DEBUG"} \
     --workspace-dir "$WORK_DIR" | indent 2
 
   echo "- Install Pipelines as Code:"
@@ -367,7 +367,7 @@ register_compute() {
   resources=${resources%,}
   echo "- Register compute to KCP"
   "$PROJECT_DIR/images/kcp-registrar/register.sh" \
-    "$DEBUG" \
+    ${DEBUG:+"$DEBUG"} \
     --kcp-org "root:default" \
     --kcp-workspace "$kcp_workspace" \
     --kcp-sync-tag "$kcp_version" \
