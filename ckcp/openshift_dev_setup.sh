@@ -105,9 +105,9 @@ init() {
   GIT_REF=$(yq '.git_ref // "main"' "$CONFIG")
 
   # get list of CRs to sync
-  read -ra CR_TO_SYNC <<< "$(yq eval '.cr_to_sync | join(" ")' "$CONFIG")"
-  if (( "${#CR_TO_SYNC[@]}" <= 0 )); then
-    CR_TO_SYNC=(
+  read -ra CRS_TO_SYNC <<< "$(yq eval '.crs_to_sync | join(" ")' "$CONFIG")"
+  if (( "${#CRS_TO_SYNC[@]}" <= 0 )); then
+    CRS_TO_SYNC=(
                 "deployments.apps"
                 "services"
                 "ingresses.networking.k8s.io"
@@ -363,13 +363,16 @@ install_pipeline_service() {
 }
 
 register_compute() {
+  resources="$(printf '%s,' "${CRS_TO_SYNC[@]}")"
+  resources=${resources%,}
   echo "- Register compute to KCP"
   "$PROJECT_DIR/images/kcp-registrar/register.sh" \
     "$DEBUG" \
     --kcp-org "root:default" \
     --kcp-workspace "$kcp_workspace" \
     --kcp-sync-tag "$kcp_version" \
-    --workspace-dir "$WORK_DIR" |
+    --workspace-dir "$WORK_DIR" \
+    --crs-to-sync "$(IFS=,; echo "${CRS_TO_SYNC[*]}")" |
     indent 4
 
   check_cr_sync
@@ -381,16 +384,16 @@ check_cr_sync() {
   local cr_regexp
   cr_regexp="$(
     IFS=\|
-    echo "${CR_TO_SYNC[*]}"
+    echo "${CRS_TO_SYNC[*]}"
   )"
   local wait_period=0
-  while [[ "$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources -o name 2>&1 | grep -Ewc "$cr_regexp")" -ne ${#CR_TO_SYNC[@]} ]]; do
+  while [[ "$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources -o name 2>&1 | grep -Ewc "$cr_regexp")" -ne ${#CRS_TO_SYNC[@]} ]]; do
     wait_period=$((wait_period + 10))
     #when timeout, print out the CR resoures that is not synced to KCP
     if [ "$wait_period" -gt 300 ]; then
       echo "Failed to sync following resources to KCP: "
       cr_synced=$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources -o name)
-      for cr in "${CR_TO_SYNC[@]}"; do
+      for cr in "${CRS_TO_SYNC[@]}"; do
         if [ "$(echo "$cr_synced" | grep -wc "$cr")" -eq 0 ]; then
           echo "    * $cr"
         fi
