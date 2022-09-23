@@ -24,7 +24,7 @@ usage() {
 Usage:
     %s [options]
 
-Deploy Pipeline Service on the clusters as per the configuration in WORKSPACE_DIR.
+Register compute clusters as per the environment configured in WORKSPACE_DIR.
 
 Mandatory arguments:
     --kcp-org KCP_ORG
@@ -49,6 +49,9 @@ Optional arguments:
         Kubeconfig files for compute clusters are expected in the subdirectory: credentials/kubeconfig/compute
         Default: \$WORKSPACE_DIR or current directory if the environment
         variable is unset.
+    -s, --crs-to-sync
+        A comma separated list of Custom Resources to sync with kcp.
+        Default: deployments.apps,services,ingresses.networking.k8s.io,pipelines.tekton.dev,pipelineruns.tekton.dev,tasks.tekton.dev,runs.tekton.dev,networkpolicies.networking.k8s.io
     -d, --debug
         Activate tracing/debug mode.
     -h, --help
@@ -79,6 +82,10 @@ parse_args() {
         -w | --workspace-dir)
             shift
             WORKSPACE_DIR="$1"
+            ;;
+        -s | --crs-to-sync)
+            shift
+            CRS_TO_SYNC="$1"
             ;;
         -d | --debug)
             set -x
@@ -127,6 +134,8 @@ prechecks() {
     if [[ -z "${WORKSPACE_DIR}" ]]; then
         exit_error "WORKSPACE_DIR not set\n\n"
     fi
+
+    CRS_TO_SYNC="${CRS_TO_SYNC:-deployments.apps,services,ingresses.networking.k8s.io,pipelines.tekton.dev,pipelineruns.tekton.dev,tasks.tekton.dev,runs.tekton.dev,networkpolicies.networking.k8s.io}"
 
     WORKSPACE_DIR="$(cd "$WORKSPACE_DIR" >/dev/null && pwd)" || exit_error "WORKSPACE_DIR '$WORKSPACE_DIR' cannot be accessed\n\n"
 }
@@ -207,7 +216,7 @@ register_cluster() {
         sync_target_name="$(get_sync_target_name "${clusters[$i]}")"
         KUBECONFIG="${kcp_kcfg}" kubectl kcp workload sync "${sync_target_name}" \
             --syncer-image "ghcr.io/kcp-dev/kcp/syncer:$KCP_SYNC_TAG" \
-            --resources deployments.apps,services,ingresses.networking.k8s.io,pipelines.tekton.dev,pipelineruns.tekton.dev,tasks.tekton.dev,runs.tekton.dev,networkpolicies.networking.k8s.io \
+            --resources "$CRS_TO_SYNC"\
             --output-file "$syncer_manifest"
         add_ca_cert_to_syncer_manifest "${kcp_kcfg}" "$syncer_manifest"
         KUBECONFIG="${WORKSPACE_DIR}/credentials/kubeconfig/compute/${kubeconfigs[$i]}" kubectl apply \
