@@ -23,14 +23,14 @@ jobs:
         with:
           filters: |
             access-setup:
-            - 'images/access-setup/**'
+              - 'images/access-setup/**'
             cluster-setup:
               - 'images/cluster-setup/**'
             gateway-deployment:
               - 'images/gateway-deployment/**'
             kcp-registrar:
               - 'images/kcp-registrar/**'
-            shellcheck:
+            devenv:
               - 'config/dependencies.yaml'
               - 'test/images/devenv/**'
             shellcheck:
