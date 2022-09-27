@@ -23,19 +23,26 @@ jobs:
         with:
           filters: |
             access-setup:
+              - '.github/workflows/build-push-images.yaml'
               - 'images/access-setup/**'
             cluster-setup:
+              - '.github/workflows/build-push-images.yaml'
               - 'images/cluster-setup/**'
             gateway-deployment:
+              - '.github/workflows/build-push-images.yaml'
               - 'images/gateway-deployment/**'
             kcp-registrar:
+              - '.github/workflows/build-push-images.yaml'
               - 'images/kcp-registrar/**'
             devenv:
+              - '.github/workflows/build-push-images.yaml'
               - 'config/dependencies.yaml'
               - 'test/images/devenv/**'
             shellcheck:
+              - '.github/workflows/build-push-images.yaml'
               - 'test/images/shellcheck/**'
             vulnerability:
+              - '.github/workflows/build-push-images.yaml'
               - 'test/images/vulnerability-scan/**'
 
       # Build and push access-setup image, tagged with latest and the commit SHA.
