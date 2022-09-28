@@ -22,12 +22,20 @@ SCRIPT_DIR="$(
   cd "$(dirname "$0")" >/dev/null
   pwd
 )"
+
 CONFIG="$(dirname "$(dirname "$SCRIPT_DIR")")/config/config.yaml"
 current_kcp_version="$(yq '.version.kcp' "$CONFIG" | sed 's/v//' )"
 
 latest_kcp_version="$(curl -s https://api.github.com/repos/kcp-dev/kcp/releases/latest | yq '.tag_name' | sed 's/v//' )"
 
+if [[ -z "$latest_kcp_version" ]] || [[ -z "$current_kcp_version" ]]; then
+  printf "Something went wrong."
+  return 1
+fi
+
 if [[ "$current_kcp_version" != "$latest_kcp_version" ]]; then
+  printf "\nNew kcp version is found: %s\n" "$latest_kcp_version"
+  printf "\nUpgrading kcp version from '%s' to '%s'\n"  "$current_kcp_version" "$latest_kcp_version"
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" .github/workflows/build-push-images.yaml
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" .github/workflows/local-dev-ci.yaml
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" DEPENDENCIES.md
@@ -37,5 +45,6 @@ if [[ "$current_kcp_version" != "$latest_kcp_version" ]]; then
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" images/kcp-registrar/register.sh
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" config/config.yaml
 else
-  exit 1
+  printf "\nNo new kcp version is found, already on latest version.\n"
+  return 1
 fi
