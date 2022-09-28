@@ -16,7 +16,6 @@
 
 set -o errexit
 set -o nounset
-set -o pipefail
 
 SCRIPT_DIR="$(
   cd "$(dirname "$0")" >/dev/null
@@ -29,8 +28,8 @@ current_kcp_version="$(yq '.version.kcp' "$CONFIG" | sed 's/v//' )"
 latest_kcp_version="$(curl -s https://api.github.com/repos/kcp-dev/kcp/releases/latest | yq '.tag_name' | sed 's/v//' )"
 
 if [[ -z "$latest_kcp_version" ]] || [[ -z "$current_kcp_version" ]]; then
-  printf "Something went wrong."
-  return 1
+  printf "Something went wrong." >&2
+  exit 1
 fi
 
 if [[ "$current_kcp_version" != "$latest_kcp_version" ]]; then
@@ -46,5 +45,5 @@ if [[ "$current_kcp_version" != "$latest_kcp_version" ]]; then
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" config/config.yaml
 else
   printf "\nNo new kcp version is found, already on latest version.\n"
-  return 1
+  exit 1
 fi
