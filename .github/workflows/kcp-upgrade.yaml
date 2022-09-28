@@ -6,13 +6,11 @@ on:
     - cron: "0 0 * * 0"
   workflow_dispatch:
 
-env:
-  CREATE_PR: false
-
 jobs:
   kcp-upgrade:
-    if: ${{ env.CREATE_PR }}
     runs-on: ubuntu-latest
+    env:
+      CREATE_PR: false
 
     steps:
       - name: Checkout source branch
@@ -25,12 +23,11 @@ jobs:
         run: |
           if sh ./images/kcp-upgrade/upgrade.sh; then
             echo "::set-output name=NEW_KCP_VERSION::$(curl -s https://api.github.com/repos/kcp-dev/kcp/releases/latest | yq '.tag_name' | sed 's/v//')"
-            echo ${{ env.CREATE_PR }}
           else
             echo "::set-output name=NEW_KCP_VERSION_FOUND::false"
-            echo ${{ env.CREATE_PR }}
           fi
       - name: Create PR if a new kcp version exists
+        if: ${{ env.CREATE_PR }}
         id: create-pull-request
         uses: peter-evans/create-pull-request@v4
         with:
