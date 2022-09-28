@@ -1,0 +1,14 @@
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: pipelines-scc-clusterrole
+rules:
+  - verbs:
+      - use
+    apiGroups:
+      - security.openshift.io
+    resources:
+      - securitycontextconstraints
+    resourceNames:
+      - pipelines-scc-v2

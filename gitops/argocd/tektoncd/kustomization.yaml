@@ -5,3 +5,5 @@ resources:
   - allow-argocd-to-manage.yaml
   - openshift-operator.yaml
   - tekton-config.yaml
+  - clusterrole.yaml
+  - pipelines-scc-v2.yaml
