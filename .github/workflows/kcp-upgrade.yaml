@@ -26,7 +26,7 @@ jobs:
       - name: Create PR if a new kcp version exists
         id: create-pull-request
         uses: peter-evans/create-pull-request@v4
-        if: ${{ steps.fetch-kcp-version.outputs.NEW_KCP_VERSION_FOUND }} == 0
+        if: ${{ steps.fetch-kcp-version.outputs.NEW_KCP_VERSION_FOUND }} == '0'
         with:
           token: ${{ secrets.UPGRADE_TOKEN }}
           commit-message: 'Upgrade kcp to the latest available version: ${{ steps.fetch-kcp-version.outputs.NEW_KCP_VERSION }}'
