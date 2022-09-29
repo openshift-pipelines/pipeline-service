@@ -232,7 +232,12 @@ add_ca_cert_to_syncer_manifest() {
     host="$(KUBECONFIG="${config}" kubectl config view --minify | yq '.clusters[0].cluster.server' | cut -d/ -f3)"
     # hostname may include port number, remove it if it's there
     servername="$(echo "$host" | cut -d: -f1)"
-    ca_cert="$(openssl s_client -showcerts -servername "${servername}" -connect "${host}" </dev/null 2>/dev/null | openssl x509 | base64 -w 0)"
+    # https://stackoverflow.com/a/46464081
+    base64_wrap_flag_name="--wrap"
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        base64_wrap_flag_name="--break"
+    fi
+    ca_cert="$(openssl s_client -showcerts -servername "${servername}" -connect "${host}" </dev/null 2>/dev/null | openssl x509 | base64 $base64_wrap_flag_name 0)"
     ca_cert="${ca_cert}" yq -i '(select(.stringData.kubeconfig != null)) .stringData.kubeconfig |= (fromyaml | .clusters[].cluster."certificate-authority-data" = env(ca_cert) | to_yaml)' "${manifest}"
 }
 
