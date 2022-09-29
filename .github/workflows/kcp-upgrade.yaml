@@ -25,7 +25,6 @@ jobs:
           elif
             echo "::set-output name=NEW_KCP_VERSION_FOUND::false"
           fi
-
       - name: Create PR if a new kcp version exists
         id: create-pull-request
         uses: peter-evans/create-pull-request@v4
