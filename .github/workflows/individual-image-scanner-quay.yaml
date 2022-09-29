@@ -96,7 +96,7 @@ jobs:
         id: vulnerability-scan
         if: steps.filter.outputs.shellcheck == 'true'
         run: |
-          ./test/images/clair-scan/scan-image.sh | tee /tmp/clair-scan.log
+          ./test/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
           echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
         env:
           AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
