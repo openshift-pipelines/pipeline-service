@@ -18,12 +18,19 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-# fetching values from env vars
-username="$username"
-password="$password"
-registry="$registry"
-image="$image"
-image_path="$registry"/"$image"
+init() {
+  # fetching values from env vars
+  username="$username"
+  access_token="$access_token"
+  registry="$registry"
+  image="$image"
+  image_path="$registry"/"$image"
+
+  if [[ -z "$username" || -z "$access_token" || -z "$registry" || -z "$image" ]]; then
+    printf "Error while fetching one of more env variables. Exiting.\n" >&2
+    exit 1
+  fi
+}
 
 fetch_commits() {
   for i in {1..3}; do
@@ -36,7 +43,7 @@ fetch_commits() {
       latest_commit=$(cut -c -7 < /tmp/latest_commit.json)
     else
       if [[ "$i" -lt 3 ]]; then
-        printf "Unable to fetch the latest commit. Retrying...\n" >&2
+        printf "Unable to fetch the latest commit. Retrying...\n"
         sleep 20
       else
         printf "Error while fetching the latest commit from GitHub. Status code: %s\n" "${latest_commit_status}" >&2
@@ -47,24 +54,43 @@ fetch_commits() {
 }
 
 tag_and_push() {
-  podman login -u="$username" -p="$password" quay.io
-  podman pull -q "$image_path":latest
+  podman login -u="$username" -p="$access_token" quay.io
+  latest_tag_on_quay=""
+  for i in {1..3}; do
+    latest_tag_on_quay_resp=$(curl -sw '%{http_code}' -o /tmp/tags.json \
+     -H "Authorization: Bearer $access_token" \
+     -X GET "https://quay.io/api/v1/repository/$image_path/tag/")
+
+    if [[ "$latest_tag_on_quay_resp" == "200" ]]; then
+      latest_tag_on_quay=jq .tags[].name < /tmp/tags.json | head -1 | sed "s/\"//g"
+    else
+      if [[ "$i" -lt 3 ]]; then
+        printf "Unable to fetch the image tags. Retrying...\n"
+        sleep 10
+      else
+        printf "Error while fetching the image tags. Status code: %s\n" "${latest_tag_on_quay_resp}" >&2
+        exit 1
+      fi
+    fi
+  done
+  podman pull -q "$image_path":"$latest_tag_on_quay"
   # verify that the image is actually pulled
 
-  image=$(podman images "$image_path":latest --format json | jq '.[0].Names')
+  image=$(podman images "$image_path":"$latest_tag_on_quay" --format json | jq '.[0].Names')
 
   if [[ "$image" == "null" ]]; then
-    printf "Image was not pulled due to some issue. Exiting.\n"
+    printf "Image was not pulled due to some issue. Exiting.\n" >&2
     exit 1
   else
     printf "Image pull was successful.\n"
   fi
 
-  podman tag "$image_path":latest "$image_path":"$latest_commit"
+  podman tag "$image_path":"$latest_tag_on_quay" "$image_path":"$latest_commit"
   podman push "$image_path":"$latest_commit"
 }
 
 main() {
+  init
   fetch_commits
   tag_and_push
 }
