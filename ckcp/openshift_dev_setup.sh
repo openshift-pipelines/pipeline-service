@@ -419,6 +419,13 @@ main() {
   done
   echo [sync]
   register_compute
+  printf "\nUse the below KUBECONFIG to get access to the kcp workspace and compute cluster respectively.\n"
+  printf "KUBECONFIG_KCP: %s\n" "$KUBECONFIG_KCP"
+  printf "KUBECONFIG: %s\n" "$KUBECONFIG"
+
+  printf "\nYou can also set the following aliases to access the kcp workspace and compute cluster respectively.\n"
+  printf "alias kkcp='KUBECONFIG=%s kubectl'" "$KUBECONFIG_KCP"
+  printf "alias kcompute='KUBECONFIG=%s kubectl'" "$KUBECONFIG"
 }
 
 if [ "${BASH_SOURCE[0]}" == "$0" ]; then
