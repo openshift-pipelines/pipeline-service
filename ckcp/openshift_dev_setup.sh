@@ -350,7 +350,7 @@ install_pipeline_service() {
     indent 2
 
   echo "- Deploy compute:"
-  "$PROJECT_DIR/images/cluster-setup/bin/install.sh" \
+  KUBECONFIG="" "$PROJECT_DIR/images/cluster-setup/bin/install.sh" \
     ${DEBUG:+"$DEBUG"} \
     --workspace-dir "$WORK_DIR" | indent 2
 
