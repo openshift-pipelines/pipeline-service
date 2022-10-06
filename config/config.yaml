@@ -29,4 +29,4 @@ apps:
 
 # versions
 version:
-  kcp: v0.8.2
+  kcp: v0.9.0
