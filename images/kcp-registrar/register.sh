@@ -220,7 +220,9 @@ register_cluster() {
             --output-file "$syncer_manifest"
         add_ca_cert_to_syncer_manifest "${kcp_kcfg}" "$syncer_manifest"
         # Add annotations required by kcp-glbc
-        KUBECONFIG="${kcp_kcfg}" kubectl annotate --overwrite synctarget "${sync_target_name}" featuregates.experimental.workload.kcp.dev/advancedscheduling='true'
+        # Commenting the below line, which adds an annotation, as this is causing issues with the syncer being unable to sync the status from synctarget back to the kcp workspace.
+        # Issue being tracked here - https://github.com/kcp-dev/kcp/issues/2147
+#        KUBECONFIG="${kcp_kcfg}" kubectl annotate --overwrite synctarget "${sync_target_name}" featuregates.experimental.workload.kcp.dev/advancedscheduling='true'
         KUBECONFIG="${kcp_kcfg}" kubectl label --overwrite synctarget "${sync_target_name}" kuadrant.dev/synctarget="${sync_target_name}"
 
         KUBECONFIG="${WORKSPACE_DIR}/credentials/kubeconfig/compute/${kubeconfigs[$i]}" kubectl apply \
