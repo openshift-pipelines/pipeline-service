@@ -19,10 +19,11 @@ jobs:
       - name: Check if a new kcp version exists and update the files if it does
         id: fetch-kcp-version
         run: |
-          sh ./images/kcp-upgrade/upgrade.sh
-          echo "::set-output name=NEW_KCP_VERSION::$(curl -s https://api.github.com/repos/kcp-dev/kcp/releases/latest | yq '.tag_name' | sed 's/v//')"
-          echo "::set-output name=NEW_KCP_VERSION_FOUND::true"
-        continue-on-error: true
+          ./images/kcp-upgrade/upgrade.sh
+          if [ -e "/tmp/kcp-upgrade.txt" ]; then
+            echo "::set-output name=NEW_KCP_VERSION::$(cat "/tmp/kcp-upgrade.txt" | sed 's/v//')"
+            echo "::set-output name=NEW_KCP_VERSION_FOUND::true"
+          fi
 
       - name: Create PR if a new kcp version exists
         if: ${{ steps.fetch-kcp-version.outputs.NEW_KCP_VERSION_FOUND == 'true' }}

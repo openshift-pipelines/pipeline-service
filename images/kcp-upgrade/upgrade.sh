@@ -44,7 +44,7 @@ if [ "$current_kcp_version" != "$latest_kcp_version" ]; then
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" images/kcp-registrar/register.sh
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" config/config.yaml
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" config/dependencies.yaml
+  echo "$latest_kcp_version" > /tmp/kcp-upgrade.txt
 else
-  printf "\nNo new kcp version is found, already on latest version.\n"
-  exit 1
+  printf "\nAlready on the latest version: '%s'.\n" "$current_kcp_version"
 fi
