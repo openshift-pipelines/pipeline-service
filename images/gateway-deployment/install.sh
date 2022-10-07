@@ -54,7 +54,7 @@ prechecks () {
 
 # populate kcp_kcfg with the location of the kubeconfig for connecting to kcp
 kcp_kubeconfig() {
-    mapfile -t files < <(ls "$DATA_DIR/credentials/kubeconfig/kcp/*.kubeconfig" 2>/dev/null)
+    mapfile -t files < <(ls "$DATA_DIR/credentials/kubeconfig/kcp/"*.kubeconfig 2>/dev/null)
     if [ ${#files[@]} -ne 1 ]; then
         printf "A single kubeconfig file is expected at %s\n" "$DATA_DIR/credentials/kubeconfig/kcp"
         usage
