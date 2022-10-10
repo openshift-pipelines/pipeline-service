@@ -21,12 +21,12 @@ set -o pipefail
 init() {
   # fetching values from env vars
   username="$username"
-  access_token="$access_token"
+  password="$password"
   registry="$registry"
   image="$image"
   image_path="$registry"/"$image"
 
-  if [[ -z "$username" || -z "$access_token" || -z "$registry" || -z "$image" ]]; then
+  if [[ -z "$username" || -z "$password" || -z "$registry" || -z "$image" ]]; then
     printf "Error while fetching one of more env variables. Exiting.\n" >&2
     exit 1
   fi
@@ -54,11 +54,11 @@ fetch_commits() {
 }
 
 tag_and_push() {
-  podman login -u="$username" -p="$access_token" quay.io
+  podman login -u="$username" -p="$password" quay.io
   latest_tag_on_quay=""
   for i in {1..3}; do
     latest_tag_on_quay_resp=$(curl -sw '%{http_code}' -o /tmp/tags.json \
-     -H "Authorization: Bearer $access_token" \
+     -H "Authorization: Bearer $password" \
      -X GET "https://quay.io/api/v1/repository/$image_path/tag/")
 
     if [[ "$latest_tag_on_quay_resp" == "200" ]]; then
