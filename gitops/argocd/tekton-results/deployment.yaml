@@ -42,7 +42,7 @@ spec:
               value: tekton-results-database-service.openshift-pipelines.svc.cluster.local
             - name: DB_NAME
               value: tekton_results
-          image: gcr.io/tekton-releases/github.com/tektoncd/results/cmd/api:v0.4.0@sha256:c821fe31fc28af775a3dec68378e804847d2bb0b47d3bb27bed3974e1bad7ab5
+          image: quay.io/redhat-appstudio/tekton-results-api@sha256:dca434dccd576e7a186098779f678422f10ac16b395c67944ffa50633fc3dd2e
           name: api
           volumeMounts:
             - mountPath: /etc/tls
@@ -85,7 +85,7 @@ spec:
             - tekton-results-api-service.openshift-pipelines.svc.cluster.local:50051
             - -auth_mode
             - token
-          image: gcr.io/tekton-releases/github.com/tektoncd/results/cmd/watcher:v0.4.0@sha256:a44099a844fcc607ef3648011100b6ff8fc691933f28139dd23fa482a2ff99e0
+          image: quay.io/redhat-appstudio/tekton-results-watcher@sha256:801bfcfd4292dfd1239f638bcf88b0becb15af1263b81aff13f4f14db272e787
           name: watcher
           volumeMounts:
             - mountPath: /etc/tls
