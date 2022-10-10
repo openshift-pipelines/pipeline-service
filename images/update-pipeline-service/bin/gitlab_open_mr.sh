@@ -15,7 +15,6 @@ raise_mr_gitlab() {
   for i in {1..3}; do
     resp_http_code=$(curl -k -w '%{http_code}' -o /tmp/commit_logs.json -X PUT --header "PRIVATE-TOKEN: $GITLAB_TOKEN" --header "Content-Type: application/json" --data '{"branch": "robot/pipeline-service-update", "commit_message": "Updating the image tag with the latest commit SHA", "content": '"$(jq -Rs '.' .gitlab-ci.yml)"'}' "https://gitlab.cee.redhat.com/api/v4/projects/$CI_PROJECT_ID/repository/files/.gitlab-ci.yml")
     printf "%s\n" "$resp_http_code"
-    cat /tmp/commit_logs.json
 
     if [[ "$resp_http_code" == "200" ]]; then
       # raise a MR
