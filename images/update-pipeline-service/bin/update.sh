@@ -82,7 +82,7 @@ fetch_commits() {
       fi
     fi
   done
-  current_commit=$(yq '.build-job.image.name' < "$gitlab_ci" | cut -d ':' -f2)
+  current_commit=$(yq '.deploy-job.image.name' < "$gitlab_ci" | cut -d ':' -f2)
 }
 
 main() {
