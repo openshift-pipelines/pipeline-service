@@ -55,20 +55,21 @@ fetch_commits() {
 
 tag_and_push() {
   podman login -u="$username" -p="$password" quay.io
+  url="https://quay.io/api/v1/repository/$image_path/tag/"
   latest_tag_on_quay=""
   for i in {1..3}; do
     latest_tag_on_quay_resp=$(curl -sw '%{http_code}' -o /tmp/tags.json \
      -H "Authorization: Bearer $password" \
-     -X GET "https://quay.io/api/v1/repository/$image_path/tag/")
+     -X GET "$url")
 
     if [[ "$latest_tag_on_quay_resp" == "200" ]]; then
-      latest_tag_on_quay=jq .tags[].name < /tmp/tags.json | head -1 | sed "s/\"//g"
+      latest_tag_on_quay=$(jq .tags[0].name < /tmp/tags.json | tr -d \")
     else
       if [[ "$i" -lt 3 ]]; then
         printf "Unable to fetch the image tags. Retrying...\n"
         sleep 10
       else
-        printf "Error while fetching the image tags. Status code: %s\n" "${latest_tag_on_quay_resp}" >&2
+        printf "Error while fetching the image tags from '%s'. Status code: %s\n" "$url" "${latest_tag_on_quay_resp}" >&2
         exit 1
       fi
     fi
