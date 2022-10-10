@@ -1,4 +1,5 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6
+#FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6
+FROM registry.access.redhat.com/ubi8/ubi-minimal@sha256:e58664de16551db29fb0eaaeb3c4a44eaf95ad89a5b2399a1107041c4f2d6d34
 LABEL build-date= \
       com.redhat.build-host= \
       description="This image provides the required tooling to update the image tags on the SRE gitops repository" \
