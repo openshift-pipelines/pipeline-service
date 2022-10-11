@@ -3,7 +3,7 @@ kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
   name: tekton-results
-  namespace: openshift-pipelines
+  namespace: tekton-results
   labels:
     app.kubernetes.io/part-of: tekton-results
     app.kubernetes.io/version: v0.4.0

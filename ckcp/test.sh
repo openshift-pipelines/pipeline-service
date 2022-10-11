@@ -194,27 +194,27 @@ test_results() {
   echo "Verify tekton-results has stored the results in the database"
 
   # Prepare a custom Service Account that will be used for debugging purposes
-  if ! KUBECONFIG="$KUBECONFIG" kubectl get serviceaccount tekton-results-debug -n openshift-pipelines >/dev/null 2>&1; then
-    KUBECONFIG="$KUBECONFIG" kubectl create serviceaccount tekton-results-debug -n openshift-pipelines
+  if ! KUBECONFIG="$KUBECONFIG" kubectl get serviceaccount tekton-results-debug -n tekton-results >/dev/null 2>&1; then
+    KUBECONFIG="$KUBECONFIG" kubectl create serviceaccount tekton-results-debug -n tekton-results
   fi
   # Grant required privileges to the Service Account
-  if ! KUBECONFIG="$KUBECONFIG" kubectl get clusterrolebinding tekton-results-debug -n openshift-pipelines >/dev/null 2>&1; then
-    KUBECONFIG="$KUBECONFIG" kubectl create clusterrolebinding tekton-results-debug --clusterrole=tekton-results-readonly --serviceaccount=openshift-pipelines:tekton-results-debug
+  if ! KUBECONFIG="$KUBECONFIG" kubectl get clusterrolebinding tekton-results-debug -n tekton-results >/dev/null 2>&1; then
+    KUBECONFIG="$KUBECONFIG" kubectl create clusterrolebinding tekton-results-debug --clusterrole=tekton-results-readonly --serviceaccount=tekton-results:tekton-results-debug
   fi
 
   # Proxies the remote Service to localhost.
-  KUBECONFIG="$KUBECONFIG" kubectl port-forward -n openshift-pipelines service/tekton-results-api-service 50051 >/dev/null & 
+  KUBECONFIG="$KUBECONFIG" kubectl port-forward -n tekton-results service/tekton-results-api-service 50051 >/dev/null & 
   PORTFORWARD_PID=$!
   echo $PORTFORWARD_PID
   # download the API Server certificate locally and configure gRPC.
-  KUBECONFIG="$KUBECONFIG" kubectl get secrets tekton-results-tls -n openshift-pipelines --template='{{index .data "tls.crt"}}' | base64 -d > /tmp/results.crt
+  KUBECONFIG="$KUBECONFIG" kubectl get secrets tekton-results-tls -n tekton-results --template='{{index .data "tls.crt"}}' | base64 -d > /tmp/results.crt
   export GRPC_DEFAULT_SSL_ROOTS_FILE_PATH=/tmp/results.crt
   
   RESULT_UID=$(kubectl get pipelinerun "$PIPELINE_RUN" -n "$KCP_NS_NAME" -o yaml | yq .metadata.uid)
   
   # This is required to pass shellcheck due to the single quotes in the GetResult name parameter.
   QUERY=("name: \"$KCP_NS_NAME/results/$RESULT_UID\"")
-  RECORD_CMD=("grpc_cli call --channel_creds_type=ssl --ssl_target=tekton-results-api-service.openshift-pipelines.svc.cluster.local --call_creds=access_token=$(kubectl get secrets -n openshift-pipelines -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='tekton-results-debug')].data.token}"| cut -d ' ' -f 2 | base64 --decode) localhost:50051 tekton.results.v1alpha2.Results.GetResult '${QUERY[@]}'")
+  RECORD_CMD=("grpc_cli call --channel_creds_type=ssl --ssl_target=tekton-results-api-service.tekton-results.svc.cluster.local --call_creds=access_token=$(kubectl get secrets -n tekton-results -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='tekton-results-debug')].data.token}"| cut -d ' ' -f 2 | base64 --decode) localhost:50051 tekton.results.v1alpha2.Results.GetResult '${QUERY[@]}'")
   RECORD_RESULT=$(eval "${RECORD_CMD[@]}")
 
   # kill backgrounded port forwarding process as it is no longer required. 

@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/part-of: tekton-results
     app.kubernetes.io/version: v0.4.0
   name: tekton-results-api-service
-  namespace: openshift-pipelines
+  namespace: tekton-results
 spec:
   ports:
     - name: grpc
@@ -30,7 +30,7 @@ metadata:
     app.kubernetes.io/part-of: tekton-results
     app.kubernetes.io/version: v0.4.0
   name: tekton-results-database-service
-  namespace: openshift-pipelines
+  namespace: tekton-results
 spec:
   ports:
     - name: postgres

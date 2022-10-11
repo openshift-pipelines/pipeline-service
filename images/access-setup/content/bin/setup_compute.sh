@@ -211,9 +211,9 @@ tekton_results_manifest(){
 
     {
       echo "---"
-      kubectl create namespace openshift-pipelines --dry-run=client -o yaml
+      kubectl create namespace tekton-results --dry-run=client -o yaml
       echo "---"
-      kubectl create secret generic -n openshift-pipelines tekton-results-database --from-literal=DATABASE_USER="$TEKTON_RESULTS_DATABASE_USER" --from-literal=DATABASE_PASSWORD="$TEKTON_RESULTS_DATABASE_PASSWORD" --dry-run=client -o yaml
+      kubectl create secret generic -n tekton-results tekton-results-database --from-literal=DATABASE_USER="$TEKTON_RESULTS_DATABASE_USER" --from-literal=DATABASE_PASSWORD="$TEKTON_RESULTS_DATABASE_PASSWORD" --dry-run=client -o yaml
     } > "$manifest"
     if [ "$(yq ".data" < "$manifest" | grep -cE "DATABASE_USER|DATABASE_PASSWORD")" != "2" ]; then
       printf "[ERROR] Invalid manifest: '%s'" "$manifest" >&2
