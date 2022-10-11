@@ -3,7 +3,7 @@ apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: tekton-results-bootstrap
-  namespace: openshift-pipelines
+  namespace: tekton-results
 spec:
   selfSigned: {}
 ---
@@ -11,12 +11,12 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: tekton-results-tls
-  namespace: openshift-pipelines
+  namespace: tekton-results
 spec:
   isCA: true
-  commonName: tekton-results-api-service.openshift-pipelines.svc.cluster.local
+  commonName: tekton-results-api-service.tekton-results.svc.cluster.local
   dnsNames:
-    - tekton-results-api-service.openshift-pipelines.svc.cluster.local
+    - tekton-results-api-service.tekton-results.svc.cluster.local
   secretName: tekton-results-tls
   privateKey:
     algorithm: RSA
@@ -30,7 +30,7 @@ apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: tekton-results-server-issuer
-  namespace: openshift-pipelines
+  namespace: tekton-results
 spec:
   ca:
     secretName: tekton-results-tls
@@ -39,7 +39,7 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: tekton-results
-  namespace: openshift-pipelines
+  namespace: tekton-results
 spec:
   secretName: tekton-results-cert
   duration: 2160h0m0s # 90d
@@ -54,6 +54,6 @@ spec:
   usages:
     - server auth
   dnsNames:
-    - tekton-results-api-service.openshift-pipelines.svc.cluster.local
+    - tekton-results-api-service.tekton-results.svc.cluster.local
   issuerRef:
     name: tekton-results-server-issuer

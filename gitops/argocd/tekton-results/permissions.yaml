@@ -128,7 +128,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: tekton-results-api
-    namespace: openshift-pipelines
+    namespace: tekton-results
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -144,4 +144,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: tekton-results-watcher
-    namespace: openshift-pipelines
+    namespace: tekton-results
