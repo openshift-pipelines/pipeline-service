@@ -32,68 +32,49 @@ init() {
   fi
 }
 
-fetch_commits() {
-  for i in {1..3}; do
-    latest_commit_status=$(
-      curl -sw '%{http_code}' -o /tmp/latest_commit.json \
-      -H "Accept: application/vnd.github.VERSION.sha" \
-      "https://api.github.com/repos/openshift-pipelines/pipeline-service/commits/main"
-    )
-    if [[ "$latest_commit_status" == "200" ]]; then
-      latest_commit=$(cut -c -7 < /tmp/latest_commit.json)
-    else
-      if [[ "$i" -lt 3 ]]; then
-        printf "Unable to fetch the latest commit. Retrying...\n"
-        sleep 20
-      else
-        printf "Error while fetching the latest commit from GitHub. Status code: %s\n" "${latest_commit_status}" >&2
-        exit 1
-      fi
-    fi
-  done
+get_commit_id() {
+  if [ -n "$GITHUB_SHA" ]; then
+    commit_id="${GITHUB_SHA:0:7}"
+  fi
+  if [ -z "$commit_id" ]; then
+    printf "Commit ID not found" >&2
+    exit 1
+  fi
 }
 
-tag_and_push() {
-  podman login -u="$username" -p="$password" quay.io
-  url="https://quay.io/api/v1/repository/$image_path/tag/"
-  latest_tag_on_quay=""
-  for i in {1..3}; do
-    latest_tag_on_quay_resp=$(curl -sw '%{http_code}' -o /tmp/tags.json \
-     -H "Authorization: Bearer $password" \
-     -X GET "$url")
-
-    if [[ "$latest_tag_on_quay_resp" == "200" ]]; then
-      latest_tag_on_quay=$(jq .tags[0].name < /tmp/tags.json | tr -d \")
-    else
-      if [[ "$i" -lt 3 ]]; then
-        printf "Unable to fetch the image tags. Retrying...\n"
-        sleep 10
-      else
-        printf "Error while fetching the image tags from '%s'. Status code: %s\n" "$url" "${latest_tag_on_quay_resp}" >&2
-        exit 1
-      fi
-    fi
-  done
-  podman pull -q "$image_path":"$latest_tag_on_quay"
-  # verify that the image is actually pulled
-
-  image=$(podman images "$image_path":"$latest_tag_on_quay" --format json | jq '.[0].Names')
-
-  if [[ "$image" == "null" ]]; then
-    printf "Image was not pulled due to some issue. Exiting.\n" >&2
+get_branch_name() {
+  if [ -n "$GITHUB_REF" ]; then
+    branch_name="$GITHUB_REF"
+  fi
+  if [ -z "$branch_name" ]; then
+    printf "Branch name not found" >&2
     exit 1
-  else
-    printf "Image pull was successful.\n"
+  fi
+}
+
+pull_push_image() {
+  source="$image_path":"$branch_name"
+  target="$image_path":"$commit_id"
+
+  podman login -u="$username" -p="$password" quay.io
+
+  podman pull -q "$source"
+  image=$(podman images "$source" --format json | jq '.[0].Names')
+  if [[ "$image" == "null" ]]; then
+    printf "Image '%s' was not pulled due to some issue. Exiting.\n" "$source" >&2
+    exit 1
   fi
 
-  podman tag "$image_path":"$latest_tag_on_quay" "$image_path":"$latest_commit"
-  podman push "$image_path":"$latest_commit"
+  podman tag "$source" "$target"
+
+  podman push "$target"
 }
 
 main() {
   init
-  fetch_commits
-  tag_and_push
+  get_branch_name
+  get_commit_id
+  pull_push_image
 }
 
 if [ "${BASH_SOURCE[0]}" == "$0" ]; then
