@@ -18,6 +18,48 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+usage() {
+  printf "
+Usage:
+    %s [options]
+
+Pull the latest tagged \$image for \$branch_name, tag it as \$commit_id,
+and push it to the quay.io/\$registry repository.
+
+The goal is to prevent building a new image when the contents have not
+changed, and tag the previously built image with the new commit instead.
+
+Optional arguments:
+    -d, --debug
+        Activate tracing/debug mode.
+    -h, --help
+        Display this message.
+
+Example:
+    %s
+" "${0##*/}" "${0##*/}" >&2
+}
+
+parse_args() {
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+    -d | --debug)
+      set -x
+      ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $1"
+      usage
+      exit 1
+      ;;
+    esac
+    shift
+  done
+}
+
 init() {
   # fetching values from env vars
   username="$username"
@@ -71,6 +113,7 @@ pull_push_image() {
 }
 
 main() {
+  parse_args "$@"
   init
   get_branch_name
   get_commit_id

@@ -81,7 +81,7 @@ jobs:
         if: steps.filter.outputs.access-setup != 'true'
         env:
           image: access-setup
-          registry: redhat-pipeline-service
+          registry: quay.io/redhat-pipeline-service
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
@@ -117,7 +117,7 @@ jobs:
         if: steps.filter.outputs.cluster-setup != 'true'
         env:
           image: cluster-setup
-          registry: redhat-pipeline-service
+          registry: quay.io/redhat-pipeline-service
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
@@ -153,7 +153,7 @@ jobs:
         if: steps.filter.outputs.gateway-deployment != 'true'
         env:
           image: gateway-deployment
-          registry: redhat-pipeline-service
+          registry: quay.io/redhat-pipeline-service
           username: ${{ secrets.QUAY_USERNAME }}
           access_token: ${{ secrets.QUAY_TOKEN }}
         run: |
@@ -191,7 +191,7 @@ jobs:
         if: steps.filter.outputs.kcp-registrar != 'true'
         env:
           image: kcp-registrar
-          registry: redhat-pipeline-service
+          registry: quay.io/redhat-pipeline-service
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
@@ -227,7 +227,7 @@ jobs:
         if: steps.filter.outputs.quay-upload != 'true'
         env:
           image: quay-upload
-          registry: redhat-pipeline-service
+          registry: quay.io/redhat-pipeline-service
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
@@ -263,7 +263,7 @@ jobs:
         if: steps.filter.outputs.update-pipeline-service != 'true'
         env:
           image: update-pipeline-service
-          registry: redhat-pipeline-service
+          registry: quay.io/redhat-pipeline-service
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
@@ -299,7 +299,7 @@ jobs:
         if: steps.filter.outputs.devenv != 'true'
         env:
           image: devenv
-          registry: redhat-pipeline-service
+          registry: quay.io/redhat-pipeline-service
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
@@ -335,7 +335,7 @@ jobs:
         if: steps.filter.outputs.shellcheck != 'true'
         env:
           image: shellcheck
-          registry: redhat-pipeline-service
+          registry: quay.io/redhat-pipeline-service
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
@@ -371,7 +371,7 @@ jobs:
         if: steps.filter.outputs.vulnerability != 'true'
         env:
           image: vulnerability-scan
-          registry: redhat-pipeline-service
+          registry: quay.io/redhat-pipeline-service
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
