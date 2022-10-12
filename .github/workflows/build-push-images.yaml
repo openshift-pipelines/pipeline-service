@@ -85,7 +85,7 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
-          ./test/images/quay-upload/image-upload.sh
+          ./test/images/quay-upload/image-upload.sh --debug
 
       # Build and push cluster-setup image, tagged with latest and the commit SHA.
       - name: Build cluster-setup Image
@@ -121,7 +121,7 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
-          ./test/images/quay-upload/image-upload.sh
+          ./test/images/quay-upload/image-upload.sh --debug
 
       # Build and push gateway-deployment image, tagged with latest and the commit SHA.
       - name: Build gateway-deployment Image
@@ -157,7 +157,7 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           access_token: ${{ secrets.QUAY_TOKEN }}
         run: |
-          ./test/images/quay-upload/image-upload.sh
+          ./test/images/quay-upload/image-upload.sh --debug
 
       # Build and push kcp-registrar image, tagged with latest and the commit SHA.
       - name: Build kcp-registrar Image
@@ -195,7 +195,7 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
-          ./test/images/quay-upload/image-upload.sh
+          ./test/images/quay-upload/image-upload.sh --debug
 
       # Build and push quay-upload image, tagged with latest and the commit SHA.
       - name: Build quay-upload Image
@@ -231,7 +231,7 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
-          ./test/images/quay-upload/image-upload.sh
+          ./test/images/quay-upload/image-upload.sh --debug
 
       # Build and push update-pipeline-service image, tagged with latest and the commit SHA.
       - name: Build update-pipeline-service Image
@@ -267,7 +267,7 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
-          ./test/images/quay-upload/image-upload.sh
+          ./test/images/quay-upload/image-upload.sh --debug
 
       # Build and push devenv image, tagged with the branch name and the commit SHA.
       - name: Build devenv Image
@@ -303,7 +303,7 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
-          ./test/images/quay-upload/image-upload.sh
+          ./test/images/quay-upload/image-upload.sh --debug
 
       # Build and push shellcheck image, tagged with latest and the commit SHA.
       - name: Build shellcheck Image
@@ -339,7 +339,7 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
-          ./test/images/quay-upload/image-upload.sh
+          ./test/images/quay-upload/image-upload.sh --debug
 
       # Build and push vulnerability-scan image, tagged with latest and the commit SHA.
       - name: Build vulnerability Image
@@ -375,4 +375,4 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
-          ./test/images/quay-upload/image-upload.sh
+          ./test/images/quay-upload/image-upload.sh --debug

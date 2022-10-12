@@ -24,7 +24,7 @@ Usage:
     %s [options]
 
 Pull the latest tagged \$image for \$branch_name, tag it as \$commit_id,
-and push it to the quay.io/\$registry repository.
+and push it to the \$registry repository.
 
 The goal is to prevent building a new image when the contents have not
 changed, and tag the previously built image with the new commit instead.
@@ -75,7 +75,7 @@ init() {
 }
 
 get_commit_id() {
-  if [ -n "$GITHUB_SHA" ]; then
+  if [ -n "${GITHUB_SHA:-}" ]; then
     commit_id="${GITHUB_SHA:0:7}"
   fi
   if [ -z "$commit_id" ]; then
@@ -85,8 +85,8 @@ get_commit_id() {
 }
 
 get_branch_name() {
-  if [ -n "$GITHUB_REF" ]; then
-    branch_name="$GITHUB_REF"
+  if [ -n "${GITHUB_REF_NAME:-}" ]; then
+    branch_name="$GITHUB_REF_NAME"
   fi
   if [ -z "$branch_name" ]; then
     printf "Branch name not found" >&2
@@ -95,8 +95,8 @@ get_branch_name() {
 }
 
 pull_push_image() {
-  source="$image_path":"$branch_name"
-  target="$image_path":"$commit_id"
+  source="$image_path:$branch_name"
+  target="$image_path:$commit_id"
 
   podman login -u="$username" -p="$password" quay.io
 
