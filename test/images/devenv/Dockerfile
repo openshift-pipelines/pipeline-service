@@ -1,5 +1,5 @@
 #FROM quay.io/podman/stable:v4
-FROM quay.io/podman/stable@sha256:4235eac4abf82be8217a35dea93387e235bf181b297a6b165fbf90a438907fcb
+FROM quay.io/podman/stable@sha256:e968245017a54e31fec7583c589f1d68e5a14723e76d29861a887865c09084a0
 
 RUN set -x \
     && mkdir ~/.kube \
