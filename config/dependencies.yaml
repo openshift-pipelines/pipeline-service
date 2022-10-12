@@ -8,4 +8,4 @@ kubelogin: v1.25.1
 oc-kubectl: 4.11.4
 shellcheck: v0.7.1
 tektoncd-cli: v0.26.0
-yq: v4.24.5
+yq: v4.28.1
