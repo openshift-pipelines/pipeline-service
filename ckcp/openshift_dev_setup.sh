@@ -130,7 +130,6 @@ init() {
 		"networkpolicies.networking.k8s.io"
                 "pipelines.tekton.dev"
                 "pipelineruns.tekton.dev"
-                "runs.tekton.dev"
                 "tasks.tekton.dev"
 		"repositories.pipelinesascode.tekton.dev"
               )
