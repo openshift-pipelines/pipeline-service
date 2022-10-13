@@ -1,0 +1,111 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: pipeline-service-static-code-analysis
+  annotations:
+    pipelinesascode.tekton.dev/on-event: "[pull_request, push]"
+    pipelinesascode.tekton.dev/on-target-branch: "main"
+    pipelinesascode.tekton.dev/task: "[git-clone]"
+    pipelinesascode.tekton.dev/max-keep-runs: "5"
+spec:
+  params:
+    - name: repo_url
+      value: "{{ repo_url }}"
+    - name: revision
+      value: "{{ revision }}"
+  pipelineSpec:
+    params:
+      - name: repo_url
+      - name: revision
+    workspaces:
+      - name: source
+    tasks:
+      - name: fetch-repository
+        taskRef:
+          name: git-clone
+          kind: ClusterTask
+        workspaces:
+          - name: output
+            workspace: source
+        params:
+          - name: url
+            value: $(params.repo_url)
+          - name: revision
+            value: $(params.revision)
+      - name: shellcheck
+        runAfter:
+          - fetch-repository
+        workspaces:
+          - name: source
+            workspace: source
+        taskSpec:
+          steps:
+            - name: run-shellcheck
+              image: quay.io/redhat-pipeline-service/shellcheck:main
+              imagePullPolicy: Always
+              script: |
+                #!/usr/bin/env sh
+                shellcheck -V
+                find . -type f -name "*.sh" -print0 | xargs -r -n 1 -0 shellcheck -eSC1091
+          workspaces:
+            - name: source
+      - name: yamllint
+        runAfter:
+          - fetch-repository
+        workspaces:
+          - name: source
+            workspace: source
+        taskSpec:
+          steps:
+            - name: run-yamllint
+              image: quay.io/redhat-pipeline-service/yamllint:main
+              imagePullPolicy: Always
+              script: |
+                #!/usr/bin/env bash
+                 yamllint -v
+                cd $(workspaces.source.path)
+                yamllint -c test/config/yamllint.yaml .
+          workspaces:
+            - name: source
+      - name: hadolint
+        runAfter:
+          - fetch-repository
+        workspaces:
+          - name: source
+            workspace: source
+        taskSpec:
+          steps:
+            - name: run-hadolint
+              image: ghcr.io/hadolint/hadolint:v2.10.0-debian
+              script: |
+                #!/usr/bin/env bash
+                cd $(workspaces.source.path)
+                find . -name Dockerfile -exec hadolint -c test/config/hadolint.yaml {} +
+          workspaces:
+            - name: source
+      - name: checkov
+        runAfter:
+          - fetch-repository
+        workspaces:
+          - name: source
+            workspace: source
+        taskSpec:
+          steps:
+            - name: run-checkov
+              image: quay.io/redhat-pipeline-service/checkov:2
+              script: |
+                #!/usr/bin/env bash
+                cd $(workspaces.source.path)
+                checkov --directory . --config-file test/config/checkov.yaml
+          workspaces:
+            - name: source
+  workspaces:
+    - name: source
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
