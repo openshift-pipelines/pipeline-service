@@ -155,7 +155,7 @@ jobs:
           image: gateway-deployment
           registry: quay.io/redhat-pipeline-service
           username: ${{ secrets.QUAY_USERNAME }}
-          access_token: ${{ secrets.QUAY_TOKEN }}
+          password: ${{ secrets.QUAY_TOKEN }}
         run: |
           ./test/images/quay-upload/image-upload.sh --debug
 
