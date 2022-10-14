@@ -144,7 +144,7 @@ uninstall_pipeline_service() {
 
 uninstall_operators(){
     printf "\n  Uninstalling Openshift-GitOps Operator:\n"
-    kubectl delete -k "$CKCP_DIR/openshift-operators/openshift-gitops"
+    kubectl delete -k "$CKCP_DIR/openshift-operators/openshift-gitops" --ignore-not-found=true
     openshift_gitops_csv=$(kubectl get csv -n openshift-operators | grep -ie "openshift-gitops-operator" | cut -d " " -f 1)
     if [[ -n "$openshift_gitops_csv" ]]; then
       kubectl delete csv -n openshift-operators "$openshift_gitops_csv"
@@ -163,7 +163,7 @@ uninstall_operators(){
     fi
 
     printf "\n  Uninstalling PAC Controllers:\n"
-    kubectl delete -k "$GITOPS_DIR/pac/manifests"
+    kubectl delete -k "$GITOPS_DIR/pac/manifests" --ignore-not-found=true
     pac_ns=$(kubectl get ns | grep -ie "pipelines-as-code" | cut -d " " -f 1)
     if [[ -n "$pac_ns" ]]; then
       kubectl delete ns "$pac_ns"
@@ -172,7 +172,7 @@ uninstall_operators(){
     printf "\n  Uninstalling Openshift-Pipelines Operator:\n"
     # We start with deleting tektonconfig so that the 'tekton.dev' CRs are removed gracefully by it.
     kubectl delete tektonconfig config
-    kubectl delete -k "$GITOPS_DIR/argocd/tektoncd"
+    kubectl delete -k "$GITOPS_DIR/argocd/tektoncd" --ignore-not-found=true
     openshift_pipelines_csv=$(kubectl get csv -n openshift-operators | grep -ie "openshift-pipelines-operator" | cut -d " " -f 1)
     if [[ -n "$openshift_pipelines_csv" ]]; then
       kubectl delete csv -n openshift-operators "$openshift_pipelines_csv"
@@ -191,7 +191,7 @@ uninstall_operators(){
     fi
 
     printf "\n  Uninstalling cert-manager Operator:\n"
-    kubectl delete -k "$PROJECT_DIR/operators/cert-manager"
+    kubectl delete -k "$PROJECT_DIR/operators/cert-manager" --ignore-not-found=true
     mapfile -t cert_manager_crds < <(kubectl get crd | grep -iE "cert-manager.io|certmanagers" | cut -d " " -f 1)
     if [[ "${#cert_manager_crds[@]}" -gt 0 ]]; then
       for crd in "${cert_manager_crds[@]}"; do
@@ -227,7 +227,7 @@ uninstall_ckcp(){
 
     # remove resources created by ckcp
     printf "\n  Uninstalling ckcp from the cluster:\n"
-    kubectl delete -k "$CKCP_DIR/openshift/overlays/dev"
+    kubectl delete -k "$CKCP_DIR/openshift/overlays/dev" --ignore-not-found=true
     # Check if the ckcp pod is removed from the compute cluster
     mapfile -t ckcp_pod < <(kubectl get pods -n ckcp -l "app=kcp-in-a-pod" | cut -d " " -f 1 | tail -n +2)
     if (( ${#ckcp_pod[@]} >= 1  )); then
@@ -245,7 +245,7 @@ uninstall_ckcp(){
       printf "\nExpected syncer manifest dir:'%s'" "$syncer_manifest"
       exit 1
     fi
-    kubectl delete -f "$syncer_manifest"
+    kubectl delete -f "$syncer_manifest" --ignore-not-found=true
 
     # remove namesapces created by ckcp
     printf "\n  Removing namespaces created by ckcp:\n"
