@@ -102,7 +102,7 @@ jobs:
       - name: vulnerability scan
         continue-on-error: true
         id: vulnerability-scan
-        if: steps.filter.outputs.shellcheck == 'true'
+        if: steps.filter.outputs.vulnerability == 'true'
         run: |
           ./test/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
           echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
