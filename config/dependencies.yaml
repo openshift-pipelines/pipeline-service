@@ -7,5 +7,5 @@ kind: v0.12.0
 kubelogin: v1.25.1
 oc-kubectl: 4.11.4
 shellcheck: v0.8.0
-tektoncd-cli: v0.26.0
+tektoncd-cli: v0.27.0
 yq: v4.28.1
