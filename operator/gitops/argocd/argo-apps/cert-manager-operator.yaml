@@ -9,7 +9,7 @@ spec:
     namespace: openshift-gitops
     server: https://kubernetes.default.svc
   source:
-    path: operators/cert-manager
+    path: operator/gitops/argocd/cert-manager
     repoURL: https://github.com/openshift-pipelines/pipeline-service.git
     targetRevision: main
   project: default
