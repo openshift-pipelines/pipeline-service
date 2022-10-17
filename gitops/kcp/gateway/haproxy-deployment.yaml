@@ -2,21 +2,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gateway
+  name: haproxy
   labels:
-    app: gateway
+    app: haproxy
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: gateway
+      app: haproxy
   template:
     metadata:
       labels:
-        app: gateway
+        app: haproxy
     spec:
       containers:
-        - name: gateway
+        - name: haproxy
           image: docker.io/haproxytech/haproxy-debian@sha256:7086aaf61dfe7f07fa36eafd4bb567a60564f7dd6fcf7cdafdfbbab19c01f0ba
           resources:
             requests:
