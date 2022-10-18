@@ -404,35 +404,6 @@ register_compute() {
     --crs-to-sync "$(IFS=,; echo "${CRS_TO_SYNC[*]}")" |
     indent 4
 
-  check_cr_sync
-}
-
-check_cr_sync() {
-  # Wait until CRDs are synced to KCP
-  echo -n "- Sync CRDs to KCP: "
-  local cr_regexp
-  cr_regexp="$(
-    IFS=\|
-    echo "${CRS_TO_SYNC[*]}"
-  )"
-  local wait_period=0
-  while [[ "$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources -o name 2>&1 | grep -Ewc "$cr_regexp")" -ne ${#CRS_TO_SYNC[@]} ]]; do
-    wait_period=$((wait_period + 10))
-    #when timeout, print out the CR resoures that is not synced to KCP
-    if [ "$wait_period" -gt 300 ]; then
-      echo "Failed to sync following resources to KCP: "
-      cr_synced=$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources -o name)
-      for cr in "${CRS_TO_SYNC[@]}"; do
-        if [ "$(echo "$cr_synced" | grep -wc "$cr")" -eq 0 ]; then
-          echo "    * $cr"
-        fi
-      done
-      exit 1
-    fi
-    echo -n "."
-    sleep 10
-  done
-  echo "OK"
 }
 
 main() {

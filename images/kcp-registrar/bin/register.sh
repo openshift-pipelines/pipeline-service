@@ -264,6 +264,45 @@ configure_synctarget_ws() {
     fi
 }
 
+check_cr_sync() {
+  # Wait until CRDs are synced to KCP
+  echo -n "- Sync CRDs to KCP: "
+  local cr_regexp
+  cr_regexp="$(
+    IFS=\|
+    echo "${CRS_TO_SYNC[*]}"
+  )"
+  cr_regexp=$(echo "$cr_regexp" | tr "," \|)
+  readarray -td, crs_to_sync_arr <<<"$CRS_TO_SYNC"; declare -p crs_to_sync_arr >/dev/null;
+
+  local wait_period=0
+  while [[ "$(KUBECONFIG=${kcp_kcfg} kubectl api-resources -o name 2>&1 | grep -Ewc "$cr_regexp")" -ne ${#crs_to_sync_arr[@]} ]]; do
+    wait_period=$((wait_period + 10))
+    #when wait_period is reached, print out the CR resources that is not synced to KCP
+    if [ "$wait_period" -gt 300 ]; then
+      echo "Failed to sync following resources to KCP: "
+      cr_synced=$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources -o name)
+      for cr in "${CRS_TO_SYNC[@]}"; do
+        if [ "$(echo "$cr_synced" | grep -wc "$cr")" -eq 0 ]; then
+          echo "    * $cr"
+        fi
+      done
+      exit 1
+    fi
+    echo -n "."
+    sleep 10
+  done
+  echo "OK"
+}
+
+install_workspace_controller() {
+  ws_controller_manifests="$WORKSPACE_DIR/environment/kcp/workspace-controller/overlays"
+  if [[ -d "$ws_controller_manifests" ]]; then
+    printf "Deploying Workspace Controller into the workspace\n"
+    KUBECONFIG=${kcp_kcfg} kubectl apply -k "$ws_controller_manifests" | indent 2
+  fi
+}
+
 main() {
     parse_args "$@"
     prechecks
@@ -283,6 +322,8 @@ main() {
         register_cluster 2>&1 | indent 2
     done
     configure_synctarget_ws
+    check_cr_sync
+    install_workspace_controller
 }
 
 if [ "${BASH_SOURCE[0]}" == "$0" ]; then
