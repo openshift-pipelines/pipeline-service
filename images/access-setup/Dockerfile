@@ -13,7 +13,7 @@ RUN KUBE_VERSION=v1.24.0 && \
     curl -L -o /usr/local/bin/kubectl "https://dl.k8s.io/release/$KUBE_VERSION/bin/linux/amd64/kubectl" && \
     chmod 755 /usr/local/bin/kubectl
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-RUN KCP_VERSION=v0.7.4 && \
+RUN KCP_VERSION=v0.9.0 && \
     curl -L -o /tmp/kubectl-kcp.tgz "https://github.com/kcp-dev/kcp/releases/download/$KCP_VERSION/kubectl-kcp-plugin_$(printf '%s' "$KCP_VERSION" | sed 's/v//')_linux_amd64.tar.gz" && \
     tar -C /usr/local -xzvf /tmp/kubectl-kcp.tgz bin/kubectl-kcp && \
     rm /tmp/kubectl-kcp.tgz
