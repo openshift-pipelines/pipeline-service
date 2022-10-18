@@ -174,7 +174,7 @@ jobs:
           containerfiles: |
             ./images/kcp-registrar/Dockerfile
           build-args: |
-            KCP_TAG=v0.9.0
+            KCP_TAG=v0.9.1
       - name: Push to quay.io
         id: push-to-quay-kcp-registrar
         if: steps.filter.outputs.kcp-registrar == 'true'
