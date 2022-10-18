@@ -215,3 +215,9 @@ spec:
       path: root:${ORG_ID}:compute
 
 ```
+## Workspace Controller
+Pipeline Service deploys a controller named 'settings controller' into every kcp user workspace that is created for consuming Pipeline Service. This controller enforces a few restrictions in the user workspace such as Quotas and Network Policies.
+- Quotas limit the amount of compute resources that can be consumed.
+- NetworkPolicies restrict the access granted to the pods running the pipeline tasks to support hermetic builds.
+
+More information on the controller can be found [here](https://github.com/openshift-pipelines/pipeline-service-workspace-controller).
