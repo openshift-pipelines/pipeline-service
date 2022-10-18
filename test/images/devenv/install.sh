@@ -26,16 +26,19 @@ Usage:
 Install all the dependencies required to develop on the project.
 
 Optional arguments:
+    --bin-dir
+        Path in which to install the binaries. It must be referenced by \$PATH.
+        Default: '$BIN_DIR'.
     --dependencies
         Path to the YAML file registering the dependencies and their version.
-        Default: '$PROJECT_DIR/config/dependencies.yaml'.
+        Default: '$DEPENDENCIES'.
     -d, --debug
         Activate tracing/debug mode.
     -h, --help
         Display this message.
 
 Example:
-    ${0##*/}
+    ${0##*/} --bin-dir ~/bin
 " >&2
 }
 
@@ -49,15 +52,22 @@ init() {
         pwd
     )
 
+    BIN_DIR="/usr/local/bin"
     TMPDIR=$(mktemp -d)
     TMPBIN="$TMPDIR/bin"
     mkdir -p "$TMPBIN"
     PATH="$TMPBIN:$PATH"
+
+    DEPENDENCIES="${DEPENDENCIES:-$PROJECT_DIR/config/dependencies.yaml}"
 }
 
 parse_args() {
     while [[ $# -gt 0 ]]; do
         case $1 in
+        --bin-dir)
+            shift
+            BIN_DIR="$1"
+            ;;
         --dependencies)
             shift
             DEPENDENCIES="$1"
@@ -84,10 +94,13 @@ parse_args() {
     fi
 }
 
-get_dependencies() {
-    DEPENDENCIES="${DEPENDENCIES:-$PROJECT_DIR/config/DEPENDENCIES.yaml}"
+check_vars() {
+    if [ ! -d "$BIN_DIR" ]; then
+        echo "[ERROR] Could not find '$BIN_DIR'" >&2
+        exit 1
+    fi
     if [ ! -e "$DEPENDENCIES" ]; then
-        echo "[ERROR] Could not find 'DEPENDENCIES.yaml'" >&2
+        echo "[ERROR] Could not find '$DEPENDENCIES'" >&2
         exit 1
     fi
 }
@@ -120,13 +133,13 @@ install_dependencies() {
     # Install kubectl kcp-plugin
     version="$(yq ".kcp" "$DEPENDENCIES")"
     version_short="$(echo "$version" | cut -c 2-)"
-    curl "${CURL_OPTS[@]}" -o "$TMPDIR/kubectl-kcp.tar.gz" "https://github.com/kcp-dev/kcp/releases/download/$version/kubectl-kcp-plugin_${version_short}_linux_amd64.tar.gz"
-    tar -C "$TMPDIR" -xz -f "$TMPDIR/kubectl-kcp.tar.gz" bin/kubectl-kcp
+    curl "${CURL_OPTS[@]}" -o "$TMPDIR/kubectl-kcp.tgz" "https://github.com/kcp-dev/kcp/releases/download/$version/kubectl-kcp-plugin_${version_short}_linux_amd64.tar.gz"
+    tar -C "$TMPDIR" -xzf "$TMPDIR/kubectl-kcp.tgz" bin/kubectl-kcp
 
     # Install oc & kubectl
     version="$(yq ".oc-kubectl" "$DEPENDENCIES")"
-    curl "${CURL_OPTS[@]}" -o "$TMPDIR/ocp-client.tar.gz" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/$version/openshift-client-linux.tar.gz"
-    tar -C "$TMPBIN" -xz -f "$TMPDIR/ocp-client.tar.gz" kubectl oc
+    curl "${CURL_OPTS[@]}" -o "$TMPDIR/ocp-client.tgz" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/$version/openshift-client-linux.tar.gz"
+    tar -C "$TMPBIN" -xzf "$TMPDIR/ocp-client.tgz" kubectl oc
 
     # Install shellcheck
     version="$(yq ".shellcheck" "$DEPENDENCIES")"
@@ -137,22 +150,16 @@ install_dependencies() {
     # Install tkn
     version="$(yq ".tektoncd-cli" "$DEPENDENCIES")"
     version_short="$(echo "$version" | cut -c 2-)"
-    if command -v rpm >/dev/null; then
-        rpm -Uvh "https://github.com/tektoncd/cli/releases/download/$version/tektoncd-cli-${version_short}_Linux-64bit.rpm"
-    elif command -v dpkg >/dev/null; then
-        curl "${CURL_OPTS[@]}" -o "$TMPDIR/tektoncd-cli.deb" "https://github.com/tektoncd/cli/releases/download/$version/tektoncd-cli-${version_short}_Linux-64bit.deb"
-        dpkg -i "$TMPDIR/tektoncd-cli.deb"
-    else
-        echo "[ERROR] Cannot install tekton: Unsupported OS" >&2
-        exit 1
-    fi
+    curl "${CURL_OPTS[@]}" -o "$TMPDIR/tkn.tgz" "https://github.com/tektoncd/cli/releases/download/$version/tkn_${version_short}_Linux_x86_64.tar.gz"
+    tar -C "$TMPBIN" -xzf "$TMPDIR/tkn.tgz" tkn
+
     if [ -z "$DEBUG" ]; then
         set +x
     fi
 
     # Make binaries executable and move them to a standard dir
     chmod +x "$TMPBIN"/*
-    mv "$TMPBIN"/* /usr/local/bin/
+    mv "$TMPBIN"/* "$BIN_DIR"
 }
 
 check_install() {
@@ -175,7 +182,7 @@ clean_up() {
 main() {
     init
     parse_args "$@"
-    get_dependencies
+    check_vars
     install_dependencies
     clean_up
     check_install
