@@ -102,7 +102,7 @@ prechecks() {
       exit 1
     fi
     export KUBECONFIG="$KUBECONFIG"
-    KCP_KUBECONFIG="$WORK_DIR/credentials/kubeconfig/kcp/ckcp-ckcp.default.pipeline-service-compute.kubeconfig"
+    KCP_KUBECONFIG="$(find "$WORK_DIR/credentials/kubeconfig/kcp" -name \*.kubeconfig | head -1)"
     if [ ! -f "$KCP_KUBECONFIG" ]; then
       printf "\n[ERROR] Couldn't find the user's kcp workspace kubeconfig." >&2
       printf "\nExpected kcp KUBECONFIG dir:'WORK_DIR/credentials/kubeconfig/kcp'"
