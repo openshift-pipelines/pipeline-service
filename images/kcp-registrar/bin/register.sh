@@ -228,10 +228,6 @@ register_cluster() {
           'select(.kind == "Deployment").spec.template.spec.containers[0].securityContext |= load(strenv(patch))' \
           "$syncer_manifest"
         add_ca_cert_to_syncer_manifest "${kcp_kcfg}" "$syncer_manifest"
-        # Add annotations required by kcp-glbc
-        # Commenting the below line, which adds an annotation, as this is causing issues with the syncer being unable to sync the status from synctarget back to the kcp workspace.
-        # Issue being tracked here - https://github.com/kcp-dev/kcp/issues/2147
-#        KUBECONFIG="${kcp_kcfg}" kubectl annotate --overwrite synctarget "${sync_target_name}" featuregates.experimental.workload.kcp.dev/advancedscheduling='true'
         KUBECONFIG="${kcp_kcfg}" kubectl label --overwrite synctarget "${sync_target_name}" kuadrant.dev/synctarget="${sync_target_name}"
 
         KUBECONFIG="${WORKSPACE_DIR}/credentials/kubeconfig/compute/${kubeconfigs[$i]}" kubectl apply \
@@ -256,12 +252,24 @@ add_ca_cert_to_syncer_manifest() {
     ca_cert="${ca_cert}" yq -i '(select(.stringData.kubeconfig != null)) .stringData.kubeconfig |= (fromyaml | .clusters[].cluster."certificate-authority-data" = env(ca_cert) | to_yaml)' "${manifest}"
 }
 
-configure_synctarget_ws() {
-    manifests_source="$WORKSPACE_DIR/environment/kcp"
-    if [[ -d "$manifests_source" ]]; then
-        printf "Configuring KCP workspace\n"
-        KUBECONFIG=${kcp_kcfg} kubectl apply -k "$manifests_source" | indent 2
-    fi
+configure_compute_ws() {
+  printf -- "- Configuring KCP compute workspace\n"
+  manifests_source="$WORKSPACE_DIR/environment/kcp"
+
+  if [[ -d "$manifests_source/registration" ]]; then
+    printf "  - Binding config\n"
+    KUBECONFIG=${kcp_kcfg} kubectl apply -k "$manifests_source/registration" | indent 4
+  fi
+
+  if [[ -d "$manifests_source/gateway" ]]; then
+    printf "  - Gateway config\n"
+    KUBECONFIG=${kcp_kcfg} kubectl apply -k "$manifests_source/gateway" | indent 4
+  fi
+
+  if [[ -d "$manifests_source/workspace-controller/overlays" ]]; then
+    printf "  - Workspace controller deployment\n"
+    KUBECONFIG=${kcp_kcfg} kubectl apply -k "$manifests_source/workspace-controller/overlays" | indent 4
+  fi
 }
 
 check_cr_sync() {
@@ -295,14 +303,6 @@ check_cr_sync() {
   echo "OK"
 }
 
-install_workspace_controller() {
-  ws_controller_manifests="$WORKSPACE_DIR/environment/kcp/workspace-controller/overlays"
-  if [[ -d "$ws_controller_manifests" ]]; then
-    printf "Deploying Workspace Controller into the workspace\n"
-    KUBECONFIG=${kcp_kcfg} kubectl apply -k "$ws_controller_manifests" | indent 2
-  fi
-}
-
 main() {
     parse_args "$@"
     prechecks
@@ -321,9 +321,8 @@ main() {
         printf -- "- %s (%s/%s)\n" "${clusters[$i]}" "$((i+1))" "${#clusters[@]}"
         register_cluster 2>&1 | indent 2
     done
-    configure_synctarget_ws
     check_cr_sync
-    install_workspace_controller
+    configure_compute_ws
 }
 
 if [ "${BASH_SOURCE[0]}" == "$0" ]; then

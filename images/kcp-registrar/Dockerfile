@@ -16,7 +16,7 @@ LABEL build-date= \
       vendor="Pipeline Service" \
       version="0.1"
 WORKDIR /
-RUN microdnf install -y findutils-4.6.0 gzip-1.9 openssl-1.1.1k tar-1.30 && microdnf clean all
+RUN microdnf install -y findutils-4.6.0 git-2.31.1 gzip-1.9 openssl-1.1.1k tar-1.30 && microdnf clean all
 ARG KCP_BRANCH
 ENV KCP_SYNC_TAG=${KCP_TAG}
 ENV HOME /tmp/home

@@ -145,7 +145,7 @@ init() {
     rm -rf "$WORK_DIR"
   fi
   cp -rf "$GITOPS_DIR/sre" "$WORK_DIR"
-  update_git_reference "$GIT_URL" "$GIT_REF" "$WORK_DIR/environment/kcp/kustomization.yaml"
+  update_git_reference "$GIT_URL" "$GIT_REF" "$WORK_DIR/environment/kcp/registration/kustomization.yaml"
 
   for dir in kcp compute; do
     mkdir -p "$WORK_DIR/credentials/kubeconfig/$dir"
@@ -392,6 +392,10 @@ install_pipeline_service() {
 }
 
 register_compute() {
+
+  # Gateway config is not supported in ckcp because we don't ship yet the glbc component
+  rm -rf "$WORK_DIR"/environment/kcp/gateway
+
   resources="$(printf '%s,' "${CRS_TO_SYNC[@]}")"
   resources=${resources%,}
   echo "- Register compute to KCP"
