@@ -16,7 +16,7 @@ LABEL build-date= \
       vendor="Pipeline Service" \
       version="0.1"
 WORKDIR /
-RUN microdnf install -y gzip-1.9 tar-1.30 && microdnf clean all
+RUN microdnf install -y gzip-1.9 tar-1.30 git-2.31.1 && microdnf clean all
 RUN mkdir /workspace && chmod 777 /workspace && chown 65532:65532 /workspace
 ENV HOME /tmp/home
 RUN mkdir $HOME && chmod 777 $HOME && chown 65532:65532 $HOME

@@ -20,7 +20,7 @@ set -o pipefail
 
 usage() {
 
-    printf "Usage: KCP_ORG=root:pipeline-service KCP_WORKSPACE=gateway DATA_DIR=/workspace ./install.sh\n\n"
+    printf "Usage: KCP_WORKSPACE=root:pipeline-service DATA_DIR=/workspace ./install.sh\n\n"
 
     # Parameters
     printf "The following parameters need to be passed to the script:\n"
