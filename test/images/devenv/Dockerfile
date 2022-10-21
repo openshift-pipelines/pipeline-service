@@ -6,7 +6,7 @@ RUN set -x \
     && dnf install -y git-2.37.3 openssl-3.0.2 procps-ng-3.3.17 unzip-6.0 which-2.21 xz-5.2.5 \
     && dnf clean all
 
-COPY config/dependencies.yaml /tmp/dockerfile/dependencies.yaml
+COPY shared/config/dependencies.yaml /tmp/dockerfile/dependencies.yaml
 COPY test/images/devenv/install.sh /tmp/dockerfile/install.sh
 
 WORKDIR /tmp/dockerfile

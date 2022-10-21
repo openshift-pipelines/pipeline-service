@@ -42,7 +42,7 @@ jobs:
               - 'images/update-pipeline-service/**'
             devenv:
               - '.github/workflows/build-push-images.yaml'
-              - 'config/dependencies.yaml'
+              - 'shared/config/dependencies.yaml'
               - 'test/images/devenv/**'
             shellcheck:
               - '.github/workflows/build-push-images.yaml'
