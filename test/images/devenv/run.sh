@@ -114,7 +114,7 @@ detect_container_engine() {
 
 get_image_name() {
     DEPENDENCIES_SHA=$(
-        cat "$SCRIPT_DIR/Dockerfile" "$SCRIPT_DIR/install.sh" "$PROJECT_DIR/config/dependencies.yaml" |
+        cat "$SCRIPT_DIR/Dockerfile" "$SCRIPT_DIR/install.sh" "$PROJECT_DIR/shared/config/dependencies.yaml" |
             sha256sum | cut -c1-8
     )
     IMAGE_NAME="pipeline-service/devenv:$DEPENDENCIES_SHA"

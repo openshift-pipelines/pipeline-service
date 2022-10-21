@@ -44,7 +44,7 @@ if [ "$current_kcp_version" != "$latest_kcp_version" ]; then
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" images/kcp-registrar/Dockerfile
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" images/kcp-registrar/bin/register.sh
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" config/config.yaml
-  sed -i "s,$current_kcp_version,$latest_kcp_version,g" config/dependencies.yaml
+  sed -i "s,$current_kcp_version,$latest_kcp_version,g" shared/config/dependencies.yaml
   echo "$latest_kcp_version" > /tmp/kcp-upgrade.txt
 else
   printf "\nAlready on the latest version: '%s'.\n" "$current_kcp_version"

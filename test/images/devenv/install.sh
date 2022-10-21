@@ -58,7 +58,7 @@ init() {
     mkdir -p "$TMPBIN"
     PATH="$TMPBIN:$PATH"
 
-    DEPENDENCIES="${DEPENDENCIES:-$PROJECT_DIR/config/dependencies.yaml}"
+    DEPENDENCIES="${DEPENDENCIES:-$PROJECT_DIR/shared/config/dependencies.yaml}"
 }
 
 parse_args() {
