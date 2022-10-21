@@ -1,0 +1,11 @@
+---
+apiVersion: apis.kcp.dev/v1alpha1
+kind: APIBinding
+metadata:
+  name: pipeline-service
+spec:
+  reference:
+    workspace:
+      exportName: kubernetes
+      # Edit this path before applying
+      path: root:pipeline-service-compute
