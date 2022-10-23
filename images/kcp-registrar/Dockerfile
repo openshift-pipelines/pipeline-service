@@ -31,7 +31,7 @@ RUN JQ_VERSION="1.6" && \
 RUN KUBE_VERSION="v1.24.0" && \
     curl --fail -sSL -o "/usr/local/bin/kubectl" "https://dl.k8s.io/release/$KUBE_VERSION/bin/linux/amd64/kubectl" && \
     chmod 755 "/usr/local/bin/kubectl"
-RUN KCP_VERSION_SHORT="0.9.0" && \
+RUN KCP_VERSION_SHORT="0.9.1" && \
     KCP_VERSION="v$KCP_VERSION_SHORT" && \
     curl --fail -sSL -o "/tmp/kubectl-kcp.tgz" "https://github.com/kcp-dev/kcp/releases/download/$KCP_VERSION/kubectl-kcp-plugin_${KCP_VERSION_SHORT}_linux_amd64.tar.gz" && \
     tar -C "/usr/local" -xzvf "/tmp/kubectl-kcp.tgz" "bin/kubectl-kcp" && \
