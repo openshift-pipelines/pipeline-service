@@ -61,17 +61,18 @@ parse_args() {
 }
 
 init() {
-  # fetching values from env vars
-  username="$username"
-  password="$password"
-  registry="$registry"
-  image="$image"
-  image_path="$registry"/"$image"
+  for var in username password registry image; do
+    if [ -z "$(eval "echo \$$var")" ]; then
+      printf "Unset environment variable: \$%s" "$var" >&2
+      exit 1
+    fi
+  done
+  username=${username:-}
+  password=${password:-}
+  registry=${registry:-}
+  image=${image:-}
 
-  if [[ -z "$username" || -z "$password" || -z "$registry" || -z "$image" ]]; then
-    printf "Error while fetching one of more env variables. Exiting.\n" >&2
-    exit 1
-  fi
+  image_path="$registry"/"$image"
 }
 
 get_commit_id() {
