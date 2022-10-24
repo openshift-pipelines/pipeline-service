@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 
 raise_mr_gitlab() {
+  GITLAB_TOKEN=${GITLAB_TOKEN:-}
+  if [ -z "$GITLAB_TOKEN" ]; then
+    printf "Unset environment variable: \$GITLAB_TOKEN" >&2
+    exit 1
+  fi
   SOURCE_BRANCH="robot/pipeline-service-update"
-  GITLAB_TOKEN="${GITLAB_TOKEN}"
   current_commit=$1
   latest_commit=$2
   if [[ "$current_commit" == "$latest_commit" ]]; then
