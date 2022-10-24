@@ -153,6 +153,18 @@ install_dependencies() {
     curl "${CURL_OPTS[@]}" -o "$TMPDIR/tkn.tgz" "https://github.com/tektoncd/cli/releases/download/$version/tkn_${version_short}_Linux_x86_64.tar.gz"
     tar -C "$TMPBIN" -xzf "$TMPDIR/tkn.tgz" tkn
 
+    # Install grpc
+    version="$(yq ".grpc_cli" "$DEPENDENCIES")"
+    git clone https://github.com/grpc/grpc.git
+    cd grpc
+    git checkout "$version"
+    git submodule update --init
+    mkdir -p cmake/build
+    cd cmake/build
+    cmake -DgRPC_BUILD_TESTS=ON ../..
+    make -s grpc_cli
+    mv "grpc_cli" "$TMPBIN"
+
     if [ -z "$DEBUG" ]; then
         set +x
     fi
@@ -173,6 +185,12 @@ check_install() {
     shellcheck --version
     tkn version
     yq --version
+    if [[ "$(grpc_cli help 2>&1)" == *"command not found"* ]]; then 
+       echo "[ERROR] Could not find grpc_cli" >&2
+       exit 1
+    else
+       echo "grpc_cli installed"
+    fi
 }
 
 clean_up() {
