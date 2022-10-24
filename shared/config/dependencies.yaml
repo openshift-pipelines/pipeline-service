@@ -9,3 +9,4 @@ oc-kubectl: 4.11.4
 shellcheck: v0.8.0
 tektoncd-cli: v0.27.0
 yq: v4.28.1
+grpc_cli: v1.50.0
