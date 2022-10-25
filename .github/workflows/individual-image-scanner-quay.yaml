@@ -20,7 +20,6 @@ jobs:
     outputs:
       access-setup-output: ${{ steps.access-setup-scan.outputs.VULNERABILITIES_EXIST }}
       cluster-setup-output: ${{ steps.cluster-setup-scan.outputs.VULNERABILITIES_EXIST }}
-      gateway-deployment-output: ${{ steps.gateway-deployment-scan.outputs.VULNERABILITIES_EXIST }}
       kcp-registrar-output: ${{ steps.kcp-registrar-scan.outputs.VULNERABILITIES_EXIST }}
       shellcheck-output: ${{ steps.shellcheck-scan.outputs.VULNERABILITIES_EXIST }}
       vulnerability-scan-output: ${{ steps.vulnerability-scan.outputs.VULNERABILITIES_EXIST }}
@@ -35,8 +34,6 @@ jobs:
             - 'images/access-setup/**'
             cluster-setup:
               - 'images/cluster-setup/**'
-            gateway-deployment:
-              - 'images/gateway-deployment/**'
             kcp-registrar:
               - 'images/kcp-registrar/**'
             shellcheck:
@@ -65,17 +62,6 @@ jobs:
         env:
           AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
           IMAGE_NAME: cluster-setup
-
-      - name: gateway-deployment scan
-        continue-on-error: true
-        id: gateway-deployment-scan
-        if: steps.filter.outputs.gateway-deployment == 'true'
-        run: |
-          ./test/images/clair-scan/scan-image.sh | tee /tmp/clair-scan.log
-          echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
-        env:
-          AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
-          IMAGE_NAME: gateway-deployment
 
       - name: kcp-registrar scan
         continue-on-error: true
@@ -136,19 +122,6 @@ jobs:
           res=${res:=0}
           if [[ $res != 0 ]]; then
             echo "Vulnerabilities found with cluster-setup image. Please check scans job for more details."
-            exit 1
-          else
-            echo "No vulnerabilities found"
-          fi
-
-      - name: Check gateway deployment results
-        id: check-gateway-deployment-results
-        if: always()
-        run: |
-          res=${{ needs.scans.outputs.gateway-deployment-output }}
-          res=${res:=0}
-          if [[ $res != 0 ]]; then
-            echo "Vulnerabilities found with gateway-deployment image. Please check scans job for more details."
             exit 1
           else
             echo "No vulnerabilities found"

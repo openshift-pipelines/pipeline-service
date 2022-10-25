@@ -28,9 +28,6 @@ jobs:
             cluster-setup:
               - '.github/workflows/build-push-images.yaml'
               - 'images/cluster-setup/**'
-            gateway-deployment:
-              - '.github/workflows/build-push-images.yaml'
-              - 'images/gateway-deployment/**'
             kcp-registrar:
               - '.github/workflows/build-push-images.yaml'
               - 'images/kcp-registrar/**'
@@ -120,42 +117,6 @@ jobs:
         if: steps.filter.outputs.cluster-setup != 'true'
         env:
           image: cluster-setup
-          registry: quay.io/redhat-pipeline-service
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_TOKEN }}
-        run: |
-          ./test/images/quay-upload/image-upload.sh --debug
-
-      # Build and push gateway-deployment image, tagged with latest and the commit SHA.
-      - name: Build gateway-deployment Image
-        id: build-image-gateway-deployment
-        if: steps.filter.outputs.gateway-deployment == 'true'
-        uses: redhat-actions/buildah-build@v2
-        with:
-          image: gateway-deployment
-          context: ./images/gateway-deployment
-          tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
-          containerfiles: |
-            ./images/gateway-deployment/Dockerfile
-      - name: Push to quay.io
-        id: push-to-quay-gateway-deployment
-        if: steps.filter.outputs.gateway-deployment == 'true'
-        uses: redhat-actions/push-to-registry@v2
-        with:
-          image: ${{ steps.build-image-gateway-deployment.outputs.image }}
-          tags: ${{ steps.build-image-gateway-deployment.outputs.tags }} ${{ github.ref_name }}
-          registry: quay.io/redhat-pipeline-service
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_TOKEN }}
-      - name: Print image url
-        if: steps.filter.outputs.gateway-deployment == 'true'
-        run: |
-          echo "Image pushed to ${{ steps.push-to-quay-gateway-deployment.outputs.registry-paths }}"
-      - name: Tag latest commit ID to quay.io
-        id: tag-commit-quay-gateway-deployment
-        if: steps.filter.outputs.gateway-deployment != 'true'
-        env:
-          image: gateway-deployment
           registry: quay.io/redhat-pipeline-service
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
