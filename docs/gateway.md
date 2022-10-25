@@ -42,14 +42,14 @@ Currently the gateway has a service as backend. As any pod it can reference a se
 
 [kcp-glbc](https://github.com/Kuadrant/kcp-glbc) must be deployed. [Instructions](https://github.com/Kuadrant/kcp-glbc/blob/main/docs/deployment.md) are provided in its GitHub repository.
 
-The [APIBinding resource definitions](../gitops/kcp/gateway-bindings) need to be amended with the cluster specific values in an overlay.
+Also an approprite APIExport needs to be provided from glbc workspace then the [APIBinding resource definitions](../gitops/kcp/gateway/glbc-apibinding.yaml) need to be amended with the cluster specific values in an overlay.
 
 Example:
 
 ~~~
 ---
 resources:
-  - https://github.com/openshift-pipelines/pipeline-service.git/gitops/kcp/gateway-bindings?ref=main
+  - github.com/openshift-pipelines/pipeline-service/gitops/kcp/gateway?ref=main
 patches:
   - patch: |-
       - op: replace
@@ -84,12 +84,11 @@ patches:
 
 ### Pipeline as Code
 
-The registration is meant to be triggered from [Pipelines as Code](https://pipelinesascode.com/) and a [Tekton PipelineRun](../gitops/sre/.tekton/gateway-deployment.yaml) is provided for the purpose.
+The registration is meant to be triggered from [Pipelines as Code](https://pipelinesascode.com/) via the [Tekton PipelineRun for kcp registration](../gitops/sre/.tekton/kcp-registration.yaml).
 
 The SyncTarget of the compute cluster where ingresses are to be scheduled needs to be annotated and labelled. This is done during the registration process.
 
 ```bash
-kubectl annotate --overwrite synctarget <name-of-the-synctarget> featuregates.experimental.workload.kcp.dev/advancedscheduling='true'
 kubectl label --overwrite synctarget <name-of-the-synctarget> kuadrant.dev/synctarget=<name-of-the-synctarget>
 ```
 
@@ -100,9 +99,6 @@ Alternatively the commands can be run manually.
 Kubectl should point to your kcp organisation.
 
 ```bash
-kubectl kcp workspace create gateway --enter
-kubectl apply -k ./gitops/kcp/gateway-bindings
-kubectl create ns gateway
 kubectl apply -k ./gitops/kcp/gateway
 ```
 
