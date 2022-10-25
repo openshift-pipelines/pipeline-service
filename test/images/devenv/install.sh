@@ -151,7 +151,7 @@ install_dependencies() {
     version="$(yq ".tektoncd-cli" "$DEPENDENCIES")"
     version_short="$(echo "$version" | cut -c 2-)"
     curl "${CURL_OPTS[@]}" -o "$TMPDIR/tkn.tgz" "https://github.com/tektoncd/cli/releases/download/$version/tkn_${version_short}_Linux_x86_64.tar.gz"
-    tar -C "$TMPBIN" -xzf "$TMPDIR/tkn.tgz" tkn
+    tar -C "$TMPBIN" --no-same-owner -xzf "$TMPDIR/tkn.tgz" tkn
 
     # Install grpc
     version="$(yq ".grpc_cli" "$DEPENDENCIES")"
@@ -177,6 +177,12 @@ install_dependencies() {
 check_install() {
     # Make sure everything is installed properly
     argocd version --client --short
+    if [[ "$(grpc_cli help 2>&1)" == *"command not found"* ]]; then
+       echo "[ERROR] Could not find grpc_cli" >&2
+       exit 1
+    else
+       echo "grpc_cli installed"
+    fi
     jq --version
     kind --version
     kubectl version --client
@@ -185,12 +191,6 @@ check_install() {
     shellcheck --version
     tkn version
     yq --version
-    if [[ "$(grpc_cli help 2>&1)" == *"command not found"* ]]; then 
-       echo "[ERROR] Could not find grpc_cli" >&2
-       exit 1
-    else
-       echo "grpc_cli installed"
-    fi
 }
 
 clean_up() {
