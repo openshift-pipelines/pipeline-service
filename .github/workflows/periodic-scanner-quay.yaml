@@ -18,7 +18,7 @@ jobs:
       - name: Fetch results
         id: fetch-results
         run: |
-          ./test/images/vulnerability-scan/scan.sh | tee /tmp/clair-scan.log
+          ./ci/images/vulnerability-scan/scan.sh | tee /tmp/clair-scan.log
           echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
         env:
           AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}

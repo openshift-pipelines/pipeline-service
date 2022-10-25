@@ -33,7 +33,7 @@ jobs:
               - 'images/kcp-registrar/**'
             quay-upload:
               - '.github/workflows/build-push-images.yaml'
-              - 'test/images/quay-upload/**'
+              - 'ci/images/quay-upload/**'
             update-pipeline-service:
               - '.github/workflows/build-push-images.yaml'
               - 'images/update-pipeline-service/**'
@@ -43,13 +43,13 @@ jobs:
               - 'test/images/devenv/**'
             shellcheck:
               - '.github/workflows/build-push-images.yaml'
-              - 'test/images/shellcheck/**'
+              - 'ci/images/shellcheck/**'
             vulnerability:
               - '.github/workflows/build-push-images.yaml'
-              - 'test/images/vulnerability-scan/**'
+              - 'ci/images/vulnerability-scan/**'
             yamllint:
               - '.github/workflows/build-push-images.yaml'
-              - 'test/images/yamllint/**'
+              - 'ci/images/yamllint/**'
 
       # Build and push access-setup image, tagged with latest and the commit SHA.
       - name: Build access-setup Image
@@ -85,7 +85,7 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
-          ./test/images/quay-upload/image-upload.sh --debug
+          ./ci/images/quay-upload/image-upload.sh --debug
 
       # Build and push cluster-setup image, tagged with latest and the commit SHA.
       - name: Build cluster-setup Image
@@ -121,7 +121,7 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
-          ./test/images/quay-upload/image-upload.sh --debug
+          ./ci/images/quay-upload/image-upload.sh --debug
 
       # Build and push kcp-registrar image, tagged with latest and the commit SHA.
       - name: Build kcp-registrar Image
@@ -159,7 +159,7 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
-          ./test/images/quay-upload/image-upload.sh --debug
+          ./ci/images/quay-upload/image-upload.sh --debug
 
       # Build and push quay-upload image, tagged with latest and the commit SHA.
       - name: Build quay-upload Image
@@ -168,10 +168,10 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: quay-upload
-          context: ./test/images/quay-upload
+          context: ./ci/images/quay-upload
           tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
           containerfiles: |
-            ./test/images/quay-upload/Dockerfile
+            ./ci/images/quay-upload/Dockerfile
       - name: Push to quay.io
         id: push-to-quay-quay-upload
         if: steps.filter.outputs.quay-upload == 'true'
@@ -195,7 +195,7 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
-          ./test/images/quay-upload/image-upload.sh --debug
+          ./ci/images/quay-upload/image-upload.sh --debug
 
       # Build and push update-pipeline-service image, tagged with latest and the commit SHA.
       - name: Build update-pipeline-service Image
@@ -231,7 +231,7 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
-          ./test/images/quay-upload/image-upload.sh --debug
+          ./ci/images/quay-upload/image-upload.sh --debug
 
       # Build and push devenv image, tagged with the branch name and the commit SHA.
       - name: Build devenv Image
@@ -267,7 +267,7 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
-          ./test/images/quay-upload/image-upload.sh --debug
+          ./ci/images/quay-upload/image-upload.sh --debug
 
       # Build and push shellcheck image, tagged with latest and the commit SHA.
       - name: Build shellcheck Image
@@ -276,10 +276,10 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: shellcheck
-          context: ./test/images/shellcheck
+          context: ./ci/images/shellcheck
           tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
           containerfiles: |
-            ./test/images/shellcheck/Dockerfile
+            ./ci/images/shellcheck/Dockerfile
       - name: Push to quay.io
         id: push-to-quay-shellcheck
         if: steps.filter.outputs.shellcheck == 'true'
@@ -303,7 +303,7 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
-          ./test/images/quay-upload/image-upload.sh --debug
+          ./ci/images/quay-upload/image-upload.sh --debug
 
       # Build and push vulnerability-scan image, tagged with latest and the commit SHA.
       - name: Build vulnerability Image
@@ -312,10 +312,10 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: vulnerability-scan
-          context: ./test/images/vulnerability-scan
+          context: ./ci/images/vulnerability-scan
           tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
           containerfiles: |
-            ./test/images/vulnerability-scan/Dockerfile
+            ./ci/images/vulnerability-scan/Dockerfile
       - name: Push to quay.io
         id: push-to-quay-vulnerability-scan
         if: steps.filter.outputs.vulnerability == 'true'
@@ -339,7 +339,7 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
-          ./test/images/quay-upload/image-upload.sh --debug
+          ./ci/images/quay-upload/image-upload.sh --debug
 
      # Build and push yamllint image, tagged with latest and the commit SHA.
       - name: Build yamllint Image
@@ -348,10 +348,10 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: yamllint
-          context: ./test/images/yamllint
+          context: ./ci/images/yamllint
           tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
           containerfiles: |
-            ./test/images/yamllint/Dockerfile
+            ./ci/images/yamllint/Dockerfile
       - name: Push to quay.io
         id: push-to-quay-yamllint
         if: steps.filter.outputs.yamllint == 'true'
@@ -375,4 +375,4 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
         run: |
-          ./test/images/quay-upload/image-upload.sh --debug
+          ./ci/images/quay-upload/image-upload.sh --debug
