@@ -37,7 +37,7 @@ SCRIPT_DIR="$(
   cd "$(dirname "$0")" >/dev/null
   pwd
 )"
-CONFIG="$(dirname "$(dirname "$SCRIPT_DIR")")/config/config.yaml"
+CONFIG="$(dirname "$(dirname "$SCRIPT_DIR")")/ckcp/config.yaml"
 KCP_VERSION=$(yq '.version.kcp' "$CONFIG")
 KCP_DIR="${KCP_DIR:-}"
 
@@ -119,7 +119,7 @@ printf "kcp runtime files in: %s\n" "${KCP_RUNTIME_DIR}"
 
 KUBECONFIG="${KCP_RUNTIME_DIR}/.kcp/admin.kubeconfig"
 
-# shellcheck source=local/utils.sh
+# shellcheck source=developer/local/utils.sh
 source "${PARENT_PATH}/../utils.sh"
 
 detect_container_engine

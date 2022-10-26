@@ -20,7 +20,7 @@ Prerequisites:
 [./local/kind/setup.sh](./local/kind/setup.sh) will create two kind clusters and output the kubeconfig files that can be used to interact with the Kubernetes clusters. An amended version of the kubeconfig file with the suffix '_ip' can be used for registering the clusters to Argo CD. A routable IP is used instead of localhost. Simply run:
 
 ```console
-./local/kind/setup.sh
+developer/local/kind/setup.sh
 ```
 
 By default, Argo CD is installed on both clusters. It is possible to deactivate its installation by setting an environment variable `NO_ARGOCD=true`
@@ -35,7 +35,7 @@ By default, Argo CD is installed on both clusters. It is possible to deactivate 
 
 ## kcp cluster
 
-[./local/kcp/start.sh](./local/kcp/start.sh) will set up a kcp cluster.
+[developer/local/kcp/start.sh](../local/kcp/start.sh) will set up a kcp cluster.
 
 The script can be customized by setting the following optional environment variables:
 
@@ -50,7 +50,7 @@ The script will output:
 	- the location of the kubectl kcp plugin which provides KCP specific sub-command for kubectl
 
 ```console
-./local/kcp/start.sh
+developer/local/kcp/start.sh
 ```
 
 ---
@@ -89,7 +89,7 @@ A gateway can be installed to expose endpoints running on the workload clusters 
 Argo CD is by default installed on both clusters. Alternatively, it can be installed afterward by running the following:
 
 ```bash
-KUBECONFIG=/path-to/config.kubeconfig ./local/argocd/setup.sh
+KUBECONFIG=/path-to/config.kubeconfig developer/local/argocd/setup.sh
 ```
 
 Argo CD client can be downloaded from the [Argo CD release page](https://github.com/argoproj/argo-cd/releases/latest).
