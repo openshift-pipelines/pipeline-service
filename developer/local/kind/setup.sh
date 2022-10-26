@@ -70,7 +70,7 @@ ip_kubeconfig () {
 parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 pushd "$parent_path"
 
-# shellcheck source=local/utils.sh
+# shellcheck source=developer/local/utils.sh
 source ../utils.sh
 
 detect_container_engine

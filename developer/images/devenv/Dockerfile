@@ -7,7 +7,7 @@ RUN set -x \
     && dnf clean all
 
 COPY shared/config/dependencies.yaml /tmp/dockerfile/dependencies.yaml
-COPY test/images/devenv/install.sh /tmp/dockerfile/install.sh
+COPY developer/images/devenv/install.sh /tmp/dockerfile/install.sh
 
 WORKDIR /tmp/dockerfile
 

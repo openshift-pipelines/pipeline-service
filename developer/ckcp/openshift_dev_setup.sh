@@ -3,21 +3,23 @@
 #quit if exit status of any cmd is a non-zero value
 set -euo pipefail
 
-SCRIPT_DIR="$(
+CKCP_DIR="$(
   cd "$(dirname "$0")" >/dev/null
   pwd
 )"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+PROJECT_DIR="$(
+  cd "$CKCP_DIR/../.." >/dev/null || exit 1
+  pwd
+)"
 
-# shellcheck source=ckcp/hack/util/update-git-reference.sh
-source "$SCRIPT_DIR/hack/util/update-git-reference.sh"
+# shellcheck source=developer/ckcp/hack/util/update-git-reference.sh
+source "$CKCP_DIR/hack/util/update-git-reference.sh"
 
 # shellcheck source=images/cluster-setup/bin/utils.sh
 source "$PROJECT_DIR/images/cluster-setup/bin/utils.sh"
 
 GITOPS_DIR="$PROJECT_DIR/gitops"
-CKCP_DIR="$PROJECT_DIR/ckcp"
-CONFIG="$PROJECT_DIR/config/config.yaml"
+CONFIG="$CKCP_DIR/config.yaml"
 
 KUBECONFIG=${KUBECONFIG:-$HOME/.kube/config}
 

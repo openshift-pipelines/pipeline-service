@@ -36,10 +36,10 @@ jobs:
         uses: actions/checkout@v3
       - name: Set up Kubernetes workload clusters
         run: |-
-          ./local/kind/setup.sh
+          ./developer/local/kind/setup.sh
       - name: Set up a kcp cluster.
         run: |-
-          nohup ./local/kcp/start.sh > nohup.out &
+          nohup ./developer/local/kcp/start.sh > nohup.out &
           i=0
           while ! grep "ctrl-C" nohup.out >/dev/null; do
             i=$((i+1))

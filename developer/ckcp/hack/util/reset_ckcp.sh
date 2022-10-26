@@ -19,10 +19,13 @@ SCRIPT_DIR="$(
   pwd
 )"
 
-PROJECT_DIR="$(dirname "$(dirname "$(dirname "$SCRIPT_DIR")")")"
-CKCP_DIR="$PROJECT_DIR/ckcp"
+PROJECT_DIR="$(
+  cd "$SCRIPT_DIR/../../../.." >/dev/null || exit 1
+  pwd
+)"
+CKCP_DIR="$PROJECT_DIR/developer/ckcp"
 GITOPS_DIR="$PROJECT_DIR/gitops"
-CONFIG="$PROJECT_DIR/config/config.yaml"
+CONFIG="$CKCP_DIR/config.yaml"
 
 RESET_HARD="false"
 

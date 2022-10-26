@@ -40,7 +40,7 @@ jobs:
             devenv:
               - '.github/workflows/build-push-images.yaml'
               - 'shared/config/dependencies.yaml'
-              - 'test/images/devenv/**'
+              - 'developer/images/devenv/**'
             shellcheck:
               - '.github/workflows/build-push-images.yaml'
               - 'ci/images/shellcheck/**'
@@ -243,7 +243,7 @@ jobs:
           context: .
           tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
           containerfiles: |
-            ./test/images/devenv/Dockerfile
+            ./developer/images/devenv/Dockerfile
       - name: Push to quay.io
         id: push-to-quay-devenv
         if: steps.filter.outputs.devenv == 'true'
