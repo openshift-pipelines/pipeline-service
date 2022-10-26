@@ -46,7 +46,7 @@ jobs:
         id: access-setup-scan
         if: steps.filter.outputs.access-setup == 'true'
         run: |
-          ./test/images/clair-scan/scan-image.sh | tee /tmp/clair-scan.log
+          ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
           echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
         env:
           AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
@@ -57,7 +57,7 @@ jobs:
         id: cluster-setup-scan
         if: steps.filter.outputs.cluster-setup == 'true'
         run: |
-          ./test/images/clair-scan/scan-image.sh | tee /tmp/clair-scan.log
+          ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
           echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
         env:
           AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
@@ -68,7 +68,7 @@ jobs:
         id: kcp-registrar-scan
         if: steps.filter.outputs.kcp-registrar == 'true'
         run: |
-          ./test/images/clair-scan/scan-image.sh | tee /tmp/clair-scan.log
+          ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
           echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
         env:
           AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
@@ -79,7 +79,7 @@ jobs:
         id: shellcheck-scan
         if: steps.filter.outputs.shellcheck == 'true'
         run: |
-          ./test/images/clair-scan/scan-image.sh | tee /tmp/clair-scan.log
+          ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
           echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
         env:
           AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
