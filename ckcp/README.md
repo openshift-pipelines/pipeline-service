@@ -50,7 +50,7 @@ The test.sh script runs certain examples from tektoncd repo for pipelines and tr
     #Runs both tests
 ```
 
-Once the script is done executing, notice that the 8 CRDs (marked in bold below) we specified in [config.yaml](..config/config.yaml) are synced after we registered our physical cluster with kcp.
+Once the script is done executing, notice that the 8 CRDs (marked in bold below) we specified in [config.yaml](../config/config.yaml) are synced after we registered our physical cluster with kcp.
 
 <pre>
 KUBECONFIG=work/kubeconfig/admin.kubeconfig kubectl api-resources

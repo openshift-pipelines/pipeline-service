@@ -20,7 +20,7 @@ Before installing the prerequisites, refer [DEPENDENCIES.md](../DEPENDENCIES.md)
 
 ## Components
 
-Following the Phase 1 architecture described [here](../docs/images/phase1.png), we structured GitOps to set up an OpenShift cluster, i.e.,
+Following the Phase 1 architecture described [here](../architect/images/phase1.png), we structured GitOps to set up an OpenShift cluster, i.e.,
 
 - Install various dependencies on the physical cluster via GitOps Applications.
   - tekton pipelines and triggers

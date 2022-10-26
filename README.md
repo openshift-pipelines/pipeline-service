@@ -26,50 +26,13 @@ Pipelines as Code is the veneer that brings to the users a great experience dire
 **kcp - scaling** (~3 min)
 [![asciicast](https://asciinema.org/a/516374.svg)](https://asciinema.org/a/516374)
 
-## Design
-
-### Phase 1
-
-In the first phase, Pipeline Service will leverage kcp Transparent-Multi-Cluster capabilities. Tekton and other controllers run directly on Kubernetes workload clusters and process the resources there. kcp syncer ensures that resources (Pipelines, PipelineRuns, etc.) created by users in their workspace are synced onto a workload cluster and the result of the processing is reflected to the user workspace.
-
-This approach has the great advantage of not requiring any change to the controllers.
-
-Controllers know nothing about kcp.
-
-![Phase 1 flow](./docs/images/phase1.png)
-
-**Demos**
-
-User (~3:30 min)
-[![asciicast](https://asciinema.org/a/516634.svg)](https://asciinema.org/a/516634)
-
-Platform installation (~4 min)
-[![asciicast](https://asciinema.org/a/516861.svg)](https://asciinema.org/a/516861)
-
-**[Limitations](./docs/phase1_limitations.md)**
-
-### Phase 2
-
-In the second phase, the controllers used by Pipeline Service are made kcp-aware. This eliminates the need to sync the pipeline resources onto workload clusters and to have operators directly bound to any kubernetes cluster.
-This brings additional benefits:
-
-- not being tied up to a version of pipeline CRDs installed on a Kubernetes cluster
-- being able to scale controllers and distribute their load independently from the Kubernetes clusters
-- flexibility in setting up failure domains
-
-Tekton resource schemas are added only in kcp.
-
-Kubernetes workload clusters know nothing about Tekton. They only run resources like Deployments, Pods and Services.
-
-![Phase 2 flow](./docs/images/phase2.png)
-
 ## How do I start?
 
 ### Running in Kubernetes or OpenShift
 
-You can deploy this PoC to your Kubernetes cluster with the `build.sh` and `run.sh` scripts in `ckcp` folder.
+You can deploy Pipeline Service on your OpenShift cluster with the `openshift_dev_setup.sh` script in `ckcp` folder.
 
-More info [here](https://github.com/openshift-pipelines/pipeline-service/tree/main/ckcp)
+More info [here](./developer/ckcp/README.md).
 
 ## Running locally
 
