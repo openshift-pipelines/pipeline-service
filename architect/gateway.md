@@ -1,7 +1,7 @@
 # Gateway for Pipelines as Code
 
 Leveraging kcp, workload clusters are an infrastructure that is abstracted from end users. Depending on circumstances their pipelines may get scheduled on one or another cluster.
-With the approach described for [phase 1](../README.md#phase-1) controllers are directly running on these workload clusters.
+With the approach described for [phase 1](./phase1.md) controllers are directly running on these workload clusters.
 
 This introduces a challenge. For trigger integration, external systems or users need to send requests to the listeners on the workload cluster.
 The approach taken for addressing it is to use [kcp-glbc](https://github.com/Kuadrant/kcp-glbc) and to introduce a gateway (an HAProxy container) that forwards the requests to the Pipelines as Code listener deployed on the workload cluster.
