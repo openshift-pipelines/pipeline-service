@@ -35,19 +35,19 @@ jobs:
         with:
           filters: |
             access-setup:
-            - 'images/access-setup/**'
+              - 'operator/images/access-setup/**'
             cluster-setup:
-              - 'images/cluster-setup/**'
+              - 'operator/images/cluster-setup/**'
             devenv:
               - 'developer/images/devenv/**'
             kcp-registrar:
-              - 'images/kcp-registrar/**'
+              - 'operator/images/kcp-registrar/**'
             quay-upload:
               - 'ci/quay-upload/**'
             shellcheck:
               - 'ci/images/shellcheck/**'
             update-pipeline-service:
-              - 'images/update-pipeline-service/**'
+              - 'operator/images/update-pipeline-service/**'
             vulnerability:
               - 'ci/images/vulnerability-scan/**'
             yamllint:

@@ -12,7 +12,7 @@ SCRIPT_DIR="$(
   pwd
 )"
 
-# shellcheck source=images/update-pipeline-service/bin/gitlab_open_mr.sh
+# shellcheck source=operator/images/update-pipeline-service/bin/gitlab_open_mr.sh
 source "$SCRIPT_DIR/gitlab_open_mr.sh"
 
 usage() {
