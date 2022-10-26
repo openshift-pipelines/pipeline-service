@@ -40,9 +40,9 @@ if [ "$current_kcp_version" != "$latest_kcp_version" ]; then
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" DEPENDENCIES.md
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" developer/ckcp/openshift/overlays/dev/kustomization.yaml
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" architect/docs/kcp-registration.md
-  sed -i "s,$current_kcp_version,$latest_kcp_version,g" images/access-setup/Dockerfile
-  sed -i "s,$current_kcp_version,$latest_kcp_version,g" images/kcp-registrar/Dockerfile
-  sed -i "s,$current_kcp_version,$latest_kcp_version,g" images/kcp-registrar/bin/register.sh
+  sed -i "s,$current_kcp_version,$latest_kcp_version,g" operator/images/access-setup/Dockerfile
+  sed -i "s,$current_kcp_version,$latest_kcp_version,g" operator/images/kcp-registrar/Dockerfile
+  sed -i "s,$current_kcp_version,$latest_kcp_version,g" operator/images/kcp-registrar/bin/register.sh
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" developer/ckcp/config.yaml
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" shared/config/dependencies.yaml
   echo "$latest_kcp_version" > /tmp/kcp-upgrade.txt

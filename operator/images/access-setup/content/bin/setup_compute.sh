@@ -23,7 +23,7 @@ SCRIPT_DIR="$(
   pwd
 )"
 
-# shellcheck source=images/access-setup/content/bin/common.sh
+# shellcheck source=operator/images/access-setup/content/bin/common.sh
 source "$SCRIPT_DIR/common.sh"
 
 usage() {

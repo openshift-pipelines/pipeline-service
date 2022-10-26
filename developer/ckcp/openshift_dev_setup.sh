@@ -15,8 +15,8 @@ PROJECT_DIR="$(
 # shellcheck source=developer/ckcp/hack/util/update-git-reference.sh
 source "$CKCP_DIR/hack/util/update-git-reference.sh"
 
-# shellcheck source=images/cluster-setup/bin/utils.sh
-source "$PROJECT_DIR/images/cluster-setup/bin/utils.sh"
+# shellcheck source=operator/images/cluster-setup/bin/utils.sh
+source "$PROJECT_DIR/operator/images/cluster-setup/bin/utils.sh"
 
 GITOPS_DIR="$PROJECT_DIR/gitops"
 CONFIG="$CKCP_DIR/config.yaml"
@@ -344,7 +344,7 @@ patches:
   done
 
   echo "- Setup kcp access:"
-  "$PROJECT_DIR/images/access-setup/content/bin/setup_kcp.sh" \
+  "$PROJECT_DIR/operator/images/access-setup/content/bin/setup_kcp.sh" \
     ${DEBUG:+"$DEBUG"} \
     --kubeconfig "$KUBECONFIG_KCP" \
     --kcp-org "$kcp_org" \
@@ -364,7 +364,7 @@ install_pipeline_service() {
   TEKTON_RESULTS_DATABASE_PASSWORD=${TEKTON_RESULTS_DATABASE_PASSWORD:=$(openssl rand -base64 20)}
 
   echo "- Setup compute access:"
-  "$PROJECT_DIR/images/access-setup/content/bin/setup_compute.sh" \
+  "$PROJECT_DIR/operator/images/access-setup/content/bin/setup_compute.sh" \
     ${DEBUG:+"$DEBUG"} \
     --kubeconfig "$KUBECONFIG" \
     --work-dir "$WORK_DIR" \
@@ -376,7 +376,7 @@ install_pipeline_service() {
     indent 2
 
   echo "- Deploy compute:"
-  KUBECONFIG="" "$PROJECT_DIR/images/cluster-setup/bin/install.sh" \
+  KUBECONFIG="" "$PROJECT_DIR/operator/images/cluster-setup/bin/install.sh" \
     ${DEBUG:+"$DEBUG"} \
     --workspace-dir "$WORK_DIR" | indent 2
 
@@ -401,7 +401,7 @@ register_compute() {
   resources="$(printf '%s,' "${CRS_TO_SYNC[@]}")"
   resources=${resources%,}
   echo "- Register compute to KCP"
-  "$PROJECT_DIR/images/kcp-registrar/bin/register.sh" \
+  "$PROJECT_DIR/operator/images/kcp-registrar/bin/register.sh" \
     ${DEBUG:+"$DEBUG"} \
     --kcp-org "root:default" \
     --kcp-workspace "$kcp_workspace" \

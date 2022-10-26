@@ -77,13 +77,13 @@ _Note: Please run these scripts only if you intend not to use PaC to automate th
     a. To install Tekton components
 
     ```
-    $ WORKSPACE_DIR=/home/workspace/pipeline-service/gitops/sre ../images/cluster-setup/install.sh
+    $ WORKSPACE_DIR=/home/workspace/pipeline-service/gitops/sre operator/images/cluster-setup/install.sh
     ```
 
     b. To register the compute clusters into kcp
 
     ```
-    $ KCP_ORG="root:pipeline-service" KCP_WORKSPACE="compute" WORKSPACE_DIR="/home/workspace/pipeline-service/gitops/sre" ../images/kcp-registrar/register.sh
+    $ KCP_ORG="root:pipeline-service" KCP_WORKSPACE="compute" WORKSPACE_DIR="/home/workspace/pipeline-service/gitops/sre" operator/images/kcp-registrar/register.sh
     ```
 
 ### Pipelines As Code (PaC)

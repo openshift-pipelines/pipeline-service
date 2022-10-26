@@ -24,19 +24,19 @@ jobs:
           filters: |
             access-setup:
               - '.github/workflows/build-push-images.yaml'
-              - 'images/access-setup/**'
+              - 'operator/images/access-setup/**'
             cluster-setup:
               - '.github/workflows/build-push-images.yaml'
-              - 'images/cluster-setup/**'
+              - 'operator/images/cluster-setup/**'
             kcp-registrar:
               - '.github/workflows/build-push-images.yaml'
-              - 'images/kcp-registrar/**'
+              - 'operator/images/kcp-registrar/**'
             quay-upload:
               - '.github/workflows/build-push-images.yaml'
               - 'ci/images/quay-upload/**'
             update-pipeline-service:
               - '.github/workflows/build-push-images.yaml'
-              - 'images/update-pipeline-service/**'
+              - 'operator/images/update-pipeline-service/**'
             devenv:
               - '.github/workflows/build-push-images.yaml'
               - 'shared/config/dependencies.yaml'
@@ -58,10 +58,10 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: access-setup
-          context: ./images/access-setup
+          context: ./operator/images/access-setup
           tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
           containerfiles: |
-            ./images/access-setup/Dockerfile
+            ./operator/images/access-setup/Dockerfile
       - name: Push to quay.io
         id: push-to-quay-access-setup
         if: steps.filter.outputs.access-setup == 'true'
@@ -94,10 +94,10 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: cluster-setup
-          context: ./images/cluster-setup
+          context: ./operator/images/cluster-setup
           tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
           containerfiles: |
-            ./images/cluster-setup/Dockerfile
+            ./operator/images/cluster-setup/Dockerfile
       - name: Push to quay.io
         id: push-to-quay-cluster-setup
         if: steps.filter.outputs.cluster-setup == 'true'
@@ -130,10 +130,10 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: kcp-registrar
-          context: ./images/kcp-registrar
+          context: ./operator/images/kcp-registrar
           tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
           containerfiles: |
-            ./images/kcp-registrar/Dockerfile
+            ./operator/images/kcp-registrar/Dockerfile
           build-args: |
             KCP_TAG=v0.9.0
       - name: Push to quay.io
@@ -204,10 +204,10 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: update-pipeline-service
-          context: ./images/update-pipeline-service
+          context: ./operator/update-pipeline-service
           tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
           containerfiles: |
-            ./images/update-pipeline-service/Dockerfile
+            ./operator/images/update-pipeline-service/Dockerfile
       - name: Push to quay.io
         id: push-to-quay-update-pipeline-service
         if: steps.filter.outputs.update-pipeline-service == 'true'
