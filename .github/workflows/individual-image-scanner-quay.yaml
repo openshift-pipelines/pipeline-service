@@ -20,9 +20,13 @@ jobs:
     outputs:
       access-setup-output: ${{ steps.access-setup-scan.outputs.VULNERABILITIES_EXIST }}
       cluster-setup-output: ${{ steps.cluster-setup-scan.outputs.VULNERABILITIES_EXIST }}
+      devenv-output: ${{ steps.devenv-scan.outputs.VULNERABILITIES_EXIST }}
       kcp-registrar-output: ${{ steps.kcp-registrar-scan.outputs.VULNERABILITIES_EXIST }}
+      quay-upload-output: ${{ steps.quay-upload-scan.outputs.VULNERABILITIES_EXIST }}
       shellcheck-output: ${{ steps.shellcheck-scan.outputs.VULNERABILITIES_EXIST }}
+      update-pipeline-service-output: ${{ steps.update-pipeline-service-scan.outputs.VULNERABILITIES_EXIST }}
       vulnerability-scan-output: ${{ steps.vulnerability-scan.outputs.VULNERABILITIES_EXIST }}
+      yamllint-scan-output: ${{ steps.yamllint-scan.outputs.VULNERABILITIES_EXIST }}
     steps:
       - uses: actions/checkout@v2
 
@@ -34,12 +38,20 @@ jobs:
             - 'images/access-setup/**'
             cluster-setup:
               - 'images/cluster-setup/**'
+            devenv:
+              - 'developer/images/devenv/**'
             kcp-registrar:
               - 'images/kcp-registrar/**'
+            quay-upload:
+              - 'ci/quay-upload/**'
             shellcheck:
               - 'ci/images/shellcheck/**'
+            update-pipeline-service:
+              - 'images/update-pipeline-service/**'
             vulnerability:
               - 'ci/images/vulnerability-scan/**'
+            yamllint:
+              - 'ci/images/yamllint/**'
 
       - name: access-setup scan
         continue-on-error: true
@@ -63,6 +75,17 @@ jobs:
           AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
           IMAGE_NAME: cluster-setup
 
+      - name: devenv scan
+        continue-on-error: true
+        id: devenv-scan
+        if: steps.filter.outputs.devenv == 'true'
+        run: |
+          ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
+          echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
+        env:
+          AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
+          IMAGE_NAME: devenv
+
       - name: kcp-registrar scan
         continue-on-error: true
         id: kcp-registrar-scan
@@ -73,6 +96,17 @@ jobs:
         env:
           AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
           IMAGE_NAME: kcp-registrar
+
+      - name: quay-upload scan
+        continue-on-error: true
+        id: quay-upload-scan
+        if: steps.filter.outputs.quay-upload == 'true'
+        run: |
+          ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
+          echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
+        env:
+          AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
+          IMAGE_NAME: quay-upload
 
       - name: shellcheck scan
         continue-on-error: true
@@ -85,6 +119,17 @@ jobs:
           AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
           IMAGE_NAME: shellcheck
 
+      - name: update-pipeline-service scan
+        continue-on-error: true
+        id: update-pipeline-service-scan
+        if: steps.filter.outputs.update-pipeline-service == 'true'
+        run: |
+          ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
+          echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
+        env:
+          AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
+          IMAGE_NAME: update-pipeline-service
+
       - name: vulnerability scan
         continue-on-error: true
         id: vulnerability-scan
@@ -95,6 +140,17 @@ jobs:
         env:
           AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
           IMAGE_NAME: vulnerability-scan
+
+      - name: yamllint scan
+        continue-on-error: true
+        id: yamllint-scan
+        if: steps.filter.outputs.yamllint == 'true'
+        run: |
+          ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
+          echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
+        env:
+          AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
+          IMAGE_NAME: yamllint
 
   check-results:
     runs-on: ubuntu-latest
@@ -127,6 +183,19 @@ jobs:
             echo "No vulnerabilities found"
           fi
 
+      - name: Check devenv results
+        id: check-devenv-results
+        if: always()
+        run: |
+          res=${{ needs.scans.outputs.devenv-output }}
+          res=${res:=0}
+          if [[ $res != 0 ]]; then
+            echo "Vulnerabilities found with devenv image. Please check scans job for more details."
+            exit 1
+          else
+            echo "No vulnerabilities found"
+          fi
+
       - name: Check kcp registrar results
         id: check-kcp-registrar-results
         if: always()
@@ -135,6 +204,19 @@ jobs:
           res=${res:=0}
           if [[ $res != 0 ]]; then
             echo "Vulnerabilities found with kcp-registrar image. Please check scans job for more details."
+            exit 1
+          else
+            echo "No vulnerabilities found"
+          fi
+
+      - name: Check quay upload results
+        id: check-quay-upload-results
+        if: always()
+        run: |
+          res=${{ needs.scans.outputs.quay-upload-output }}
+          res=${res:=0}
+          if [[ $res != 0 ]]; then
+            echo "Vulnerabilities found with quay-upload image. Please check scans job for more details."
             exit 1
           else
             echo "No vulnerabilities found"
@@ -153,6 +235,19 @@ jobs:
             echo "No vulnerabilities found"
           fi
 
+      - name: Check update pipeline service results
+        id: check-update-pipeline-service-results
+        if: always()
+        run: |
+          res=${{ needs.scans.outputs.update-pipeline-service-output }}
+          res=${res:=0}
+          if [[ $res != 0 ]]; then
+            echo "Vulnerabilities found with update-pipeline-service image. Please check scans job for more details."
+            exit 1
+          else
+            echo "No vulnerabilities found"
+          fi
+
       - name: Check vulnerability-scan results
         id: check-vulnerability-scan-results
         if: always()
@@ -161,6 +256,19 @@ jobs:
           res=${res:=0}
           if [[ $res != 0 ]]; then
             echo "Vulnerabilities found with vulnerability-scan image. Please check scans job for more details."
+            exit 1
+          else
+            echo "No vulnerabilities found"
+          fi
+
+      - name: Check yamllint results
+        id: check-yamllint-results
+        if: always()
+        run: |
+          res=${{ needs.scans.outputs.yamllint-output }}
+          res=${res:=0}
+          if [[ $res != 0 ]]; then
+            echo "Vulnerabilities found with yamllint image. Please check scans job for more details."
             exit 1
           else
             echo "No vulnerabilities found"
