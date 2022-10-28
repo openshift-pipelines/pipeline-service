@@ -8,7 +8,7 @@ We want to make the onboarding experience to use Pipeline Service as easy and cu
 
 ## Dependencies
 
-Before installing the prerequisites, refer [DEPENDENCIES.md](../DEPENDENCIES.md) to verify the versions of products, operators and tools used in Pipeline Service.
+Before installing the prerequisites, refer [DEPENDENCIES.md](../../DEPENDENCIES.md) to verify the versions of products, operators and tools used in Pipeline Service.
 
 ## Prerequisites
 
@@ -20,7 +20,7 @@ Before installing the prerequisites, refer [DEPENDENCIES.md](../DEPENDENCIES.md)
 
 ## Components
 
-Following the Phase 1 architecture described [here](../architect/images/phase1.png), we structured GitOps to set up an OpenShift cluster, i.e.,
+Following the Phase 1 architecture described [here](../../architect/img/phase1.png), we structured GitOps to set up an OpenShift cluster, i.e.,
 
 - Install various dependencies on the physical cluster via GitOps Applications.
   - tekton pipelines and triggers

@@ -2,7 +2,7 @@
 
 ## Development environment
 
-You can see the required dependencies in [DEPENDENCIES.md](../DEPENDENCIES.md).
+You can see the required dependencies in [DEPENDENCIES.md](../../DEPENDENCIES.md).
 
 You have various options to setup your environment:
 * local environment: the [install.sh](../images/devenv/install.sh) can be used to
@@ -12,7 +12,7 @@ installing/configuring packages locally.
 and be dropped in a shell.
 * VS Code in a container: you can use the `Remote Development` extension
 (`ms-vscode-remote.vscode-remote-extensionpack`), and VS Code will use the content of
-[.devcontainer](.devcontainer) to spawn a container and drop you in the development
+[.devcontainer](../../.devcontainer) to spawn a container and drop you in the development
 environment. This will require an action on your side when opening the project, so look
 out for the `Reopen in container` notification.
 

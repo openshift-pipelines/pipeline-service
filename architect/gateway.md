@@ -8,7 +8,7 @@ The approach taken for addressing it is to use [kcp-glbc](https://github.com/Kua
 
 ## Architecture
 
-![Gateway architecture](./images/gateway.png)
+![Gateway architecture](./img/gateway.png)
 
 - [kcp Global Load Balancer](https://github.com/Kuadrant/kcp-glbc). The current version automatically configures DNS, starting with route 53, so that the hostname generated for the ingress created by a user points to the IP address of the ingress router running on the cluster where the matching workload (Service, Deployment) has been deployed. The ingress resource gets then updated with the details. It also integrates with cert-manager to configure a certificate that matches the hostname.
 - Ingress, Service, Deployment and ConfigMap for the HAProxy based gateway are created in kcp. The syncer copy them onto the workload clusters.

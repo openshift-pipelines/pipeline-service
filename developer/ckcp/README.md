@@ -14,7 +14,7 @@ This script essentially does this :
 
 ### Dependencies
 
-Before installing the prerequisites, refer [DEPENDENCIES.md](../DEPENDENCIES.md) to verify the versions of products, operators and tools used in Pipeline Service.
+Before installing the prerequisites, refer [DEPENDENCIES.md](../../DEPENDENCIES.md) to verify the versions of products, operators and tools used in Pipeline Service.
 
 ### Pre-requisites
 
@@ -25,7 +25,7 @@ Before you execute the script, you need:
 3. to install [argocd CLI](https://argo-cd.readthedocs.io/en/stable/cli_installation/)
 4. to install [yq](https://mikefarah.gitbook.io/yq/#install)
 6. to install [kubectl kcp plugin](https://github.com/kcp-dev/kcp/blob/main/docs/kubectl-kcp-plugin.md)
-   Note: ckcp uses the official kcp image in order to run kcp in a pod (latest released versions). It is advisable to use the same version for the kcp plugin as the kcp core API (especially as KCP API is evolving quickly). The current version can be found in [DEPENDENCIES.md](../DEPENDENCIES.md). Make sure to checkout the branch listed in the doc before installing the plugin.
+   Note: ckcp uses the official kcp image in order to run kcp in a pod (latest released versions). It is advisable to use the same version for the kcp plugin as the kcp core API (especially as KCP API is evolving quickly). The current version can be found in [DEPENDENCIES.md](../../DEPENDENCIES.md). Make sure to checkout the branch listed in the doc before installing the plugin.
 
 You can run the openshift_dev_setup.sh script with or without parameters as specified below:
 
@@ -109,7 +109,7 @@ Considerations for testing a new component:-
 1. We are deploying various applications using the GitOps approach and hence a user would need to change the values of `git_url` and `git_ref` to reflect their own Git repo.
 2. A user can modify the applications to be deployed on the compute by modifying [apps](./config.yaml).
 3. A user can modify the Custom Resources to be synced by the KCP Syncer by modifying [cr_to_sync](./config.yaml).
-4. Onboarding a new component requires creating a new Argo CD application in [argo-apps](../gitops/argocd/argo-apps/) and adding it to [kustomization.yaml](../operator/gitops/argocd/argo-apps/kustomization.yaml).
+4. Onboarding a new component requires creating a new Argo CD application in [argo-apps](../../operator/gitops/argocd/argo-apps/) and adding it to [kustomization.yaml](../../operator/gitops/argocd/argo-apps/kustomization.yaml).
 5. For testing, users need to modify only the git source path and ref of their Argo CD application to reflect their own Git repo.
 6. A user can also choose a different version of kcp than the one running by default by changing the value of [version.kcp](./config.yaml).
 

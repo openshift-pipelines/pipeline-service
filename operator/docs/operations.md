@@ -10,7 +10,7 @@ The scope is focused on the operational aspects. This document does not go into 
 
 **Phase 1**
 
-![Components](./images/components.png)
+![Components](./img/components.png)
 
 ### Management
 
