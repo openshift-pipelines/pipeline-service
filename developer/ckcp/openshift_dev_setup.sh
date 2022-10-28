@@ -18,7 +18,7 @@ source "$CKCP_DIR/hack/util/update-git-reference.sh"
 # shellcheck source=operator/images/cluster-setup/bin/utils.sh
 source "$PROJECT_DIR/operator/images/cluster-setup/bin/utils.sh"
 
-GITOPS_DIR="$PROJECT_DIR/gitops"
+GITOPS_DIR="$PROJECT_DIR/operator/gitops"
 CONFIG="$CKCP_DIR/config.yaml"
 
 KUBECONFIG=${KUBECONFIG:-$HOME/.kube/config}
@@ -350,7 +350,7 @@ patches:
     --kcp-org "$kcp_org" \
     --kcp-workspace "$kcp_workspace" \
     --work-dir "$WORK_DIR" \
-    --kustomization "$GIT_URL/gitops/kcp/pac-manager?ref=$GIT_REF" |
+    --kustomization "$GIT_URL/operator/gitops/kcp/pac-manager?ref=$GIT_REF" |
     indent 2
   KUBECONFIG_KCP="$WORK_DIR/credentials/kubeconfig/kcp/ckcp-ckcp.${ws_name}.${kcp_workspace}.kubeconfig"
 }
@@ -368,7 +368,7 @@ install_pipeline_service() {
     ${DEBUG:+"$DEBUG"} \
     --kubeconfig "$KUBECONFIG" \
     --work-dir "$WORK_DIR" \
-    --kustomization "$GIT_URL/gitops/compute/pac-manager?ref=$GIT_REF" \
+    --kustomization "$GIT_URL/operator/gitops/compute/pac-manager?ref=$GIT_REF" \
     --git-remote-url "$GIT_URL" \
     --git-remote-ref "$GIT_REF" \
     --tekton-results-database-user "$TEKTON_RESULTS_DATABASE_USER" \

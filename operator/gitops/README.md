@@ -77,13 +77,13 @@ _Note: Please run these scripts only if you intend not to use PaC to automate th
     a. To install Tekton components
 
     ```
-    $ WORKSPACE_DIR=/home/workspace/pipeline-service/gitops/sre operator/images/cluster-setup/install.sh
+    $ WORKSPACE_DIR=/home/workspace/pipeline-service/operator/gitops/sre operator/images/cluster-setup/install.sh
     ```
 
     b. To register the compute clusters into kcp
 
     ```
-    $ KCP_ORG="root:pipeline-service" KCP_WORKSPACE="compute" WORKSPACE_DIR="/home/workspace/pipeline-service/gitops/sre" operator/images/kcp-registrar/register.sh
+    $ KCP_ORG="root:pipeline-service" KCP_WORKSPACE="compute" WORKSPACE_DIR="/home/workspace/pipeline-service/operator/gitops/sre" operator/images/kcp-registrar/register.sh
     ```
 
 ### Pipelines As Code (PaC)
@@ -144,7 +144,7 @@ _Note: mycluster.kubeconfig, mykcp.kubeconfig, mycluster and kustomization.yaml 
 
 $cat kustomization.yaml
 resources:
-  - github.com/openshift-pipelines/pipeline-service/gitops/argocd?ref=main
+  - github.com/openshift-pipelines/pipeline-service/operator/gitops/argocd?ref=main
 ```
 
 Once you merge the PR, PaC will trigger cluster-setup and kcp-registrar Pipelines present under _.tekton_ to set up the cluster and register it with kcp instance.
@@ -180,7 +180,7 @@ spec:
 
 ```
 
-Users must be authorized to bind APIExports on the workspace hosting the SyncTarget, or they will get an `unable to create APIImport: missing verb='bind' permission on apiexports` error. The default configuration will grant the `bind` permission to all authenticated users (c.f. `gitops/kcp/registration`). This configuration can be customized by creating the appropriate manifest(s) in the `environment/kcp` folder (c.f. [this example](../docs/sre/examples/providers/environment/kcp/kustomization.yaml)).
+Users must be authorized to bind APIExports on the workspace hosting the SyncTarget, or they will get an `unable to create APIImport: missing verb='bind' permission on apiexports` error. The default configuration will grant the `bind` permission to all authenticated users (c.f. `operator/gitops/kcp/registration`). This configuration can be customized by creating the appropriate manifest(s) in the `environment/kcp` folder (c.f. [this example](../docs/sre/examples/providers/environment/kcp/kustomization.yaml)).
 
 Below snippet shows the APIBinding used in a new workspace named 'user'.
 

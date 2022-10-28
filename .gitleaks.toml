@@ -1,5 +1,5 @@
 [allowlist]
   description = "Allowlist"
   paths = [
-    '''gitops/pac/README.md''',
+    '''operator/gitops/pac/README.md''',
   ]

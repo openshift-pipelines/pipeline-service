@@ -65,7 +65,7 @@ Example:
 }
 
 parse_args() {
-  KUSTOMIZATION=${KUSTOMIZATION:-github.com/openshift-pipelines/pipeline-service/gitops/kcp/pac-manager?ref=main}
+  KUSTOMIZATION=${KUSTOMIZATION:-github.com/openshift-pipelines/pipeline-service/operator/gitops/kcp/pac-manager?ref=main}
   while [[ $# -gt 0 ]]; do
     case "$1" in
     -k | --kubeconfig)

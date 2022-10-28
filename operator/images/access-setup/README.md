@@ -3,7 +3,7 @@
 ## Goals
 Given a new KCP instance or compute cluster, deploy the minimum
 amount of resources required to operate that cluster from a git repository
-implementing a CD process (c.f. gitops/sre). The CD process will then be
+implementing a CD process (c.f. operator/gitops/sre). The CD process will then be
 responsible for installing/registering all the required resources.
 
 This action needs to be performed only once in the lifetime of the resource

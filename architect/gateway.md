@@ -42,14 +42,14 @@ Currently the gateway has a service as backend. As any pod it can reference a se
 
 [kcp-glbc](https://github.com/Kuadrant/kcp-glbc) must be deployed. [Instructions](https://github.com/Kuadrant/kcp-glbc/blob/main/docs/deployment.md) are provided in its GitHub repository.
 
-Also an approprite APIExport needs to be provided from glbc workspace then the [APIBinding resource definitions](../gitops/kcp/gateway/glbc-apibinding.yaml) need to be amended with the cluster specific values in an overlay.
+Also an approprite APIExport needs to be provided from glbc workspace then the [APIBinding resource definitions](../operator/gitops/kcp/gateway/glbc-apibinding.yaml) need to be amended with the cluster specific values in an overlay.
 
 Example:
 
 ~~~
 ---
 resources:
-  - github.com/openshift-pipelines/pipeline-service/gitops/kcp/gateway?ref=main
+  - github.com/openshift-pipelines/pipeline-service/operator/gitops/kcp/gateway?ref=main
 patches:
   - patch: |-
       - op: replace
@@ -84,7 +84,7 @@ patches:
 
 ### Pipeline as Code
 
-The registration is meant to be triggered from [Pipelines as Code](https://pipelinesascode.com/) via the [Tekton PipelineRun for kcp registration](../gitops/sre/.tekton/kcp-registration.yaml).
+The registration is meant to be triggered from [Pipelines as Code](https://pipelinesascode.com/) via the [Tekton PipelineRun for kcp registration](../operator/gitops/sre/.tekton/kcp-registration.yaml).
 
 The SyncTarget of the compute cluster where ingresses are to be scheduled needs to be annotated and labelled. This is done during the registration process.
 
@@ -99,7 +99,7 @@ Alternatively the commands can be run manually.
 Kubectl should point to your kcp organisation.
 
 ```bash
-kubectl apply -k ./gitops/kcp/gateway
+kubectl apply -k operator/gitops/kcp/gateway
 ```
 
 HAProxy configuration can be amended through the ConfigMap. See the section below.
