@@ -13,7 +13,7 @@ spec:
           # Use a custom version of chains that contains support for pipelinerun attestations
           # This custom version is required until https://github.com/tektoncd/chains/pull/436
           # has been merged to upstream and released in an official image.
-          image: ghcr.io/hacbs-contract/chains/controller:poc-tep-84@sha256:38e83e33b5f9561c5005870a516362e219747f757662e948644fd425188db200
+          image: ghcr.io/hacbs-contract/chains/controller:poc-tep-84@sha256:1b946e742933ea28a8ebee3fcf990b25adae7277145cac418cec4dbf9d808855
           volumeMounts:
             # Mount the secrets volume
             - mountPath: /etc/ssl/certs
