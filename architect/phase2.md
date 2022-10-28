@@ -11,4 +11,4 @@ Tekton resource schemas are added only in kcp.
 
 Kubernetes workload clusters know nothing about Tekton. They only run resources like Deployments, Pods and Services.
 
-![Phase 2 flow](./images/phase2.png)
+![Phase 2 flow](./img/phase2.png)

@@ -17,7 +17,7 @@ Prerequisites:
 
 ## Workload clusters with kind
 
-[./local/kind/setup.sh](./local/kind/setup.sh) will create two kind clusters and output the kubeconfig files that can be used to interact with the Kubernetes clusters. An amended version of the kubeconfig file with the suffix '_ip' can be used for registering the clusters to Argo CD. A routable IP is used instead of localhost. Simply run:
+[developer/local/kind/setup.sh](../local/kind/setup.sh) will create two kind clusters and output the kubeconfig files that can be used to interact with the Kubernetes clusters. An amended version of the kubeconfig file with the suffix '_ip' can be used for registering the clusters to Argo CD. A routable IP is used instead of localhost. Simply run:
 
 ```console
 developer/local/kind/setup.sh
@@ -58,7 +58,7 @@ developer/local/kcp/start.sh
 
 ---
 
-[The kcp registration page](./docs/kcp-registration.md) provides instructions to register workload clusters to kcp.
+[The kcp registration page](../../operator/docs/kcp-registration.md) provides instructions to register workload clusters to kcp.
 
 Here is an example for running the registration image in a development environment:
 
@@ -82,7 +82,7 @@ sudo iptables -I INPUT -p tcp --src 10.88.0.1/24 --dport 6443 --dst 192.168.0.12
 
 ## Gateway
 
-A gateway can be installed to expose endpoints running on the workload clusters through kcp load balancer. Refer to the [gateway documentation](docs/gateway.md) for the instructions.
+A gateway can be installed to expose endpoints running on the workload clusters through kcp load balancer. Refer to the [gateway documentation](../../architect/gateway.md) for the instructions.
 
 ## GitOps
 

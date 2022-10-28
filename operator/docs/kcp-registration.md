@@ -4,7 +4,7 @@ The [images/kcp-registrar directory](../images/kcp-registrar) contains the logic
 
 ## Run
 
-The registration is meant to be triggered from [Pipelines as Code](https://pipelinesascode.com/) and a [Tekton PipelineRun](../operator/gitops/sre/.tekton/kcp-registration.yaml) is provided for the purpose in the .tekton directory.
+The registration is meant to be triggered from [Pipelines as Code](https://pipelinesascode.com/) and a [Tekton PipelineRun](../gitops/sre/.tekton/kcp-registration.yaml) is provided for the purpose in the .tekton directory.
 
 Alternatively the registration can be performed by manually calling the registration script in the image directory:
 

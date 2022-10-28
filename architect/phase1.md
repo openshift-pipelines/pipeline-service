@@ -7,7 +7,7 @@ This approach has the great advantage of not requiring any change to the control
 
 Controllers know nothing about kcp.
 
-![Phase 1 flow](./images/phase1.png)
+![Phase 1 flow](./img/phase1.png)
 
 **Demos**
 

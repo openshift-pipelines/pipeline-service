@@ -36,4 +36,4 @@ More info [here](./developer/ckcp/README.md).
 
 ## Running locally
 
-See [the development guide](DEVELOPMENT.md) for instructions on how to set up a local development environment.
+See [the development guide](./developer/docs/DEVELOPMENT.md) for instructions on how to set up a local development environment.
