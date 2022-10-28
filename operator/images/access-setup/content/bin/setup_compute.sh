@@ -71,7 +71,7 @@ Example:
 }
 
 parse_args() {
-  KUSTOMIZATION=${KUSTOMIZATION:-github.com/openshift-pipelines/pipeline-service/gitops/compute/pac-manager?ref=main}
+  KUSTOMIZATION=${KUSTOMIZATION:-github.com/openshift-pipelines/pipeline-service/operator/gitops/compute/pac-manager?ref=main}
   GIT_URL=${GIT_URL:-"https://github.com/openshift-pipelines/pipeline-service.git"}
   GIT_REF=${GIT_REF:="main"}
   TEKTON_RESULTS_DATABASE_USER=${TEKTON_RESULTS_DATABASE_USER:-}
@@ -241,7 +241,7 @@ generate_compute_credentials() {
   mkdir -p "$manifests_dir"
   echo -n "---
 resources:
-  - git::$GIT_URL/gitops/argocd?ref=$GIT_REF
+  - git::$GIT_URL/operator/gitops/argocd?ref=$GIT_REF
 " >"$manifests_dir/kustomization.yaml"
   printf "%s\n" "$manifests_dir/kustomization.yaml"
 }

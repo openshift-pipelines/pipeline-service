@@ -2,30 +2,26 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: tekton-results
+  name: pipeline-service
   namespace: openshift-gitops
-
 spec:
   destination:
     namespace: openshift-gitops
     server: https://kubernetes.default.svc
   source:
-    path: gitops/argocd/tekton-results
+    path: operator/gitops/argocd/argo-apps
     repoURL: https://github.com/openshift-pipelines/pipeline-service.git
     targetRevision: main
   project: default
   syncPolicy:
-
     # Comment this out if you want to manually trigger deployments (using the
     # Argo CD Web UI or Argo CD CLI), rather than automatically deploying on
     # every new Git commit to your directory.
     automated:
       prune: true
       selfHeal: true
-
     syncOptions:
       - CreateNamespace=true
-
     retry:
       limit: -1 # number of failed sync attempt retries; unlimited number of attempts if less than 0
       backoff:

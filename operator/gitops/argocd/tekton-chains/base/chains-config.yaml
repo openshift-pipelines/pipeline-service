@@ -23,5 +23,5 @@ data:
   artifacts.oci.storage: "oci"
 
   transparency.enabled: "false"
-  # This must be set by the gitops/sre when deploying a cluster.
+  # This must be set by the operator/gitops/sre when deploying a cluster.
   # transparency.url: "https://rekor.sigstore.dev"
