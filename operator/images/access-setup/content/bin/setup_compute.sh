@@ -166,31 +166,30 @@ generate_shared_manifests(){
 }
 
 tekton_chains_manifest(){
-  manifest="$manifests_dir/compute/tekton-chains/signing-secrets.yaml"
-  if [ ! -e "$manifest" ]; then
-    manifests_tmp_dir="$(dirname "$manifest")/tmp"
-    mkdir -p "$manifests_tmp_dir"
+  chains_kustomize="$manifests_dir/compute/tekton-chains/kustomization.yaml"
+  chains_namespace="$manifests_dir/compute/tekton-chains/namespace.yaml"
+  chains_secret="$manifests_dir/compute/tekton-chains/signing-secrets.yaml"
+  if [ ! -e "$chains_kustomize" ]; then
+    chains_tmp_dir="$(dirname "$chains_kustomize")/tmp"
+    mkdir -p "$chains_tmp_dir"
     cosign_passwd="$( head -c 12 /dev/urandom | base64 )"
-    echo -n "$cosign_passwd" > "$manifests_tmp_dir/cosign.password"
+    echo -n "$cosign_passwd" > "$chains_tmp_dir/cosign.password"
     cosign_image="quay.io/redhat-appstudio/appstudio-utils:eb94f28fe2d7c182f15e659d0fdb66f87b0b3b6b"
     podman run \
       --rm \
       --env COSIGN_PASSWORD="$cosign_passwd" \
-      --volume "$manifests_tmp_dir":/workspace:z \
+      --volume "$chains_tmp_dir":/workspace:z \
       --workdir /workspace \
       --entrypoint /usr/bin/cosign \
       "$cosign_image" generate-key-pair
-    {
-      echo "---"
-      kubectl create namespace tekton-chains --dry-run=client -o yaml
-      echo "---"
-      kubectl create secret generic -n tekton-chains signing-secrets --from-file="$manifests_tmp_dir" --dry-run=client -o yaml | \
-        yq '. += {"immutable" :true}' | \
-        yq "sort_keys(.)"
-    } > "$manifest"
-    rm -rf "$manifests_tmp_dir"
-    if [ "$(yq ".data" < "$manifest" | grep -cE "^cosign.key:|^cosign.password:|^cosign.pub:")" != "3" ]; then
-      printf "[ERROR] Invalid manifest: '%s'" "$manifest" >&2
+    kubectl create namespace tekton-chains --dry-run=client -o yaml > "$chains_namespace"
+    kubectl create secret generic -n tekton-chains signing-secrets --from-file="$chains_tmp_dir" --dry-run=client -o yaml | \
+            yq '. += {"immutable" :true}' | \
+            yq "sort_keys(.)" > "$chains_secret"
+    yq e -n '.resources += ["namespace.yaml", "signing-secrets.yaml"]' > "$chains_kustomize"
+    rm -rf "$chains_tmp_dir"
+    if [ "$(yq ".data" < "$chains_secret" | grep -cE "^cosign.key:|^cosign.password:|^cosign.pub:")" != "3" ]; then
+      printf "[ERROR] Invalid manifest: '%s'" "$chains_secret" >&2
       exit 1
     fi
   fi
@@ -198,25 +197,25 @@ tekton_chains_manifest(){
 }
 
 tekton_results_manifest(){
-  manifest="$manifests_dir/compute/tekton-results/tekton-results-secret.yaml"
-  if [ ! -e "$manifest" ]; then
-    manifests_dir="$(dirname "$manifest")"
-    mkdir -p "$manifests_dir"
+  results_kustomize="$manifests_dir/compute/tekton-results/kustomization.yaml"
+  results_namespace="$manifests_dir/compute/tekton-results/namespace.yaml"
+  results_secret="$manifests_dir/compute/tekton-results/tekton-results-secret.yaml"
+  if [ ! -e "$results_kustomize" ]; then
+    results_dir="$(dirname "$results_kustomize")"
+    mkdir -p "$results_dir"
     if [[ -z $TEKTON_RESULTS_DATABASE_USER || -z $TEKTON_RESULTS_DATABASE_PASSWORD ]]; then
       printf "[ERROR] Tekton results database variable is not set, either set the variables using \n \
       the config.yaml under tekton_results_db \n \
-      Or create '%s' \n" "$manifest" >&2
+      Or create '%s' \n" "$results_secret" >&2
       exit 1
     fi
 
-    {
-      echo "---"
-      kubectl create namespace tekton-results --dry-run=client -o yaml
-      echo "---"
-      kubectl create secret generic -n tekton-results tekton-results-database --from-literal=DATABASE_USER="$TEKTON_RESULTS_DATABASE_USER" --from-literal=DATABASE_PASSWORD="$TEKTON_RESULTS_DATABASE_PASSWORD" --dry-run=client -o yaml
-    } > "$manifest"
-    if [ "$(yq ".data" < "$manifest" | grep -cE "DATABASE_USER|DATABASE_PASSWORD")" != "2" ]; then
-      printf "[ERROR] Invalid manifest: '%s'" "$manifest" >&2
+    kubectl create namespace tekton-results --dry-run=client -o yaml > "$results_namespace"
+    kubectl create secret generic -n tekton-results tekton-results-database --from-literal=DATABASE_USER="$TEKTON_RESULTS_DATABASE_USER" --from-literal=DATABASE_PASSWORD="$TEKTON_RESULTS_DATABASE_PASSWORD" --dry-run=client -o yaml > "$results_secret"
+
+    yq e -n '.resources += ["namespace.yaml", "tekton-results-secret.yaml"]' > "$results_kustomize"
+    if [ "$(yq ".data" < "$results_secret" | grep -cE "DATABASE_USER|DATABASE_PASSWORD")" != "2" ]; then
+      printf "[ERROR] Invalid manifest: '%s'" "$results_secret" >&2
       exit 1
     fi
   fi
