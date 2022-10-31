@@ -194,7 +194,7 @@ uninstall_operators(){
     fi
 
     printf "\n  Uninstalling cert-manager Operator:\n"
-    kubectl delete -k "$PROJECT_DIR/operators/cert-manager" --ignore-not-found=true
+    kubectl delete -k "$PROJECT_DIR/operator/cert-manager" --ignore-not-found=true
     mapfile -t cert_manager_crds < <(kubectl get crd | grep -iE "cert-manager.io|certmanagers" | cut -d " " -f 1)
     if [[ "${#cert_manager_crds[@]}" -gt 0 ]]; then
       for crd in "${cert_manager_crds[@]}"; do
