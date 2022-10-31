@@ -341,7 +341,7 @@ jobs:
         run: |
           ./ci/images/quay-upload/image-upload.sh --debug
 
-     # Build and push yamllint image, tagged with latest and the commit SHA.
+      # Build and push yamllint image, tagged with latest and the commit SHA.
       - name: Build yamllint Image
         id: build-image-yamllint
         if: steps.filter.outputs.yamllint == 'true'
