@@ -21,5 +21,5 @@ update_git_reference() {
     local file="$3"
 
     sed -i -e "s,github.com/openshift-pipelines/pipeline-service,$giturl,g" "$file"
-    sed -i -e "s,ref=v0.8.1,ref=$ref,g" "$file"
+    sed -i -e "s,ref=v0.8,ref=$ref,g" "$file"
 }

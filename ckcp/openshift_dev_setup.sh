@@ -118,7 +118,7 @@ init() {
   cluster_type=$(yq '.CLUSTER_TYPE // "openshift"' "$CONFIG")
 
   GIT_URL=$(yq '.git_url // "https://github.com/openshift-pipelines/pipeline-service.git"' "$CONFIG")
-  GIT_REF=$(yq '.git_ref // "v0.8.1"' "$CONFIG")
+  GIT_REF=$(yq '.git_ref // "v0.8"' "$CONFIG")
 
   # get list of CRs to sync
   read -ra CRS_TO_SYNC <<< "$(yq eval '.crs_to_sync | join(" ")' "$CONFIG")"

@@ -11,7 +11,7 @@ spec:
   source:
     path: gitops/argocd/tektoncd
     repoURL: https://github.com/openshift-pipelines/pipeline-service.git
-    targetRevision: v0.8.1
+    targetRevision: v0.8
   project: default
   syncPolicy:
     # Comment this out if you want to manually trigger deployments (using the
