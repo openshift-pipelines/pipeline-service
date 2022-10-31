@@ -238,12 +238,7 @@ install_cert_manager(){
   APP="cert-manager-operator"
   echo "- OpenShift-Cert-Manager: "
   kubectl apply -f "$GITOPS_DIR/argocd/argo-apps/$APP.yaml" >/dev/null
-  check_cert_manager | indent 2
-}
-
-check_cert_manager() {
-  certManagerDeployments=("cert-manager" "cert-manager-cainjector" "cert-manager-webhook")
-  check_deployments "openshift-cert-manager" "${certManagerDeployments[@]}"
+  check_deployments "openshift-cert-manager" "cert-manager" "cert-manager-cainjector" "cert-manager-webhook" | indent 2
 }
 
 install_ckcp() {
