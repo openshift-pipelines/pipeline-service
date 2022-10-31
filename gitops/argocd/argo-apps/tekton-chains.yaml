@@ -12,7 +12,7 @@ spec:
   source:
     path: gitops/argocd/tekton-chains/overlays/openshift
     repoURL: https://github.com/openshift-pipelines/pipeline-service.git
-    targetRevision: main
+    targetRevision: v0.8.1
   project: default
   syncPolicy:
 

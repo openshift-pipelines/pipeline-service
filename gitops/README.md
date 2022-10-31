@@ -144,7 +144,7 @@ _Note: mycluster.kubeconfig, mykcp.kubeconfig, mycluster and kustomization.yaml 
 
 $cat kustomization.yaml
 resources:
-  - github.com/openshift-pipelines/pipeline-service/gitops/argocd?ref=main
+  - github.com/openshift-pipelines/pipeline-service/gitops/argocd?ref=v0.8.1
 ```
 
 Once you merge the PR, PaC will trigger cluster-setup and kcp-registrar Pipelines present under _.tekton_ to set up the cluster and register it with kcp instance.

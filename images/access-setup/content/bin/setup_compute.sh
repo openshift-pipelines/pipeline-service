@@ -71,9 +71,9 @@ Example:
 }
 
 parse_args() {
-  KUSTOMIZATION=${KUSTOMIZATION:-github.com/openshift-pipelines/pipeline-service/gitops/compute/pac-manager?ref=main}
+  KUSTOMIZATION=${KUSTOMIZATION:-github.com/openshift-pipelines/pipeline-service/gitops/compute/pac-manager?ref=v0.8.1}
   GIT_URL=${GIT_URL:-"https://github.com/openshift-pipelines/pipeline-service.git"}
-  GIT_REF=${GIT_REF:="main"}
+  GIT_REF=${GIT_REF:="v0.8.1"}
   TEKTON_RESULTS_DATABASE_USER=${TEKTON_RESULTS_DATABASE_USER:-}
   TEKTON_RESULTS_DATABASE_PASSWORD=${TEKTON_RESULTS_DATABASE_PASSWORD:-}
   
