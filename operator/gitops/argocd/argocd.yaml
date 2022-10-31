@@ -11,7 +11,7 @@ spec:
   source:
     path: operator/gitops/argocd/argo-apps
     repoURL: https://github.com/openshift-pipelines/pipeline-service.git
-    targetRevision: main
+    targetRevision: v0.8.1
   project: default
   syncPolicy:
     # Comment this out if you want to manually trigger deployments (using the
