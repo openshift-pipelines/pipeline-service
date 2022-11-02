@@ -12,7 +12,7 @@ spec:
   source:
     path: gitops/argocd/tekton-results
     repoURL: https://github.com/openshift-pipelines/pipeline-service.git
-    targetRevision: main
+    targetRevision: freeze
   project: default
   syncPolicy:
 
