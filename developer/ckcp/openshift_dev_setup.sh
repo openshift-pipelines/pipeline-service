@@ -117,7 +117,7 @@ init() {
   done
 
   # get cluster type
-  cluster_type=$(yq '.CLUSTER_TYPE // "openshift"' "$CONFIG")
+  cluster_type=$(yq '.cluster_type // "openshift"' "$CONFIG")
 
   GIT_URL=$(yq '.git_url // "https://github.com/openshift-pipelines/pipeline-service.git"' "$CONFIG")
   GIT_REF=$(yq '.git_ref // "main"' "$CONFIG")
