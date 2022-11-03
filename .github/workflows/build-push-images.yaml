@@ -16,7 +16,7 @@ jobs:
 
       - name: Get the short sha
         id: vars
-        run: echo "::set-output name=sha_short::$(echo ${{ github.sha }} | cut -b -7)"
+        run: echo "sha_short=$(echo ${{ github.sha }} | cut -b -7)" > $GITHUB_OUTPUT
 
       - uses: dorny/paths-filter@v2
         id: filter
