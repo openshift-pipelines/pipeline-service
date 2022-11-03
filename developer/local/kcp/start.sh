@@ -38,7 +38,7 @@ SCRIPT_DIR="$(
   pwd
 )"
 CONFIG="$(dirname "$(dirname "$SCRIPT_DIR")")/ckcp/config.yaml"
-KCP_VERSION=$(yq '.version.kcp' "$CONFIG")
+KCP_VERSION=$(yq '.kcp.version' "$CONFIG")
 KCP_DIR="${KCP_DIR:-}"
 
 kcp-binaries() {

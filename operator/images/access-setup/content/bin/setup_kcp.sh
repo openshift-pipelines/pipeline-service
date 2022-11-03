@@ -155,11 +155,38 @@ generate_kcp_credentials() {
   printf "KUBECONFIG=%s\n" "$kubeconfig" | indent 4
 }
 
+patch_workspace_controller() {
+  manifests_dir="$WORK_DIR/environment/kcp/workspace-controller"
+  printf -- "- Generate patch for the workspace-controller: "
+  echo -n "
+patches:
+  - target:
+      kind: APIBinding
+      name: settings-configuration.pipeline-service.io
+    patch: |-
+      - op: replace
+        path: /spec/reference/workspace/path
+        value: \"$KCP_ORG:$KCP_WORKSPACE\"
+  - target:
+      kind: Deployment
+      name: settings-controller-manager
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/args/2
+        value: \"--api-export-workspace=$KCP_ORG:$KCP_WORKSPACE\"
+" >> "$manifests_dir/overlays/kustomization.yaml"
+  echo -n "---
+- 
+" > "$manifests_dir/overlays/workspace.yaml"
+  printf "OK\n"
+}
+
 main() {
   parse_args "$@"
   prechecks
   init
   generate_kcp_credentials
+  patch_workspace_controller
 }
 
 if [ "${BASH_SOURCE[0]}" == "$0" ]; then

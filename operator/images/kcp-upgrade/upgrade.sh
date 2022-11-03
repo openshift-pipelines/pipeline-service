@@ -24,7 +24,7 @@ SCRIPT_DIR="$(
 )"
 
 CONFIG="$(dirname "$(dirname "$SCRIPT_DIR")")/developer/ckcp/config.yaml"
-current_kcp_version="$(yq '.version.kcp' "$CONFIG" | sed 's/v//' )"
+current_kcp_version="$(yq '.kcp.version' "$CONFIG" | sed 's/v//' )"
 
 latest_kcp_version="$(curl -s https://api.github.com/repos/kcp-dev/kcp/releases/latest | yq '.tag_name' | sed 's/v//' )"
 
