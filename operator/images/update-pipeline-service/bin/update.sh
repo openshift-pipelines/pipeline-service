@@ -4,19 +4,15 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-declare -r TARGET_BRANCH="main"
-declare -r gitlab_ci="./.gitlab-ci.yml"
-
 SCRIPT_DIR="$(
   cd "$(dirname "$0")" >/dev/null
   pwd
 )"
 
-# shellcheck source=operator/images/update-pipeline-service/bin/gitlab_open_mr.sh
-source "$SCRIPT_DIR/gitlab_open_mr.sh"
+# shellcheck source=operator/images/update-pipeline-service/bin/gitlab.sh
+source "$SCRIPT_DIR/gitlab.sh"
 
 usage() {
-
   printf "
 Usage:
     %s [options]
@@ -25,6 +21,8 @@ Fetch the latest commit from Pipeline Service Github repo
 and update the image tags in the Gitlab repo where the config lives.
 
 Optional arguments:
+    --automerge
+        Automatically merge the change.
     -scm, --source-control-management SCM
         Source Code Management tools like github, gitlab, bitbucket etc.
         Default: gitlab
@@ -39,9 +37,11 @@ Example:
 }
 
 parse_args() {
-  SCM="gitlab"
   while [[ $# -gt 0 ]]; do
     case $1 in
+    --automerge)
+      AUTOMERGE="true"
+      ;;
     -scm | --source-code-management)
       shift
       SCM="$1"
@@ -61,36 +61,49 @@ parse_args() {
     esac
     shift
   done
+  AUTOMERGE="${AUTOMERGE:-false}"
+  SCM="${SCM:-gitlab}"
+  TARGET_BRANCH="${TARGET_BRANCH:-main}"
 }
 
-fetch_commits() {
-  for i in {1..3}; do
-    latest_commit_status=$(
-      curl -sw '%{http_code}' -o /tmp/latest_commit.json \
-      -H "Accept: application/vnd.github.VERSION.sha" \
-      "https://api.github.com/repos/openshift-pipelines/pipeline-service/commits/$TARGET_BRANCH"
+http_retry() {
+  printf "HTTP error when accessing '%s': %s\n" "$http_url" "$resp_http_code" >&2
+  retry=$((retry - 1))
+  if [ "$retry" = "0" ]; then
+    printf "Error: \n" >&2
+    cat "$http_logs" >&2
+    exit 1
+  else
+    printf "Retrying...\n"
+  fi
+}
+
+get_latest_commit() {
+  printf "Fetching the latest commit\n"
+  http_url="https://api.github.com/repos/openshift-pipelines/pipeline-service/commits/$TARGET_BRANCH"
+  http_logs="/tmp/fetch_commit.json"
+  retry=3
+  while true; do
+    resp_http_code=$(
+      curl -sw '%{http_code}' -o "$http_logs" \
+        -H "Accept: application/vnd.github.VERSION.sha" \
+        "$http_url"
     )
-    if [[ "$latest_commit_status" == "200" ]]; then
-      latest_commit=$(cut -c -7 < /tmp/latest_commit.json)
-    else
-      if [[ "$i" -lt 3 ]]; then
-        printf "Unable to fetch the latest commit. Retrying...\n"
-        sleep 20
-      else
-        printf "Error while fetching the latest commit from GitHub. Status code: %s\n" "${latest_commit_status}" >&2
-        exit 1
-      fi
-    fi
+    case $resp_http_code in
+    2*)
+      LATEST_COMMIT=$(cut -c -7 <"$http_logs")
+      break
+      ;;
+    *)
+      http_retry
+      ;;
+    esac
   done
-  current_commit=$(yq '.deploy-job.image.name' < "$gitlab_ci" | cut -d ':' -f2)
 }
 
 main() {
   parse_args "$@"
-  fetch_commits
-  if [[ $SCM == "gitlab" ]]; then
-    raise_mr_gitlab "$current_commit" "$latest_commit"
-  fi
+  "${SCM}_process"
 }
 
 if [ "${BASH_SOURCE[0]}" == "$0" ]; then
