@@ -26,6 +26,7 @@ Before you execute the script, you need:
 4. to install [yq](https://mikefarah.gitbook.io/yq/#install)
 6. to install [kubectl kcp plugin](https://github.com/kcp-dev/kcp/blob/main/docs/kubectl-kcp-plugin.md)
    Note: ckcp uses the official kcp image in order to run kcp in a pod (latest released versions). It is advisable to use the same version for the kcp plugin as the kcp core API (especially as KCP API is evolving quickly). The current version can be found in [DEPENDENCIES.md](../../DEPENDENCIES.md). Make sure to checkout the branch listed in the doc before installing the plugin.
+7. to install [podman](https://github.com/containers/podman) or [docker](https://www.docker.com/). If you have both you can control which is used by setting the `CONTAINER_ENGINE` environment variable (e.g. `export CONTAINER_ENGINE="podman"`). While we do not recommend it for security reasons, you can prefix the binary with `sudo` to force the execution as the root user (e.g. `export CONTAINER_ENGINE="sudo podman"`).
 
 You can run the openshift_dev_setup.sh script with or without parameters as specified below:
 

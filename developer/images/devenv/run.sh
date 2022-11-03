@@ -85,7 +85,6 @@ parse_args() {
 
 detect_container_engine() {
     CONTAINER_ENGINE="${CONTAINER_ENGINE:-}"
-    ALLOW_ROOTLESS="${ALLOW_ROOTLESS:-false}"
     if [[ -n "${CONTAINER_ENGINE}" ]]; then
         return
     fi
@@ -106,10 +105,7 @@ detect_container_engine() {
     fi
 
     # Default container engine is podman
-    CONTAINER_ENGINE="sudo podman"
-    if [[ "${ALLOW_ROOTLESS}" == "true" ]]; then
-        CONTAINER_ENGINE="podman"
-    fi
+    CONTAINER_ENGINE="podman"
 }
 
 get_image_name() {

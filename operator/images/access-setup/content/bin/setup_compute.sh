@@ -147,6 +147,29 @@ init() {
   manifests_dir="$WORK_DIR/credentials/manifests"
   mkdir -p "$credentials_dir"
   mkdir -p "$manifests_dir"
+
+  detect_container_engine
+}
+
+detect_container_engine() {
+    CONTAINER_ENGINE="${CONTAINER_ENGINE:-}"
+    if [[ -n "${CONTAINER_ENGINE}" ]]; then
+      return
+    fi
+    CONTAINER_ENGINE=podman
+    if ! command -v podman >/dev/null; then
+        CONTAINER_ENGINE=docker
+        return
+    fi
+    if [[ "$OSTYPE" == "darwin"* && -z "$(podman ps)" ]]; then
+        # Podman machine is not started
+        CONTAINER_ENGINE=docker
+        return
+    fi
+    if [[ "$OSTYPE" == "darwin"* && -z "$(podman system connection ls --format=json)" ]]; then
+        CONTAINER_ENGINE=docker
+        return
+    fi
 }
 
 check_prerequisites() {
@@ -173,7 +196,7 @@ tekton_chains_manifest(){
     cosign_passwd="$( head -c 12 /dev/urandom | base64 )"
     echo -n "$cosign_passwd" > "$manifests_tmp_dir/cosign.password"
     cosign_image="quay.io/redhat-appstudio/appstudio-utils:eb94f28fe2d7c182f15e659d0fdb66f87b0b3b6b"
-    podman run \
+    $CONTAINER_ENGINE run \
       --rm \
       --env COSIGN_PASSWORD="$cosign_passwd" \
       --volume "$manifests_tmp_dir":/workspace:z \

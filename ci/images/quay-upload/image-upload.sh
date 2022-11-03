@@ -73,6 +73,29 @@ init() {
   image=${image:-}
 
   image_path="$registry"/"$image"
+
+  detect_container_engine
+}
+
+detect_container_engine() {
+    CONTAINER_ENGINE="${CONTAINER_ENGINE:-}"
+    if [[ -n "${CONTAINER_ENGINE}" ]]; then
+      return
+    fi
+    CONTAINER_ENGINE="podman"
+    if ! command -v podman >/dev/null; then
+        CONTAINER_ENGINE=docker
+        return
+    fi
+    if [[ "$OSTYPE" == "darwin"* && -z "$(podman ps)" ]]; then
+        # Podman machine is not started
+        CONTAINER_ENGINE=docker
+        return
+    fi
+    if [[ "$OSTYPE" == "darwin"* && -z "$(podman system connection ls --format=json)" ]]; then
+        CONTAINER_ENGINE=docker
+        return
+    fi
 }
 
 get_commit_id() {
@@ -99,18 +122,18 @@ pull_push_image() {
   source="$image_path:$branch_name"
   target="$image_path:$commit_id"
 
-  podman login -u="$username" -p="$password" quay.io
+  $CONTAINER_ENGINE login -u="$username" -p="$password" quay.io
 
-  podman pull -q "$source"
+  $CONTAINER_ENGINE pull -q "$source"
   image=$(podman images "$source" --format json | jq '.[0].Names')
   if [[ "$image" == "null" ]]; then
     printf "Image '%s' was not pulled due to some issue. Exiting.\n" "$source" >&2
     exit 1
   fi
 
-  podman tag "$source" "$target"
+  $CONTAINER_ENGINE tag "$source" "$target"
 
-  podman push "$target"
+  $CONTAINER_ENGINE push "$target"
 }
 
 main() {
