@@ -59,7 +59,7 @@ jobs:
         if: steps.filter.outputs.access-setup == 'true'
         run: |
           ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
-          echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
+          echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
         env:
           AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
           IMAGE_NAME: access-setup
@@ -70,7 +70,7 @@ jobs:
         if: steps.filter.outputs.cluster-setup == 'true'
         run: |
           ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
-          echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
+          echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
         env:
           AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
           IMAGE_NAME: cluster-setup
@@ -81,7 +81,7 @@ jobs:
         if: steps.filter.outputs.devenv == 'true'
         run: |
           ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
-          echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
+          echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
         env:
           AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
           IMAGE_NAME: devenv
@@ -92,7 +92,7 @@ jobs:
         if: steps.filter.outputs.kcp-registrar == 'true'
         run: |
           ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
-          echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
+          echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
         env:
           AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
           IMAGE_NAME: kcp-registrar
@@ -103,7 +103,7 @@ jobs:
         if: steps.filter.outputs.quay-upload == 'true'
         run: |
           ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
-          echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
+          echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
         env:
           AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
           IMAGE_NAME: quay-upload
@@ -114,7 +114,7 @@ jobs:
         if: steps.filter.outputs.shellcheck == 'true'
         run: |
           ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
-          echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
+          echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
         env:
           AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
           IMAGE_NAME: shellcheck
@@ -125,7 +125,7 @@ jobs:
         if: steps.filter.outputs.update-pipeline-service == 'true'
         run: |
           ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
-          echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
+          echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
         env:
           AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
           IMAGE_NAME: update-pipeline-service
@@ -136,7 +136,7 @@ jobs:
         if: steps.filter.outputs.vulnerability == 'true'
         run: |
           ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
-          echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
+          echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
         env:
           AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
           IMAGE_NAME: vulnerability-scan
@@ -147,7 +147,7 @@ jobs:
         if: steps.filter.outputs.yamllint == 'true'
         run: |
           ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
-          echo "::set-output name=VULNERABILITIES_EXIST::$(tail -1 /tmp/clair-scan.log)"
+          echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
         env:
           AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
           IMAGE_NAME: yamllint
