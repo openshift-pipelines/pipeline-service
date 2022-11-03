@@ -18,20 +18,21 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-prechecks () {
-    if ! command -v kind &> /dev/null; then
+prechecks() {
+    if ! command -v kind &>/dev/null; then
         printf "Kind could not be found\n"
         exit 1
     fi
-    if ! command -v kubectl &> /dev/null; then
+    if ! command -v kubectl &>/dev/null; then
         printf "kubectl could not be found\n"
         exit 1
     fi
-    if ! command -v jq &> /dev/null; then
+    if ! command -v jq &>/dev/null; then
         printf "jq could not be found\n"
         exit 1
     fi
 
+    ALLOW_ROOTLESS=$(echo "$CONTAINER_ENGINE" | grep -E "^sudo " && echo "false" || echo "true")
     if [[ "${ALLOW_ROOTLESS}" == "true" ]]; then
         printf "Rootless mode enabled\n"
     fi
@@ -41,15 +42,15 @@ prechecks () {
     else
         if [[ "${CONTAINER_ENGINE}" != "docker" ]]; then
             export KIND_EXPERIMENTAL_PROVIDER=podman
-        fi	
-    	KIND_CMD="kind"
+        fi
+        KIND_CMD="kind"
     fi
     printf "OS: %s\n" "${OSTYPE}"
     printf "Container engine: %s\n" "${CONTAINER_ENGINE}"
     printf "Using kind command: %s\n" "${KIND_CMD}"
 }
 
-mk_tmpdir () {
+mk_tmpdir() {
     TMP_DIR="$(mktemp -d -t kind-pipeline-service.XXXXXXXXX)"
     printf "Temporary directory created: %s\n" "${TMP_DIR}"
 }
@@ -57,17 +58,20 @@ mk_tmpdir () {
 # Generate a kubeconfig using the IP address of the KinD container instead of localhost
 # This IP is accessible from localhost and other containers part of the same container network (bridge)
 # This can be used for instance to register the cluster to an Argo CD server installed on a KinD cluster
-ip_kubeconfig () {
+ip_kubeconfig() {
     container=$(${CONTAINER_ENGINE} ps | grep "${cluster}" | cut -d ' ' -f 1)
     containerip=$(${CONTAINER_ENGINE} inspect "${container}" | jq '.[].NetworkSettings.Networks.kind.IPAddress' | sed 's/"//g')
-    ${KIND_CMD} get kubeconfig --internal --name "${cluster}" | sed "s/${cluster}-control-plane/${containerip}/g" > "${TMP_DIR}/${cluster}_ip.kubeconfig"
-    printf "kubeconfig created for accessing the cluster API of %s from the KinD/container network: %s\n" "${cluster}"  "${TMP_DIR}/${cluster}_ip.kubeconfig"
+    ${KIND_CMD} get kubeconfig --internal --name "${cluster}" | sed "s/${cluster}-control-plane/${containerip}/g" >"${TMP_DIR}/${cluster}_ip.kubeconfig"
+    printf "kubeconfig created for accessing the cluster API of %s from the KinD/container network: %s\n" "${cluster}" "${TMP_DIR}/${cluster}_ip.kubeconfig"
     if [[ ${KIND_CMD} == "sudo KIND_EXPERIMENTAL_PROVIDER=podman kind" ]]; then
         sudo chmod +r "${TMP_DIR}/${cluster}_ip.kubeconfig"
     fi
 }
 
-parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+parent_path=$(
+    cd "$(dirname "${BASH_SOURCE[0]}")"
+    pwd -P
+)
 pushd "$parent_path"
 
 # shellcheck source=developer/local/utils.sh
@@ -95,10 +99,10 @@ for cluster in "${CLUSTERS[@]}"; do
     if echo "${EXISTING_CLUSTERS}" | grep "$cluster"; then
         clusterExists="1"
         ${KIND_CMD} export kubeconfig --name "$cluster" --kubeconfig "${TMP_DIR}/${cluster}.kubeconfig"
-	if [[  ${KIND_CMD} == "sudo KIND_EXPERIMENTAL_PROVIDER=podman kind" ]]; then
-                sudo chmod +r "${TMP_DIR}/${cluster}.kubeconfig"
+        if [[ ${KIND_CMD} == "sudo KIND_EXPERIMENTAL_PROVIDER=podman kind" ]]; then
+            sudo chmod +r "${TMP_DIR}/${cluster}.kubeconfig"
         fi
-	ip_kubeconfig
+        ip_kubeconfig
     fi
 
     # Only create the cluster if it does not exist
@@ -118,7 +122,7 @@ for cluster in "${CLUSTERS[@]}"; do
         printf "Provisioning ingress router in %s\n" "${cluster}"
         kubectl --kubeconfig "${TMP_DIR}/${cluster}.kubeconfig" apply -f "ingress-router-${cluster}.yaml"
 
-	if [[ $(tr '[:upper:]' '[:lower:]' <<< "$NO_ARGOCD") != "true" ]]; then
+        if [[ $(tr '[:upper:]' '[:lower:]' <<<"$NO_ARGOCD") != "true" ]]; then
             KUBECONFIG="${TMP_DIR}/${cluster}.kubeconfig" ../argocd/setup.sh
         fi
     fi

@@ -29,7 +29,7 @@ By default, Argo CD is installed on both clusters. It is possible to deactivate 
 **_NOTES:_**
 
 1. Podman is used as the default container engine, if available on the machine. If both podman and docker are available it is possible to force the use of docker by setting an environment variable `CONTAINER_ENGINE=docker`.
-2. Podman defaults to running as sudo (root). To run podman in rootless mode, use the environment variable `ALLOW_ROOTLESS=true`. See the [kind documentation](https://kind.sigs.k8s.io/docs/user/rootless/) for the prerequisites.
+2. Podman defaults to running as rootless (see the [kind documentation](https://kind.sigs.k8s.io/docs/user/rootless/) for the prerequisites). To run podman as `root`, prefix `CONTAINER_ENGINE` with `sudo` (e.g. `CONTAINER_ENGINE="sudo docker"`).
 
 ---
 
