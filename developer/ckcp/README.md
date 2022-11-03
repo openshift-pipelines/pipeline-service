@@ -112,7 +112,7 @@ Considerations for testing a new component:-
 3. A user can modify the Custom Resources to be synced by the KCP Syncer by modifying [cr_to_sync](./config.yaml).
 4. Onboarding a new component requires creating a new Argo CD application in [argo-apps](../../operator/gitops/argocd/argo-apps/) and adding it to [kustomization.yaml](../../operator/gitops/argocd/argo-apps/kustomization.yaml).
 5. For testing, users need to modify only the git source path and ref of their Argo CD application to reflect their own Git repo.
-6. A user can also choose a different version of kcp than the one running by default by changing the value of [version.kcp](./config.yaml).
+6. A user can also choose a different version of kcp than the one running by default by changing the value of [kcp.version](./config.yaml).
 
 ### Reset ckcp
 

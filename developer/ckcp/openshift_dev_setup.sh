@@ -123,19 +123,26 @@ init() {
   GIT_REF=$(yq '.git_ref // "main"' "$CONFIG")
 
   # get list of CRs to sync
-  read -ra CRS_TO_SYNC <<< "$(yq eval '.crs_to_sync | join(" ")' "$CONFIG")"
+  read -ra CRS_TO_SYNC <<< "$(yq eval '.kcp.crs_to_sync | join(" ")' "$CONFIG")"
   if (( "${#CRS_TO_SYNC[@]}" <= 0 )); then
     CRS_TO_SYNC=(
                 "deployments.apps"
                 "services"
                 "ingresses.networking.k8s.io"
-		"networkpolicies.networking.k8s.io"
+                "networkpolicies.networking.k8s.io"
                 "pipelines.tekton.dev"
                 "pipelineruns.tekton.dev"
                 "tasks.tekton.dev"
-		"repositories.pipelinesascode.tekton.dev"
+                "repositories.pipelinesascode.tekton.dev"
               )
   fi
+
+  # Get kcp workspace
+  kcp_org=$(yq '.kcp.workspace' "$CONFIG" | sed 's/:[^:]*$//')
+  kcp_workspace=$(yq '.kcp.workspace' "$CONFIG" | sed 's/^.*://')
+
+  # Get kcp version
+  kcp_version="$(yq '.kcp.version' "$CONFIG")"
 
   # Create SRE repository folder
   WORK_DIR="${WORK_DIR:-}"
@@ -158,9 +165,6 @@ init() {
   KUBECONFIG="$WORK_DIR/credentials/kubeconfig/compute/compute.kubeconfig.base"
   KUBECONFIG_MERGED="merged-config.kubeconfig:$KUBECONFIG:$KUBECONFIG_KCP"
   export KUBECONFIG
-  kcp_org="root:default"
-  kcp_workspace="pipeline-service-compute"
-  kcp_version="$(yq '.version.kcp' "$CONFIG")"
 }
 
 # To ensure that dependencies are satisfied
@@ -398,7 +402,7 @@ register_compute() {
   echo "- Register compute to KCP"
   "$PROJECT_DIR/operator/images/kcp-registrar/bin/register.sh" \
     ${DEBUG:+"$DEBUG"} \
-    --kcp-org "root:default" \
+    --kcp-org "$kcp_org" \
     --kcp-workspace "$kcp_workspace" \
     --kcp-sync-tag "$kcp_version" \
     --workspace-dir "$WORK_DIR" \
