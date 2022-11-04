@@ -2,17 +2,26 @@ FROM quay.io/podman/stable:v4.2.1
 
 RUN set -x \
     && mkdir ~/.kube \
-    && mkdir -p /tmp/dockerfile \
-    && dnf install -y cmake-3.22.2 gcc-c++-12.0.1 git-2.38.1 libtool-2.4.6 openssl-3.0.2 procps-ng-3.3.17 unzip-6.0 which-2.21 xz-5.2.5 \
+    && mkdir -p /tmp/image-build \
+    && dnf install -y \
+        cmake-3.22.2 \
+        gcc-c++-12.0.1 \
+        git-2.38.1 \
+        libtool-2.4.6 \
+        openssl-3.0.2 \
+        procps-ng-3.3.17 \
+        python3-pip-21.3.1 \
+        unzip-6.0 \
+        which-2.21 \
+        xz-5.2.5 \
     && dnf clean all
 
-COPY shared/config/dependencies.yaml /tmp/dockerfile/dependencies.yaml
-COPY developer/images/devenv/install.sh /tmp/dockerfile/install.sh
+COPY shared /tmp/image-build/shared
 
-WORKDIR /tmp/dockerfile
+WORKDIR /tmp/image-build/shared/hack
 
 RUN set -x \
-    && ./install.sh --dependencies ./dependencies.yaml \
-    && rm -rf /tmp/dockerfile
+    && ./install.sh --bin argocd,grpc_cli,hadolint,jq,kcp,kind,kubectl,oc,shellcheck,tkn,yamllint,yq \
+    && rm -rf /tmp/image-build
 
 WORKDIR "/workspace"

@@ -39,7 +39,7 @@ jobs:
               - 'operator/images/update-pipeline-service/**'
             devenv:
               - '.github/workflows/build-push-images.yaml'
-              - 'shared/config/dependencies.yaml'
+              - 'shared/**'
               - 'developer/images/devenv/**'
             shellcheck:
               - '.github/workflows/build-push-images.yaml'
