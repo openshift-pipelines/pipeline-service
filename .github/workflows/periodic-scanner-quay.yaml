@@ -22,6 +22,18 @@ jobs:
           echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/vulnerability-scan.log)" >> $GITHUB_OUTPUT
         env:
           AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
+          images: (
+              "access-setup"
+              "cluster-setup"
+              "devenv"
+              "kcp-registrar"
+              "quay-upload"
+              "shellcheck"
+              "update-pipeline-service"
+              "vulnerability-scan"
+              "yamllint"
+            )
+          quay_url: "https://quay.io/api/v1/repository/redhat-pipeline-service"
 
       - name: Check results
         id: check-results
