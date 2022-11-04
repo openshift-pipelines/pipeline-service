@@ -187,8 +187,8 @@ gitlab_process() {
   retry=${retry:-}
 
   # main
-  get_current_commit
   get_latest_commit
+  get_current_commit
   update_local_repository
   get_mr_id
   if [ "$merge_request_iid" != "null" ]; then
