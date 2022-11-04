@@ -26,7 +26,7 @@ RUN JQ_VERSION="1.6" && \
     curl -sSL -o "/usr/local/bin/jq" "https://github.com/stedolan/jq/releases/download/jq-$JQ_VERSION/jq-linux64" && \
     chmod 755 "/usr/local/bin/jq"
 COPY ./bin /usr/local/bin
-RUN chmod 755 /usr/local/bin/gitlab_open_mr.sh && chmod 755 /usr/local/bin/update.sh
+RUN chmod 755 /usr/local/bin/gitlab.sh && chmod 755 /usr/local/bin/update.sh
 USER 65532:65532
 VOLUME /workspace
 WORKDIR /workspace
