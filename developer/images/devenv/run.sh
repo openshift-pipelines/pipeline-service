@@ -110,7 +110,7 @@ detect_container_engine() {
 
 get_image_name() {
     DEPENDENCIES_SHA=$(
-        cat "$SCRIPT_DIR/Dockerfile" "$SCRIPT_DIR/install.sh" "$PROJECT_DIR/shared/config/dependencies.yaml" |
+        cat "$SCRIPT_DIR/Dockerfile" "$PROJECT_DIR/shared/hack/install.sh" "$PROJECT_DIR/shared/config/dependencies.sh" |
             sha256sum | cut -c1-8
     )
     IMAGE_NAME="pipeline-service/devenv:$DEPENDENCIES_SHA"
@@ -137,7 +137,7 @@ start_container() {
                 --entrypoint '["bash", "-c", "sleep infinity"]' \
                 --name "$CONTAINER_NAME" \
                 --privileged \
-                --volume "$PROJECT_DIR:/workspace"
+                --volume "$PROJECT_DIR:/workspace" \
                 "${CONTAINER_ENGINE_OPTS[@]}" \
                 "$LOCAL_IMAGE_NAME" >/dev/null 2>&1
         else
