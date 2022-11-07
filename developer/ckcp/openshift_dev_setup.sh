@@ -345,7 +345,7 @@ patches:
     --kcp-org "$kcp_org" \
     --kcp-workspace "$kcp_workspace" \
     --work-dir "$WORK_DIR" \
-    --kustomization "$GIT_URL/operator/gitops/kcp/pac-manager?ref=$GIT_REF" |
+    --kustomization "$GIT_URL/operator/gitops/kcp/pipeline-service-manager?ref=$GIT_REF" |
     indent 2
   KUBECONFIG_KCP="$WORK_DIR/credentials/kubeconfig/kcp/ckcp-ckcp.${ws_name}.${kcp_workspace}.kubeconfig"
 }
@@ -363,7 +363,7 @@ install_pipeline_service() {
     ${DEBUG:+"$DEBUG"} \
     --kubeconfig "$KUBECONFIG" \
     --work-dir "$WORK_DIR" \
-    --kustomization "$GIT_URL/operator/gitops/compute/pac-manager?ref=$GIT_REF" \
+    --kustomization "$GIT_URL/operator/gitops/compute/pipeline-service-manager?ref=$GIT_REF" \
     --git-remote-url "$GIT_URL" \
     --git-remote-ref "$GIT_REF" \
     --tekton-results-database-user "$TEKTON_RESULTS_DATABASE_USER" \

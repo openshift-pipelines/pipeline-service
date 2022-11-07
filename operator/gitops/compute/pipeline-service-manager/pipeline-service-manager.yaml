@@ -2,14 +2,14 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: pac-manager
+  name: pipeline-service-manager
   namespace: pipelines-as-code
 ---
 apiVersion: v1
 kind: Secret
 type: kubernetes.io/service-account-token
 metadata:
-  name: pac-manager-token
+  name: pipeline-service-manager-token
   namespace: pipelines-as-code
   annotations:
-    kubernetes.io/service-account.name: pac-manager
+    kubernetes.io/service-account.name: pipeline-service-manager

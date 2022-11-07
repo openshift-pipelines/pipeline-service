@@ -1,6 +1,6 @@
 ---
 resources:
   - namespace.yaml
-  - pac-manager.yaml
+  - pipeline-service-manager.yaml
   - role.yaml
   - rolebinding.yaml
