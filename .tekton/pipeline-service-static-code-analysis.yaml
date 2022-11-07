@@ -50,7 +50,7 @@ spec:
               script: |
                 #!/usr/bin/env sh
                 shellcheck -V
-                find . -type f -name "*.sh" -print0 | xargs -r -n 1 -0 shellcheck -eSC1091
+                find . -type f -name "*.sh" -print0 | xargs -r -n 1 -0 shellcheck -eSC1091 -eSC2001
           workspaces:
             - name: source
       - name: yamllint
