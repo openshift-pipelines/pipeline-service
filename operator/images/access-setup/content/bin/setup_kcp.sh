@@ -175,9 +175,6 @@ patches:
         path: /spec/template/spec/containers/0/args/2
         value: \"--api-export-workspace=$KCP_ORG:$KCP_WORKSPACE\"
 " >> "$manifests_dir/overlays/kustomization.yaml"
-  echo -n "---
-- 
-" > "$manifests_dir/overlays/workspace.yaml"
   printf "OK\n"
 }
 
