@@ -76,6 +76,16 @@ parse_args() {
   done
 }
 
+# turns off tracing even with set -x mode enabled across the script to prevent secrets leaking
+setx_off() {
+  set +x
+} 2>/dev/null
+
+# turns on tracing
+setx_on() {
+  set -x
+} 2>/dev/null
+
 # populate clusters with the cluster names taken from the kubeconfig
 # populate contexts with the context name taken from the kubeconfig
 # populate kubeconfigs with the associated kubeconfig for each cluster name
@@ -112,9 +122,9 @@ fetch_bitwarden_secrets() {
   CREDENTIALS_DIR="$WORKSPACE_DIR/credentials"
   BITWARDEN_CRED="$CREDENTIALS_DIR/secrets/bitwarden.yaml"
 
-  BW_CLIENTID="${BW_CLIENTID:-}"
-  BW_CLIENTSECRET="${BW_CLIENTSECRET:-}"
-  BW_PASSWORD="${BW_PASSWORD:-}"
+  ( setx_off BW_CLIENTID="${BW_CLIENTID:-}" )
+  ( setx_off BW_CLIENTSECRET="${BW_CLIENTSECRET:-}" )
+  ( setx_off BW_PASSWORD="${BW_PASSWORD:-}" )
 
   if [ ! -e "$BITWARDEN_CRED" ]; then
     return
@@ -122,18 +132,22 @@ fetch_bitwarden_secrets() {
 
   printf "[Bitwarden]:\n "
   printf "bitwarden.yaml file exists. Checking if the required variables to connect to Bitwarden are set.\n" | indent 2
+  setx_off
   if [ -z "$BW_PASSWORD" ]; then
       printf "Please set the required env variables and try again.\n" >&2 | indent 2
       return
   fi
+  setx_on
 
   printf "Required variables are available.\n" | indent 2
   if [ "$(bw logout >/dev/null 2>&1)$?" -eq 0 ]; then
     printf "Logout successful.\n" >/dev/null
   fi
+  setx_off
   if [ "$(BW_CLIENTID="$BW_CLIENTID" BW_CLIENTSECRET="$BW_CLIENTSECRET" bw login --apikey >/dev/null 2>&1)$?" -eq 0 ]; then
     printf "Login successful.\n" >/dev/null
   fi
+  setx_on
 
   login_status=$(bw login --check 2>&1)
   if [ "$login_status" = "You are not logged in." ]; then
@@ -141,12 +155,15 @@ fetch_bitwarden_secrets() {
     return
   fi
 
+  setx_off
   session=$(BW_PASSWORD="$BW_PASSWORD" bw unlock --passwordenv BW_PASSWORD --raw)
+  setx_on
 
   # process id/path pairs from bitwarden.yaml
   secret_count=$(yq '.credentials | length' "$BITWARDEN_CRED")
   for i in $(seq 0 "$((secret_count-1))")
   do
+    setx_off
     content=$(bw get password "$(yq ".credentials[$i].id" "$BITWARDEN_CRED")" --session "$session")
     path=$(yq ".credentials[$i].path" "$BITWARDEN_CRED")
 
@@ -158,8 +175,10 @@ fetch_bitwarden_secrets() {
       printf "Unable to copy the contents of the secret to the specified path. Exiting.\n" >&2 | indent 2
       exit 1
     fi
+    setx_on
+    printf "Extracted secret with the ID %s and substituted the decoded value at %s path.\n" "$content" "$WORKSPACE_DIR/$path" | indent 2
   done
-  printf "Extracted secrets from Bitwarden and substituted them in the relevant files.\n" | indent 2
+  printf "Extracted all secrets from Bitwarden and substituted them in the relevant files.\n" | indent 2
 }
 
 install_clusters() {
