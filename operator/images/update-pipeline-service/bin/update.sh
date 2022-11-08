@@ -92,6 +92,7 @@ get_latest_commit() {
     case $resp_http_code in
     2*)
       LATEST_COMMIT=$(cut -c -7 <"$http_logs")
+      export LATEST_COMMIT
       break
       ;;
     *)
