@@ -108,6 +108,60 @@ switch_cluster() {
   fi
 }
 
+fetch_bitwarden_secrets() {
+  CREDENTIALS_DIR="$WORKSPACE_DIR/credentials"
+  BITWARDEN_CRED="$CREDENTIALS_DIR/secrets/bitwarden.yaml"
+
+  BW_CLIENTID="${BW_CLIENTID:-}"
+  BW_CLIENTSECRET="${BW_CLIENTSECRET:-}"
+  BW_PASSWORD="${BW_PASSWORD:-}"
+
+  if [ ! -e "$BITWARDEN_CRED" ]; then
+    return
+  fi
+
+  printf "[Bitwarden]:\n "
+  printf "bitwarden.yaml file exists. Checking if the required variables to connect to Bitwarden are set.\n" | indent 2
+  if [ -z "$BW_PASSWORD" ]; then
+      printf "Please set the required env variables and try again.\n" >&2 | indent 2
+      return
+  fi
+
+  printf "Required variables are available.\n" | indent 2
+  if [ "$(bw logout >/dev/null 2>&1)$?" -eq 0 ]; then
+    printf "Logout successful.\n" >/dev/null
+  fi
+  if [ "$(BW_CLIENTID="$BW_CLIENTID" BW_CLIENTSECRET="$BW_CLIENTSECRET" bw login --apikey >/dev/null 2>&1)$?" -eq 0 ]; then
+    printf "Login successful.\n" >/dev/null
+  fi
+
+  login_status=$(bw login --check 2>&1)
+  if [ "$login_status" = "You are not logged in." ]; then
+    printf "Error while logging into Bitwarden.\n" >&2 | indent 2
+    return
+  fi
+
+  session=$(BW_PASSWORD="$BW_PASSWORD" bw unlock --passwordenv BW_PASSWORD --raw)
+
+  # process id/path pairs from bitwarden.yaml
+  secret_count=$(yq '.credentials | length' "$BITWARDEN_CRED")
+  for i in $(seq 0 "$((secret_count-1))")
+  do
+    content=$(bw get password "$(yq ".credentials[$i].id" "$BITWARDEN_CRED")" --session "$session")
+    path=$(yq ".credentials[$i].path" "$BITWARDEN_CRED")
+
+    if ! mkdir -p "$(dirname "$WORKSPACE_DIR/$path")" 2>/dev/null; then
+      printf "Unable to create the folder. Exiting.\n" >&2 | indent 2
+      exit 1
+    fi
+    if ! echo "$content" | base64 -d > "$WORKSPACE_DIR/$path"; then
+      printf "Unable to copy the contents of the secret to the specified path. Exiting.\n" >&2 | indent 2
+      exit 1
+    fi
+  done
+  printf "Extracted secrets from Bitwarden and substituted them in the relevant files.\n" | indent 2
+}
+
 install_clusters() {
   export KUBECONFIG="/tmp/cluster.kubeconfig"
   for i in "${!clusters[@]}"; do
@@ -147,6 +201,7 @@ install_applications() {
 main() {
   parse_args "$@"
   get_clusters
+  fetch_bitwarden_secrets
   install_clusters
 }
 
