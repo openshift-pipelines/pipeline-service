@@ -1,5 +1,5 @@
 ---
-# Mount the secrets volume and use the forked image
+# Mount the secrets volume
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -10,10 +10,6 @@ spec:
     spec:
       containers:
         - name: tekton-chains-controller
-          # Use a custom version of chains that contains support for pipelinerun attestations
-          # This custom version is required until https://github.com/tektoncd/chains/pull/436
-          # has been merged to upstream and released in an official image.
-          image: ghcr.io/hacbs-contract/chains/controller:poc-tep-84@sha256:853fb18d56f27bbc2747954291b8a22a8bb58a37fd501eb9b0a29630723ed6b1
           volumeMounts:
             # Mount the secrets volume
             - mountPath: /etc/ssl/certs
