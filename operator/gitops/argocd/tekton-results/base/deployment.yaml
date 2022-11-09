@@ -94,7 +94,8 @@ spec:
             - tekton-results-api-service.tekton-results.svc.cluster.local:50051
             - -auth_mode
             - token
-          image: quay.io/redhat-appstudio/tekton-results-watcher@sha256:2a3ae9fca05bfef0195f6d11a2c1b6111288617bad4f7106400330c7fb016d14
+          image: docker.io/aandrienko/watcher-83f971ea227fb24157c0c699b824a628
+          imagePullPolicy: Always
           name: watcher
           volumeMounts:
             - mountPath: /etc/tls
