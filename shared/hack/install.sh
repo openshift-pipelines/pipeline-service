@@ -219,6 +219,14 @@ install_yq() {
     yq --version
 }
 
+install_bitwarden() {
+    curl "${CURL_OPTS[@]}" -o "$TMPBIN/bw.zip" "https://github.com/bitwarden/clients/releases/download/cli-v${BITWARDEN_VERSION}/bw-linux-${BITWARDEN_VERSION}.zip"
+    unzip "$TMPBIN/bw.zip" -d "$TMPBIN/"
+    rm -rf "$TMPBIN/bw.zip"
+    move_bin
+    bw --version
+}
+
 move_bin() {
     # Make sure binaries are executable and move them to the target dir
     chmod +x "$TMPBIN"/*
