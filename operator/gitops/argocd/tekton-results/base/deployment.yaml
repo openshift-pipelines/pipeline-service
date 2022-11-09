@@ -101,6 +101,24 @@ spec:
             - mountPath: /etc/tls
               name: tls
               readOnly: true
+          env:
+            - name: SYSTEM_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: CONFIG_LOGGING_NAME
+              value: tekton-results-config-logging
+            - name: CONFIG_LEADERELECTION_NAME
+              value: tekton-results-config-leader-election
+            - name: CONFIG_OBSERVABILITY_NAME
+              value: tekton-results-config-observability
+            - name: METRICS_DOMAIN
+              value: tekton.dev/results
+          ports:
+            - name: metrics
+              containerPort: 9090
+            - name: profiling
+              containerPort: 8008
       serviceAccountName: tekton-results-watcher
       volumes:
         - name: tls
