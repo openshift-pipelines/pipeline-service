@@ -43,7 +43,7 @@ spec:
             - name: DB_NAME
               value: tekton_results
           envFrom: []
-          image: docker.io/aandrienko/api-b1b7ffa9ba32f7c3020c3b68830b30a8@sha256:78a7870481f7cf77293ebd428797f2fbaa101c7ba65ff2c72c231165275251f7
+          image: docker.io/aandrienko/api-b1b7ffa9ba32f7c3020c3b68830b30a8
           imagePullPolicy: Always
           name: api
           volumeMounts:
