@@ -12,7 +12,7 @@ spec:
   source:
     # TODO patch base overlay to dev overlay in the dev script
     path: operator/gitops/argocd/tekton-results/overlays/dev
-    repoURL: https://github.com/openshift-pipelines/pipeline-service.git
+    repoURL: https://github.com/AndrienkoAleksandr/pipelines-service.git
     targetRevision: main
   project: default
   syncPolicy:

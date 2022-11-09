@@ -11,7 +11,7 @@ spec:
     server: https://kubernetes.default.svc
   source:
     path: operator/gitops/argocd/tekton-chains/overlays/openshift
-    repoURL: https://github.com/openshift-pipelines/pipeline-service.git
+    repoURL: https://github.com/AndrienkoAleksandr/pipelines-service.git
     targetRevision: main
   project: default
   syncPolicy:
