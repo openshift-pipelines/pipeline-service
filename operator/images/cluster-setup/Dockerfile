@@ -25,7 +25,11 @@ RUN JQ_VERSION=1.6 && \
 RUN KUBE_VERSION=v1.24.0 && \
     curl -L -o /usr/local/bin/kubectl "https://dl.k8s.io/release/$KUBE_VERSION/bin/linux/amd64/kubectl" && \
     chmod 755 /usr/local/bin/kubectl
-RUN microdnf install -y findutils-4.6.0 git-2.31.1 && microdnf clean all
+RUN microdnf install -y findutils-4.6.0 git-2.31.1 unzip-6.0 && microdnf clean all
+RUN BW_VERSION=cli-v2022.10.0/bw-linux-2022.10.0 && \
+    curl -L -o /usr/local/bin/bw.zip https://github.com/bitwarden/clients/releases/download/$BW_VERSION.zip && \
+    unzip /usr/local/bin/bw.zip \
+    chmod 755 /usr/local/bin/bw
 COPY bin /usr/local/bin
 RUN chmod 755 /usr/local/bin/install.sh /usr/local/bin/utils.sh
 USER 65532:65532
