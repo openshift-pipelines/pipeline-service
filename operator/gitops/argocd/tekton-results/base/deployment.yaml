@@ -51,7 +51,7 @@ spec:
               name: tls
               readOnly: true
             - name: config
-              mountPath: /config/env
+              mountPath: "/etc/config/server"
               readOnly: true
       serviceAccountName: tekton-results-api
       volumes:
