@@ -10,7 +10,8 @@ spec:
     namespace: openshift-gitops
     server: https://kubernetes.default.svc
   source:
-    path: operator/gitops/argocd/tekton-results
+    # TODO patch base overlay to dev overlay in the dev script
+    path: operator/gitops/argocd/tekton-results/overlays/dev
     repoURL: https://github.com/openshift-pipelines/pipeline-service.git
     targetRevision: main
   project: default

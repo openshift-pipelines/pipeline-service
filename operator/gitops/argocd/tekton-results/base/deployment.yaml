@@ -42,7 +42,9 @@ spec:
               value: tekton-results-database-service.tekton-results.svc.cluster.local
             - name: DB_NAME
               value: tekton_results
-          image: quay.io/redhat-appstudio/tekton-results-api@sha256:56471d0c0582e8c4e4c109ef615b66e94a7fba258ab5960e36adce71d5a6e7f1
+          envFrom: []
+          image: docker.io/aandrienko/api-b1b7ffa9ba32f7c3020c3b68830b30a8@sha256:78a7870481f7cf77293ebd428797f2fbaa101c7ba65ff2c72c231165275251f7
+          imagePullPolicy: Always
           name: api
           volumeMounts:
             - mountPath: /etc/tls

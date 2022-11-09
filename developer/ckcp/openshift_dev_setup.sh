@@ -108,6 +108,7 @@ init() {
             "openshift-gitops"
             "cert-manager"
             "ckcp"
+            "minio"
            )
   # get the list of APPS to be installed
   read -ra APPS <<< "$(yq eval '.apps | join(" ")' "$CONFIG")"
@@ -352,6 +353,17 @@ patches:
     --kustomization "$GIT_URL/operator/gitops/kcp/pac-manager?ref=$GIT_REF" |
     indent 2
   KUBECONFIG_KCP="$WORK_DIR/credentials/kubeconfig/kcp/ckcp-ckcp.${ws_name}.${kcp_workspace}.kubeconfig"
+}
+
+install_minio() {
+  echo -n "- Install minio S3 log server: "
+  kubectl apply -k "$CKCP_DIR/openshift-operators/minio" 2>&1 |
+  indent 4
+
+  check_deployments "openshift-operators" "minio-operator" | indent 2
+
+  kubectl apply -k "$CKCP_DIR/openshift-operators/minio/tenant" 2>&1 |
+  indent 4
 }
 
 install_pipeline_service() {

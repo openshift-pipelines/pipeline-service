@@ -1,0 +1,28 @@
+
+
+# minio env patch
+- op: add
+  path: "/spec/template/spec/containers/0/env/-"
+  value:
+    name: LOG_TYPE
+    value: S3
+- op: add
+  path: "/spec/template/spec/containers/0/env/-"
+  value:
+    name: S3_BUCKET_NAME
+    value: tekton-results
+- op: add
+  path: "/spec/template/spec/containers/0/env/-"
+  value:
+    name: S3_ENDPOINT
+    value: https://minio.tekton-results.svc.cluster.local
+- op: add
+  path: "/spec/template/spec/containers/0/env/-"
+  value:
+    name: S3_HOSTNAME_IMMUTABLE
+    value: true
+- op: add
+  path: "/spec/template/spec/containers/0/env/-"
+  value:
+    name: S3_REGION
+    value: us-east-1
