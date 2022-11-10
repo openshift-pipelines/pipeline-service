@@ -133,6 +133,14 @@ install_argocd() {
     argocd version --client --short
 }
 
+install_bitwarden() {
+    curl "${CURL_OPTS[@]}" -o "$TMPBIN/bw.zip" "https://github.com/bitwarden/clients/releases/download/cli-${BITWARDEN_VERSION}/bw-linux-${BITWARDEN_VERSION:1}.zip"
+    unzip "$TMPBIN/bw.zip" -d "$TMPBIN/"
+    rm -rf "$TMPBIN/bw.zip"
+    move_bin
+    bw --version
+}
+
 install_grpc_cli() {
     # Build from code
     git clone https://github.com/grpc/grpc.git
@@ -189,7 +197,6 @@ install_oc() {
     curl "${CURL_OPTS[@]}" -o "$TMPDIR/ocp-client.tgz" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/${OC_VERSION}/openshift-client-linux.tar.gz"
     tar -C "$TMPBIN" -xzf "$TMPDIR/ocp-client.tgz" oc
     move_bin
-    kubectl version --client
     oc version --client
 }
 
@@ -217,14 +224,6 @@ install_yq() {
     curl "${CURL_OPTS[@]}" -o "$TMPBIN/yq" "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
     move_bin
     yq --version
-}
-
-install_bitwarden() {
-    curl "${CURL_OPTS[@]}" -o "$TMPBIN/bw.zip" "https://github.com/bitwarden/clients/releases/download/cli-v${BITWARDEN_VERSION}/bw-linux-${BITWARDEN_VERSION}.zip"
-    unzip "$TMPBIN/bw.zip" -d "$TMPBIN/"
-    rm -rf "$TMPBIN/bw.zip"
-    move_bin
-    bw --version
 }
 
 move_bin() {

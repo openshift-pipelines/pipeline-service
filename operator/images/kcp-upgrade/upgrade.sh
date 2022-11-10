@@ -37,13 +37,10 @@ if [ "$current_kcp_version" != "$latest_kcp_version" ]; then
   printf "\nUpgrading kcp version from '%s' to '%s'\n"  "$current_kcp_version" "$latest_kcp_version"
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" .github/workflows/build-push-images.yaml
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" .github/workflows/local-dev-ci.yaml
-  sed -i "s,$current_kcp_version,$latest_kcp_version,g" DEPENDENCIES.md
-  sed -i "s,$current_kcp_version,$latest_kcp_version,g" developer/ckcp/openshift/overlays/dev/kustomization.yaml
-  sed -i "s,$current_kcp_version,$latest_kcp_version,g" architect/docs/kcp-registration.md
-  sed -i "s,$current_kcp_version,$latest_kcp_version,g" operator/images/access-setup/Dockerfile
-  sed -i "s,$current_kcp_version,$latest_kcp_version,g" operator/images/kcp-registrar/Dockerfile
-  sed -i "s,$current_kcp_version,$latest_kcp_version,g" operator/images/kcp-registrar/bin/register.sh
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" developer/ckcp/config.yaml
+  sed -i "s,$current_kcp_version,$latest_kcp_version,g" developer/ckcp/openshift/overlays/dev/kustomization.yaml
+  sed -i "s,$current_kcp_version,$latest_kcp_version,g" operator/docs/kcp-registration.md
+  sed -i "s,$current_kcp_version,$latest_kcp_version,g" operator/images/kcp-registrar/bin/register.sh
   sed -i "s,$current_kcp_version,$latest_kcp_version,g" shared/config/dependencies.sh
   echo "$latest_kcp_version" > /tmp/kcp-upgrade.txt
 else
