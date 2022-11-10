@@ -110,7 +110,7 @@ init() {
             "ckcp"
            )
   # get the list of APPS to be installed
-  read -ra APPS <<< "$(yq eval '.apps | join(" ")' "$CONFIG")"
+  read -ra APPS <<< "$(yq eval '.apps // [] | join(" ")' "$CONFIG")"
   for app in  "${APPS[@]}"
   do
     APP_LIST+=("$app")
@@ -123,19 +123,7 @@ init() {
   GIT_REF=$(yq '.git_ref // "main"' "$CONFIG")
 
   # get list of CRs to sync
-  read -ra CRS_TO_SYNC <<< "$(yq eval '.kcp.crs_to_sync | join(" ")' "$CONFIG")"
-  if (( "${#CRS_TO_SYNC[@]}" <= 0 )); then
-    CRS_TO_SYNC=(
-                "deployments.apps"
-                "services"
-                "ingresses.networking.k8s.io"
-                "networkpolicies.networking.k8s.io"
-                "pipelines.tekton.dev"
-                "pipelineruns.tekton.dev"
-                "tasks.tekton.dev"
-                "repositories.pipelinesascode.tekton.dev"
-              )
-  fi
+  read -ra CRS_TO_SYNC <<< "$(yq eval '.kcp.crs_to_sync // [] | join(" ")' "$CONFIG")"
 
   # Get kcp workspace
   kcp_org=$(yq '.kcp.workspace' "$CONFIG" | sed 's/:[^:]*$//')
@@ -375,7 +363,7 @@ install_pipeline_service() {
     indent 2
 
   echo "- Deploy compute:"
-  KUBECONFIG="" "$PROJECT_DIR/operator/images/cluster-setup/bin/install.sh" \
+  KUBECONFIG="$KUBECONFIG" "$PROJECT_DIR/operator/images/cluster-setup/bin/install.sh" \
     ${DEBUG:+"$DEBUG"} \
     --workspace-dir "$WORK_DIR" | indent 2
 
@@ -387,15 +375,27 @@ install_pipeline_service() {
     "$GITOPS_DIR/pac/setup.sh" | indent 4
 
   echo -n "- Install tekton-results DB: "
-  kubectl apply -k "$CKCP_DIR/manifests/tekton-results-db/openshift" 2>&1 |
+  KUBECONFIG="$KUBECONFIG" kubectl apply -k "$CKCP_DIR/manifests/tekton-results-db/openshift" 2>&1 |
   indent 4
-
 }
 
 register_compute() {
+  # Fix work_dir if no application was deployed
+  if [ "${#APP_LIST[@]}" = "3" ]; then
+    cluster_name="$(
+      kubectl config view -o 'jsonpath={range .contexts[*]}{.name}{","}{.context.cluster}{"\n"}{end}' | cut -d ',' -f 2 | cut -d ':' -f 1
+    )"
+    mkdir -p "$WORK_DIR/environment/compute/$cluster_name"
+    mv "$KUBECONFIG" "$(echo "$KUBECONFIG" | sed 's:.base$::')"
+  fi
 
   # Gateway config is not supported in ckcp because we don't ship yet the glbc component
   rm -rf "$WORK_DIR"/environment/kcp/gateway
+
+  if [ "${#CRS_TO_SYNC[@]}" = "0" ]; then
+    printf "WARNING: No custom resources listed in \$CRS_TO_SYNC, cluster will not be registered in kcp.\n" >&2
+    return
+  fi
 
   resources="$(printf '%s,' "${CRS_TO_SYNC[@]}")"
   resources=${resources%,}
@@ -408,7 +408,6 @@ register_compute() {
     --workspace-dir "$WORK_DIR" \
     --crs-to-sync "$(IFS=,; echo "${CRS_TO_SYNC[*]}")" |
     indent 4
-
 }
 
 main() {
