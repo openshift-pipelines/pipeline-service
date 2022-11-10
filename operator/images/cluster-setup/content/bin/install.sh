@@ -23,7 +23,7 @@ SCRIPT_DIR="$(
   pwd
 )"
 
-# shellcheck source=operator/images/cluster-setup/bin/utils.sh
+# shellcheck source=operator/images/cluster-setup/content/bin/utils.sh
 source "$SCRIPT_DIR/utils.sh"
 
 usage() {

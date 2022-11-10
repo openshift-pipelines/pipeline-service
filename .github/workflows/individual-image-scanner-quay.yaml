@@ -40,22 +40,29 @@ jobs:
           filters: |
             access-setup:
               - 'operator/images/access-setup/**'
+              - 'shared/**'
             cluster-setup:
               - 'operator/images/cluster-setup/**'
+              - 'shared/**'
             devenv:
               - 'developer/images/devenv/**'
+              - 'shared/**'
             kcp-registrar:
               - 'operator/images/kcp-registrar/**'
+              - 'shared/**'
             quay-upload:
               - 'ci/quay-upload/**'
             shellcheck:
               - 'ci/images/shellcheck/**'
+              - 'shared/**'
             update-pipeline-service:
               - 'operator/images/update-pipeline-service/**'
+              - 'shared/**'
             vulnerability:
               - 'ci/images/vulnerability-scan/**'
             yamllint:
               - 'ci/images/yamllint/**'
+              - 'shared/**'
 
       - name: access-setup scan
         continue-on-error: true

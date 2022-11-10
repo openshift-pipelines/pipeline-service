@@ -25,31 +25,37 @@ jobs:
             access-setup:
               - '.github/workflows/build-push-images.yaml'
               - 'operator/images/access-setup/**'
+              - 'shared/**'
             cluster-setup:
               - '.github/workflows/build-push-images.yaml'
               - 'operator/images/cluster-setup/**'
+              - 'shared/**'
             kcp-registrar:
               - '.github/workflows/build-push-images.yaml'
               - 'operator/images/kcp-registrar/**'
+              - 'shared/**'
             quay-upload:
               - '.github/workflows/build-push-images.yaml'
               - 'ci/images/quay-upload/**'
             update-pipeline-service:
               - '.github/workflows/build-push-images.yaml'
               - 'operator/images/update-pipeline-service/**'
+              - 'shared/**'
             devenv:
               - '.github/workflows/build-push-images.yaml'
-              - 'shared/**'
               - 'developer/images/devenv/**'
+              - 'shared/**'
             shellcheck:
               - '.github/workflows/build-push-images.yaml'
               - 'ci/images/shellcheck/**'
+              - 'shared/**'
             vulnerability:
               - '.github/workflows/build-push-images.yaml'
               - 'ci/images/vulnerability-scan/**'
             yamllint:
               - '.github/workflows/build-push-images.yaml'
               - 'ci/images/yamllint/**'
+              - 'shared/**'
 
       # Build and push access-setup image, tagged with latest and the commit SHA.
       - name: Build access-setup Image
@@ -58,7 +64,7 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: access-setup
-          context: ./operator/images/access-setup
+          context: .
           tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
           containerfiles: |
             ./operator/images/access-setup/Dockerfile
@@ -94,7 +100,7 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: cluster-setup
-          context: ./operator/images/cluster-setup
+          context: .
           tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
           containerfiles: |
             ./operator/images/cluster-setup/Dockerfile
@@ -130,7 +136,7 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: kcp-registrar
-          context: ./operator/images/kcp-registrar
+          context: .
           tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
           containerfiles: |
             ./operator/images/kcp-registrar/Dockerfile
@@ -204,7 +210,7 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: update-pipeline-service
-          context: ./operator/images/update-pipeline-service
+          context: .
           tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
           containerfiles: |
             ./operator/images/update-pipeline-service/Dockerfile
@@ -276,7 +282,7 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: shellcheck
-          context: ./ci/images/shellcheck
+          context: .
           tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
           containerfiles: |
             ./ci/images/shellcheck/Dockerfile
@@ -348,7 +354,7 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: yamllint
-          context: ./ci/images/yamllint
+          context: .
           tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
           containerfiles: |
             ./ci/images/yamllint/Dockerfile

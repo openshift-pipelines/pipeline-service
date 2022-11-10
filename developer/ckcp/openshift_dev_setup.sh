@@ -15,8 +15,8 @@ PROJECT_DIR="$(
 # shellcheck source=developer/ckcp/hack/util/update-git-reference.sh
 source "$CKCP_DIR/hack/util/update-git-reference.sh"
 
-# shellcheck source=operator/images/cluster-setup/bin/utils.sh
-source "$PROJECT_DIR/operator/images/cluster-setup/bin/utils.sh"
+# shellcheck source=operator/images/cluster-setup/content/bin/utils.sh
+source "$PROJECT_DIR/operator/images/cluster-setup/content/bin/utils.sh"
 
 GITOPS_DIR="$PROJECT_DIR/operator/gitops"
 CONFIG="$CKCP_DIR/config.yaml"
@@ -363,7 +363,7 @@ install_pipeline_service() {
     indent 2
 
   echo "- Deploy compute:"
-  KUBECONFIG="$KUBECONFIG" "$PROJECT_DIR/operator/images/cluster-setup/bin/install.sh" \
+  KUBECONFIG="$KUBECONFIG" "$PROJECT_DIR/operator/images/cluster-setup/content/bin/install.sh" \
     ${DEBUG:+"$DEBUG"} \
     --workspace-dir "$WORK_DIR" | indent 2
 
@@ -400,7 +400,7 @@ register_compute() {
   resources="$(printf '%s,' "${CRS_TO_SYNC[@]}")"
   resources=${resources%,}
   echo "- Register compute to KCP"
-  "$PROJECT_DIR/operator/images/kcp-registrar/bin/register.sh" \
+  "$PROJECT_DIR/operator/images/kcp-registrar/content/bin/register.sh" \
     ${DEBUG:+"$DEBUG"} \
     --kcp-org "$kcp_org" \
     --kcp-workspace "$kcp_workspace" \
