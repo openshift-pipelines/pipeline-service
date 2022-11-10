@@ -19,8 +19,8 @@ set -o nounset
 set -o pipefail
 
 SCRIPT_DIR="$(
-  cd "$(dirname "$0")" >/dev/null
-  pwd
+    cd "$(dirname "$0")" >/dev/null
+    pwd
 )"
 
 usage() {
@@ -115,8 +115,8 @@ exit_error() {
     exit 1
 }
 
-function indent () {
-        sed "s/^/$(printf "%$1s")/"
+function indent() {
+    sed "s/^/$(printf "%$1s")/"
 }
 
 prechecks() {
@@ -172,14 +172,20 @@ get_clusters() {
         for sub in "${subs[@]}"; do
             context=$(echo -n "${sub}" | cut -d ',' -f 1)
             cluster=$(echo -n "${sub}" | cut -d ',' -f 2 | cut -d ':' -f 1)
-            if ! (echo "${clusters[@]}" | grep -q "${cluster}") \
-                && (find "$WORKSPACE_DIR/environment/compute" -type d -name "${cluster}" | grep -q "${cluster}" >/dev/null); then
+            if ! (echo "${clusters[@]}" | grep -q "${cluster}") &&
+                (find "$WORKSPACE_DIR/environment/compute" -type d -name "${cluster}" | grep -q "${cluster}" >/dev/null); then
                 clusters+=("${cluster}")
                 contexts+=("${context}")
                 kubeconfigs+=("${kubeconfig}")
+            else
+                printf "WARNING: No configuration found for '%s' (declared in '%s') in '%s'" "$cluster" "$kubeconfig" "$WORKSPACE_DIR/environment/compute" >&2
             fi
         done
     done
+    if [ "${#clusters[@]}" = "0" ]; then
+        printf "No clusters found in '%s'" "$kubeconfig_dir/compute"
+        exit 0
+    fi
 }
 
 switch_org() {
@@ -216,22 +222,22 @@ get_sync_target_name() {
 }
 
 register_cluster() {
-      local sync_target_name
-        syncer_manifest="/tmp/syncer-${clusters[$i]}.yaml"
-        sync_target_name="$(get_sync_target_name "${clusters[$i]}")"
-        KUBECONFIG="${kcp_kcfg}" kubectl kcp workload sync "${sync_target_name}" \
-            --syncer-image "ghcr.io/kcp-dev/kcp/syncer:$KCP_SYNC_TAG" \
-            --resources "$CRS_TO_SYNC"\
-            --output-file "$syncer_manifest"
-        # Set a restricted security context
-        patch="$(dirname "$SCRIPT_DIR")/data/syncer-patch.yaml" yq -i \
-          'select(.kind == "Deployment").spec.template.spec.containers[0].securityContext |= load(strenv(patch))' \
-          "$syncer_manifest"
-        add_ca_cert_to_syncer_manifest "${kcp_kcfg}" "$syncer_manifest"
-        KUBECONFIG="${kcp_kcfg}" kubectl label --overwrite synctarget "${sync_target_name}" kuadrant.dev/synctarget="${sync_target_name}"
+    local sync_target_name
+    syncer_manifest="/tmp/syncer-${clusters[$i]}.yaml"
+    sync_target_name="$(get_sync_target_name "${clusters[$i]}")"
+    KUBECONFIG="${kcp_kcfg}" kubectl kcp workload sync "${sync_target_name}" \
+        --syncer-image "ghcr.io/kcp-dev/kcp/syncer:$KCP_SYNC_TAG" \
+        --resources "$CRS_TO_SYNC" \
+        --output-file "$syncer_manifest"
+    # Set a restricted security context
+    patch="$(dirname "$SCRIPT_DIR")/data/syncer-patch.yaml" yq -i \
+        'select(.kind == "Deployment").spec.template.spec.containers[0].securityContext |= load(strenv(patch))' \
+        "$syncer_manifest"
+    add_ca_cert_to_syncer_manifest "${kcp_kcfg}" "$syncer_manifest"
+    KUBECONFIG="${kcp_kcfg}" kubectl label --overwrite synctarget "${sync_target_name}" kuadrant.dev/synctarget="${sync_target_name}"
 
-        KUBECONFIG="${WORKSPACE_DIR}/credentials/kubeconfig/compute/${kubeconfigs[$i]}" kubectl apply \
-            --context "${contexts[$i]}" -f "$syncer_manifest"
+    KUBECONFIG="${WORKSPACE_DIR}/credentials/kubeconfig/compute/${kubeconfigs[$i]}" kubectl apply \
+        --context "${contexts[$i]}" -f "$syncer_manifest"
 }
 
 add_ca_cert_to_syncer_manifest() {
@@ -253,61 +259,62 @@ add_ca_cert_to_syncer_manifest() {
 }
 
 configure_compute_ws() {
-  printf -- "- Configuring KCP compute workspace\n"
-  manifests_source="$WORKSPACE_DIR/environment/kcp"
+    printf -- "- Configuring KCP compute workspace\n"
+    manifests_source="$WORKSPACE_DIR/environment/kcp"
 
-  if [[ -d "$manifests_source/registration" ]]; then
-    printf "  - Binding config\n"
-    KUBECONFIG=${kcp_kcfg} kubectl apply -k "$manifests_source/registration" | indent 4
-  fi
+    if [[ -d "$manifests_source/registration" ]]; then
+        printf "  - Binding config\n"
+        KUBECONFIG="${kcp_kcfg}" kubectl apply -k "$manifests_source/registration" | indent 4
+    fi
 
-  if [[ -d "$manifests_source/gateway" ]]; then
-    printf "  - Gateway config\n"
-    KUBECONFIG=${kcp_kcfg} kubectl apply -k "$manifests_source/gateway" | indent 4
-  fi
+    if [[ -d "$manifests_source/gateway" ]]; then
+        printf "  - Gateway config\n"
+        KUBECONFIG="${kcp_kcfg}" kubectl apply -k "$manifests_source/gateway" | indent 4
+    fi
 
-  if [[ -d "$manifests_source/workspace-controller/overlays" ]]; then
-    printf "  - Workspace controller deployment\n"
-    KUBECONFIG=${kcp_kcfg} kubectl apply -k "$manifests_source/workspace-controller/overlays" | indent 4
-  fi
+    if [[ -d "$manifests_source/workspace-controller/overlays" ]]; then
+        printf "  - Workspace controller deployment\n"
+        KUBECONFIG="${kcp_kcfg}" kubectl apply -k "$manifests_source/workspace-controller/overlays" | indent 4
+    fi
 }
 
 check_cr_sync() {
-  # Wait until CRDs are synced to KCP
-  echo -n "- Sync CRDs to KCP: "
-  local cr_regexp
-  cr_regexp="$(
-    IFS=\|
-    echo "${CRS_TO_SYNC[*]}"
-  )"
-  cr_regexp=$(echo "$cr_regexp" | tr "," \|)
-  readarray -td, crs_to_sync_arr <<<"$CRS_TO_SYNC"; declare -p crs_to_sync_arr >/dev/null;
+    # Wait until CRDs are synced to KCP
+    echo -n "- Sync CRDs to KCP: "
+    local cr_regexp
+    cr_regexp="$(
+        IFS=\|
+        echo "${CRS_TO_SYNC[*]}"
+    )"
+    cr_regexp=$(echo "$cr_regexp" | tr "," \|)
+    readarray -td, crs_to_sync_arr <<<"$CRS_TO_SYNC"
+    declare -p crs_to_sync_arr >/dev/null
 
-  local wait_period=0
-  while [[ "$(KUBECONFIG=${kcp_kcfg} kubectl api-resources -o name 2>&1 | grep -Ewc "$cr_regexp")" -ne ${#crs_to_sync_arr[@]} ]]; do
-    wait_period=$((wait_period + 10))
-    #when wait_period is reached, print out the CR resources that is not synced to KCP
-    if [ "$wait_period" -gt 300 ]; then
-      echo "Failed to sync following resources to KCP: "
-      cr_synced=$(KUBECONFIG="$KUBECONFIG_KCP" kubectl api-resources -o name)
-      for cr in "${CRS_TO_SYNC[@]}"; do
-        if [ "$(echo "$cr_synced" | grep -wc "$cr")" -eq 0 ]; then
-          echo "    * $cr"
+    local wait_period=0
+    while [[ "$(KUBECONFIG="${kcp_kcfg}" kubectl api-resources -o name 2>&1 | grep -Ewc "$cr_regexp")" -ne ${#crs_to_sync_arr[@]} ]]; do
+        wait_period=$((wait_period + 10))
+        # When wait_period is reached, print out the CR resources that is not synced to KCP
+        if [ "$wait_period" -gt 300 ]; then
+            echo "Failed to sync following resources to KCP: "
+            cr_synced=$(KUBECONFIG="${kcp_kcfg}" kubectl api-resources -o name)
+            for cr in "${CRS_TO_SYNC[@]}"; do
+                if [ "$(echo "$cr_synced" | grep -wc "$cr")" -eq 0 ]; then
+                    echo "    * $cr"
+                fi
+            done
+            exit 1
         fi
-      done
-      exit 1
-    fi
-    echo -n "."
-    sleep 10
-  done
-  echo "OK"
+        echo -n "."
+        sleep 10
+    done
+    echo "OK"
 }
 
 main() {
     parse_args "$@"
     prechecks
     kcp_kubeconfig
-    if [[ "$(KUBECONFIG=${kcp_kcfg} kubectl kcp workspace current | cut -d\" -f2)" == "$KCP_ORG:$KCP_WORKSPACE" ]]; then
+    if [[ "$(KUBECONFIG="${kcp_kcfg}" kubectl kcp workspace current | cut -d\" -f2)" == "$KCP_ORG:$KCP_WORKSPACE" ]]; then
         printf "Workspace: %s\n" "$KCP_ORG:$KCP_WORKSPACE"
     else
         printf "Switching to organization %s\n" "${KCP_ORG}"
@@ -318,7 +325,7 @@ main() {
     get_clusters
     printf "Registering clusters to kcp\n"
     for i in "${!clusters[@]}"; do
-        printf -- "- %s (%s/%s)\n" "${clusters[$i]}" "$((i+1))" "${#clusters[@]}"
+        printf -- "- %s (%s/%s)\n" "${clusters[$i]}" "$((i + 1))" "${#clusters[@]}"
         register_cluster 2>&1 | indent 2
     done
     check_cr_sync
