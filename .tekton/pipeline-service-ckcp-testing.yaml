@@ -1,0 +1,295 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: pipeline-service-ckcp-test
+  annotations:
+    pipelinesascode.tekton.dev/on-event: "[pull_request, push]"
+    pipelinesascode.tekton.dev/on-target-branch: "main"
+    pipelinesascode.tekton.dev/task: "[git-clone]"
+    pipelinesascode.tekton.dev/max-keep-runs: "5"
+spec:
+  params:
+    - name: repo_url
+      value: "{{ repo_url }}"
+    - name: revision
+      value: "{{ revision }}"
+    - name: namespace
+      value: "ci-clusters"
+  timeouts:
+    pipeline: "1h0m0s"
+    finally: "0h20m0s"
+  pipelineSpec:
+    params:
+      - name: repo_url
+      - name: revision
+      - name: namespace
+    workspaces:
+      - name: source
+      - name: kubeconfig-dir
+      - name: hypershift-cluster-template
+      - name: shared-workspace
+    tasks:
+      - name: produce-cluster-name
+        taskSpec:
+          results:
+            - name: cluster-name
+              description: Openshift cluster name
+          steps:
+            - name: cluster-name
+              image: registry.access.redhat.com/ubi8/openssl:8.6-32
+              script: |
+                #!/usr/bin/env bash
+                CLUSTER_NAME="ci-$( openssl rand -hex 5 )"
+                echo -n "$CLUSTER_NAME" | tee $(results.cluster-name.path)
+      - name: deploy-cluster
+        runAfter:
+          - "produce-cluster-name"
+        params:
+          - name: image
+            value: "quay.io/openshift-release-dev/ocp-release:4.11.13-x86_64"
+          - name: region
+            value: "us-east-1"
+          - name: cluster-name
+            value: "$(tasks.produce-cluster-name.results.cluster-name)"
+          - name: namespace
+            value: "$(params.namespace)"
+        workspaces:
+          - name: kubeconfig-dir
+            workspace: kubeconfig-dir
+          - name: hypershift-cluster-template
+            workspace: hypershift-cluster-template
+          - name: output
+            workspace: shared-workspace
+        taskSpec:
+          params:
+            - name: region
+            - name: cluster-name
+            - name: image
+            - name: namespace
+          results:
+            - name: kubeconfig
+              description: the kubeconfig content of the new OCP cluster
+          workspaces:
+            - name: kubeconfig-dir
+            - name: hypershift-cluster-template
+            - name: output
+              description: The kubeconfig of new cluster will be stored onto the volume backing this Workspace
+          kind: ClusterTask
+          steps:
+            - name: generate-hypershift-deployment
+              image: ghcr.io/sharkusmanch/envsubst:1.2.0
+              env:
+                - name: REGION
+                  value: "$(params.region)"
+                - name: CLUSTER_NAME
+                  value: "$(params.cluster-name)"
+                - name: IMAGE
+                  value: "$(params.image)"
+              script: |
+                envsubst < $(workspaces.hypershift-cluster-template.path)/cluster-template.yaml | tee $(workspaces.output.path)/hypershift_deployment.yaml
+            - name: deploy-cluster
+              image: quay.io/redhat-pipeline-service/kubectl:1.25
+              script: |
+                #!/usr/bin/env bash
+                set -o errexit
+                export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
+                kubectl -n $(params.namespace) apply -f $(workspaces.output.path)/hypershift_deployment.yaml
+                echo "Wait until hypershift cluster is ready..."
+                wait_period=0
+                while [[ "$(kubectl -n $(params.namespace) get hypershiftdeployment $(params.cluster-name) -o json | jq -r '.status.conditions[]? | select(.type == "HostedClusterProgress") | .reason')" != "Completed" ]]
+                do
+                  if [ "$wait_period" -gt 2500 ]; then
+                    echo "Failed to create OCP cluster."
+                    kubectl -n $(params.namespace) get hypershiftdeployment $(params.cluster-name) -o yaml
+                    exit 1
+                  fi
+                  sleep 60
+                  wait_period=$((wait_period + 60))
+                  echo "Waited $wait_period seconds..."
+                done
+
+                echo "Hypershit is ready, the following is the cluser kubeconfig"
+                kubectl get secret -n clusters "$(params.cluster-name)-admin-kubeconfig" -o json | jq -r '.data.kubeconfig'  | base64 -d | tee $(workspaces.output.path)/kubeconfig
+      - name: fetch-repository
+        runAfter:
+          - "deploy-cluster"
+        taskRef:
+          name: git-clone
+          kind: ClusterTask
+        workspaces:
+          - name: output
+            workspace: source
+        params:
+          - name: url
+            value: $(params.repo_url)
+          - name: revision
+            value: $(params.revision)
+      - name: ckcp-test
+        runAfter:
+          - "fetch-repository"
+        workspaces:
+          - name: source
+            workspace: source
+          - name: kubeconfig-dir
+            workspace: shared-workspace
+        taskSpec:
+          workspaces:
+            - name: source
+            - name: kubeconfig-dir
+          kind: ClusterTask
+          steps:
+            - name: create-podman-container
+              image: quay.io/redhat-pipeline-service/kubectl:1.25
+              resources:
+                requests:
+                  memory: 500Mi
+                  cpu: 300m
+              script: |
+                #!/usr/bin/env bash
+                export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
+
+                kubectl -n openshift-config  get secret/pull-secret -o yaml | sed 's/openshift-config/default/' | sed 's/\.dockerconfigjson/auth.json/' | grep -v type: | kubectl apply -f -
+                kubectl -n default apply -f - <<EOF
+                apiVersion: v1
+                kind: Pod
+                metadata:
+                  name: podman
+                spec:
+                  containers:
+                  - name: podman
+                    image: registry.redhat.io/rhel8/podman:latest
+                    resources:
+                      requests:
+                        ephemeral-storage: "2Gi"
+                      limits:
+                        ephemeral-storage: "2Gi"
+                    command:
+                    - /usr/sbin/init
+                    securityContext:
+                      privileged: true
+                    volumeMounts:
+                    - name: pull-secret
+                      mountPath: "/run/user/0/containers/"
+                      readOnly: true
+                  volumes:
+                  - name: pull-secret
+                    secret:
+                      secretName: pull-secret
+                EOF
+                kubectl -n default wait pod/podman --for=condition=Ready --timeout=90s
+                kubectl -n default describe pod/podman
+            - name: install-softwares-to-podman-container
+              image: quay.io/redhat-pipeline-service/kubectl:1.25
+              resources:
+                requests:
+                  memory: 500Mi
+                  cpu: 300m
+              script: |
+                #!/usr/bin/env bash
+                export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
+
+                kubectl -n default exec pod/podman -- sh -c "yum install -y python3-pip xz wget git make jq gcc && yum clean all"
+                kubectl -n default exec pod/podman -- sh -c "wget -c https://go.dev/dl/go1.19.1.linux-amd64.tar.gz && tar -C /usr/local -xzf go1.19.1.linux-amd64.tar.gz && rm -rf go1.19.1.linux-amd64.tar.gz"
+                kubectl -n default exec pod/podman -- sh -c "curl --location -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/download/v2.4.7/argocd-linux-amd64 && chmod +x /usr/local/bin/argocd && argocd version --client"
+                kubectl -n default exec pod/podman -- sh -c "KUBECTL_VERSION=1.24.3 && curl -LO https://storage.googleapis.com/kubernetes-release/release/v\$KUBECTL_VERSION/bin/linux/amd64/kubectl && chmod +x ./kubectl && mv ./kubectl /usr/local/bin && kubectl version --client=true"
+                kubectl -n default exec pod/podman -- sh -c "wget https://github.com/mikefarah/yq/releases/download/v4.25.1/yq_linux_amd64 -O /usr/local/bin/yq && chmod +x /usr/local/bin/yq && yq --version"
+            - name: ckcp-setup
+              image: quay.io/redhat-pipeline-service/kubectl:1.25
+              resources:
+                requests:
+                  memory: 500Mi
+                  cpu: 300m
+              script: |
+                #!/usr/bin/env bash
+                ## Produce a ckcp_setup.sh to assist execte ckcp sciprt
+                cat <<'EOF' > $(workspaces.source.path)/ckcp_setup.sh
+                #!/usr/bin/env bash
+                set -o errexit
+                set -o pipefail
+                export PATH=/usr/local/go/bin:$PATH
+                export PATH=$(go env GOPATH)/bin:$PATH
+                export ALLOW_ROOTLESS=true
+
+                echo "Start installing kcp plugin ..."
+                CKCP_DIR=$(find "$PWD" -type f -name openshift_dev_setup.sh -exec dirname {} +)
+                KCP_TAG="$(yq '.images[] | select(.name == "kcp") | .newTag' "$CKCP_DIR/openshift/overlays/dev/kustomization.yaml")"
+                echo "kcp tag:" $KCP_TAG
+                KCP_TAG_SHORT="$(printf '%s' "$KCP_TAG" | sed 's/v//')"
+                curl -OL https://github.com/kcp-dev/kcp/releases/download/${KCP_TAG}/kubectl-kcp-plugin_${KCP_TAG_SHORT}_linux_amd64.tar.gz && tar -C /usr/local -xzf kubectl-kcp-plugin_${KCP_TAG_SHORT}_linux_amd64.tar.gz
+                kubectl-kcp --version
+
+                echo "\n\nStart ckcp setup ..."
+                cd $CKCP_DIR && ./openshift_dev_setup.sh -d
+                EOF
+
+                chmod +x "$(workspaces.source.path)/ckcp_setup.sh"
+
+                ## start executing ckcp setup script
+                export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
+
+                echo "Copy pipeline-service source codes to podman container"
+                kubectl cp $(workspaces.source.path) default/podman:/source
+
+                echo "Copy kubeconfig file to podman container"
+                kubectl cp "$(workspaces.kubeconfig-dir.path)/kubeconfig" default/podman:/kubeconfig
+
+                echo "Start to set up ckcp"
+                kubectl -n default exec pod/podman -- sh -c "export KUBECONFIG=/kubeconfig && /source/ckcp_setup.sh"
+    finally:
+      - name: destroy-cluster
+        params:
+          - name: deploy-cluster-status
+            value: "$(tasks.deploy-cluster.status)"
+          - name: namespace
+            value: "$(params.namespace)"
+          - name: cluster-name
+            value: "$(tasks.produce-cluster-name.results.cluster-name)"
+        workspaces:
+          - name: kubeconfig-dir
+            workspace: kubeconfig-dir
+        taskSpec:
+          params:
+            - name: deploy-cluster-status
+            - name: namespace
+            - name: cluster-name
+          workspaces:
+            - name: kubeconfig-dir
+          kind: ClusterTask
+          steps:
+            - name: destroy
+              image: quay.io/redhat-pipeline-service/kubectl:1.25
+              script: |
+                #!/usr/bin/env bash
+                export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
+
+                if [[ "$(params.deploy-cluster-status)" != "None" ]]; then
+                  echo "Started to destroy cluster [$(params.cluster-name)]..."
+                  kubectl -n $(params.namespace) delete HypershiftDeployment $(params.cluster-name)
+                  echo "Successfully destroyed cluster"
+                else
+                  echo "No OCP cluster need to be destroyed."
+                fi
+  workspaces:
+    - name: kubeconfig-dir
+      configMap:
+        name: kubeconfig
+    - name: hypershift-cluster-template
+      configMap:
+        name: hypershift-cluster-template
+    - name: source
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 3Gi
+    - name: shared-workspace
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 50Mi
