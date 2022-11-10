@@ -134,9 +134,8 @@ install_argocd() {
 }
 
 install_bitwarden() {
-    curl "${CURL_OPTS[@]}" -o "$TMPBIN/bw.zip" "https://github.com/bitwarden/clients/releases/download/cli-${BITWARDEN_VERSION}/bw-linux-${BITWARDEN_VERSION:1}.zip"
-    unzip "$TMPBIN/bw.zip" -d "$TMPBIN/"
-    rm -rf "$TMPBIN/bw.zip"
+    curl "${CURL_OPTS[@]}" -o "$TMPDIR/bw.zip" "https://github.com/bitwarden/clients/releases/download/cli-${BITWARDEN_VERSION}/bw-linux-${BITWARDEN_VERSION:1}.zip"
+    unzip -q "$TMPDIR/bw.zip" -d "$TMPBIN/"
     move_bin
     bw --version
 }

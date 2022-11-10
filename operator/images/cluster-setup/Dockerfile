@@ -17,18 +17,17 @@ LABEL build-date= \
       version="0.1"
 WORKDIR /
 RUN mkdir /workspace && chmod 777 /workspace && chown 65532:65532 /workspace
-ENV HOME /tmp/home
-RUN mkdir $HOME && chmod 777 $HOME && chown 65532:65532 $HOME
 RUN microdnf install -y findutils-4.6.0 git-2.31.1  unzip-6.0 && microdnf clean all
 
 COPY shared /tmp/image-build/shared
-WORKDIR /tmp/image-build/shared/hack
-RUN set -x \
-    && ./install.sh --bin bitwarden,jq,kubectl \
+RUN /tmp/image-build/shared/hack/install.sh --bin bitwarden,jq,kubectl,yq \
     && rm -rf /tmp/image-build
 
 COPY operator/images/cluster-setup/content /opt/cluster-setup
+
 USER 65532:65532
+ENV HOME /tmp/home
+RUN mkdir $HOME
 VOLUME /workspace
 WORKDIR /workspace
 ENTRYPOINT ["/opt/cluster-setup/bin/install.sh"]
