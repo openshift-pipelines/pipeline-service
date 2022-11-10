@@ -60,6 +60,7 @@ parse_args() {
       WORKSPACE_DIR="$1"
       ;;
     -d | --debug)
+      DEBUG="--debug"
       set -x
       ;;
     -h | --help)
@@ -74,17 +75,29 @@ parse_args() {
     esac
     shift
   done
+  DEBUG="${DEBUG:-}"
+}
+
+init() {
+  local tmp_workspace_dir="/tmp/workspace"
+  if [[ -e "$tmp_workspace_dir" ]]; then
+    rm -rf "$tmp_workspace_dir"
+  fi
+  cp -rf "$WORKSPACE_DIR" "$tmp_workspace_dir"
+  WORKSPACE_DIR="$tmp_workspace_dir"
 }
 
 # turns off tracing even with set -x mode enabled across the script to prevent secrets leaking
 setx_off() {
   set +x
-} 2>/dev/null
+}
 
 # turns on tracing
 setx_on() {
-  set -x
-} 2>/dev/null
+  if [ -n "$DEBUG" ]; then
+    set -x
+  fi
+}
 
 # populate clusters with the cluster names taken from the kubeconfig
 # populate contexts with the context name taken from the kubeconfig
@@ -122,32 +135,36 @@ fetch_bitwarden_secrets() {
   CREDENTIALS_DIR="$WORKSPACE_DIR/credentials"
   BITWARDEN_CRED="$CREDENTIALS_DIR/secrets/bitwarden.yaml"
 
-  ( setx_off BW_CLIENTID="${BW_CLIENTID:-}" )
-  ( setx_off BW_CLIENTSECRET="${BW_CLIENTSECRET:-}" )
-  ( setx_off BW_PASSWORD="${BW_PASSWORD:-}" )
+  setx_off
+  BW_CLIENTID="${BW_CLIENTID:-}"
+  BW_CLIENTSECRET="${BW_CLIENTSECRET:-}"
+  BW_PASSWORD="${BW_PASSWORD:-}"
+  setx_on
 
   if [ ! -e "$BITWARDEN_CRED" ]; then
     return
   fi
 
-  printf "[Bitwarden]:\n "
-  printf "bitwarden.yaml file exists. Checking if the required variables to connect to Bitwarden are set.\n" | indent 2
+  printf "[Bitwarden]:\n"
+  printf "bitwarden config file found at '%s'.\n" "$BITWARDEN_CRED" | indent 2
   setx_off
+  if [ -z "$BW_CLIENTID" ]; then
+      printf "Error: BW_CLIENTID is unset.\n" >&2 | indent 2
+      exit 1
+  fi
   if [ -z "$BW_PASSWORD" ]; then
-      printf "Please set the required env variables and try again.\n" >&2 | indent 2
-      return
+      printf "Error: BW_PASSWORD is unset.\n" >&2 | indent 2
+      exit 1
   fi
   setx_on
 
-  printf "Required variables are available.\n" | indent 2
+  printf "bitwarden credentials: OK\n" | indent 2
   if [ "$(bw logout >/dev/null 2>&1)$?" -eq 0 ]; then
     printf "Logout successful.\n" >/dev/null
   fi
-  setx_off
-  if [ "$(BW_CLIENTID="$BW_CLIENTID" BW_CLIENTSECRET="$BW_CLIENTSECRET" bw login --apikey >/dev/null 2>&1)$?" -eq 0 ]; then
+  if (setx_off; BW_CLIENTID="$BW_CLIENTID" BW_CLIENTSECRET="$BW_CLIENTSECRET" bw login --apikey >/dev/null 2>&1); then
     printf "Login successful.\n" >/dev/null
   fi
-  setx_on
 
   login_status=$(bw login --check 2>&1)
   if [ "$login_status" = "You are not logged in." ]; then
@@ -161,24 +178,21 @@ fetch_bitwarden_secrets() {
 
   # process id/path pairs from bitwarden.yaml
   secret_count=$(yq '.credentials | length' "$BITWARDEN_CRED")
-  for i in $(seq 0 "$((secret_count-1))")
-  do
-    setx_off
-    content=$(bw get password "$(yq ".credentials[$i].id" "$BITWARDEN_CRED")" --session "$session")
-    path=$(yq ".credentials[$i].path" "$BITWARDEN_CRED")
+  for i in $(seq 0 "$((secret_count-1))"); do
+    id="$(yq ".credentials[$i].id" "$BITWARDEN_CRED")"
+    path="$WORKSPACE_DIR/$(yq ".credentials[$i].path" "$BITWARDEN_CRED")"
 
-    if ! mkdir -p "$(dirname "$WORKSPACE_DIR/$path")" 2>/dev/null; then
-      printf "Unable to create the folder. Exiting.\n" >&2 | indent 2
+    if ! mkdir -p "$(dirname "$path")" 2>/dev/null; then
+      printf "Unable to create '%s'.\n" "$(dirname "$path")" >&2 | indent 2
       exit 1
     fi
-    if ! echo "$content" | base64 -d > "$WORKSPACE_DIR/$path"; then
-      printf "Unable to copy the contents of the secret to the specified path. Exiting.\n" >&2 | indent 2
+    if ! (setx_off; bw get password "$id" --session "$session" | base64 -d > "$path" ); then
+      printf "Unable to copy the contents of '%s' to '%s'. Exiting.\n" "$id" "$path" >&2 | indent 2
       exit 1
     fi
-    setx_on
-    printf "Extracted secret with the ID %s and substituted the decoded value at %s path.\n" "$content" "$WORKSPACE_DIR/$path" | indent 2
+    printf "Extracted secret with the ID '%s' to '%s'.\n" "$id" "$path" | indent 2
   done
-  printf "Extracted all secrets from Bitwarden and substituted them in the relevant files.\n" | indent 2
+  printf "Extraction completed.\n" | indent 2
 }
 
 install_clusters() {
@@ -219,8 +233,9 @@ install_applications() {
 
 main() {
   parse_args "$@"
-  get_clusters
+  init
   fetch_bitwarden_secrets
+  get_clusters
   install_clusters
 }
 
