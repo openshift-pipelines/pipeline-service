@@ -282,7 +282,7 @@ patches:
         value: $ckcp_route " >>"$ckcp_temp_dir/kustomization.yaml"
 
   echo -n "- kcp $kcp_version: "
-  # Deploy ckcp until all resources are successfully appied to OCP cluster 
+  # Deploy ckcp until all resources are successfully appied to OCP cluster
   local i=0
   while ! error_msg=$(kubectl apply -k "$ckcp_temp_dir" 2>&1 1>/dev/null); do
     sleep 10
@@ -410,6 +410,19 @@ register_compute() {
     indent 4
 }
 
+print_kubeconfig() {
+  ws_name=$(echo "$kcp_org" | cut -d: -f2)
+  KUBECONFIG_KCP="$WORK_DIR/credentials/kubeconfig/kcp/ckcp-ckcp.${ws_name}.${kcp_workspace}.kubeconfig"
+
+  printf "\nUse the below KUBECONFIG to get access to the kcp workspace and compute cluster respectively.\n"
+  printf "KUBECONFIG_KCP: %s\n" "$KUBECONFIG_KCP"
+  printf "KUBECONFIG: %s\n" "$KUBECONFIG"
+
+  printf "\nYou can also set the following aliases to access the kcp workspace and compute cluster respectively.\n"
+  printf "alias kkcp='KUBECONFIG=%s kubectl'\n" "$KUBECONFIG_KCP"
+  printf "alias kcompute='KUBECONFIG=%s kubectl'\n" "$KUBECONFIG"
+}
+
 main() {
   parse_args "$@"
   precheck_binary "kubectl" "yq" "curl" "argocd"
@@ -423,13 +436,7 @@ main() {
   done
   echo [sync]
   register_compute
-  printf "\nUse the below KUBECONFIG to get access to the kcp workspace and compute cluster respectively.\n"
-  printf "KUBECONFIG_KCP: %s\n" "$KUBECONFIG_KCP"
-  printf "KUBECONFIG: %s\n" "$KUBECONFIG"
-
-  printf "\nYou can also set the following aliases to access the kcp workspace and compute cluster respectively.\n"
-  printf "alias kkcp='KUBECONFIG=%s kubectl'\n" "$KUBECONFIG_KCP"
-  printf "alias kcompute='KUBECONFIG=%s kubectl'\n" "$KUBECONFIG"
+  print_kubeconfig
 }
 
 if [ "${BASH_SOURCE[0]}" == "$0" ]; then
