@@ -78,15 +78,6 @@ parse_args() {
   DEBUG="${DEBUG:-}"
 }
 
-init() {
-  local tmp_workspace_dir="/tmp/workspace"
-  if [[ -e "$tmp_workspace_dir" ]]; then
-    rm -rf "$tmp_workspace_dir"
-  fi
-  cp -rf "$WORKSPACE_DIR" "$tmp_workspace_dir"
-  WORKSPACE_DIR="$tmp_workspace_dir"
-}
-
 # turns off tracing even with set -x mode enabled across the script to prevent secrets leaking
 setx_off() {
   set +x
@@ -233,7 +224,6 @@ install_applications() {
 
 main() {
   parse_args "$@"
-  init
   fetch_bitwarden_secrets
   get_clusters
   install_clusters
