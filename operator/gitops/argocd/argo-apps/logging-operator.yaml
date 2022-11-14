@@ -2,14 +2,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: pipeline-service
+  name: logging-operator
   namespace: openshift-gitops
 spec:
   destination:
     namespace: openshift-gitops
     server: https://kubernetes.default.svc
   source:
-    path: operator/gitops/argocd/argo-apps
+    path: operator/gitops/argocd/logging-operator
     repoURL: https://github.com/avinal/pipeline-service.git
     targetRevision: avinal/cluster-logging
   project: default

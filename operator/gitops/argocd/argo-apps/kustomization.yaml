@@ -4,3 +4,4 @@ resources:
   - cert-manager-operator.yaml
   - tekton-chains.yaml
   - tekton-results.yaml
+  - logging-operator.yaml

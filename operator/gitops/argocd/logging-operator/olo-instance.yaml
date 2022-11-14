@@ -1,0 +1,14 @@
+---
+apiVersion: "logging.openshift.io/v1"
+kind: "ClusterLogging"
+metadata:
+  name: "instance"
+  namespace: "openshift-logging"
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  managementState: "Managed"
+  collection:
+    logs:
+      type: "fluentd"
+      fluentd: {}

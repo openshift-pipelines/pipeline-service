@@ -1,0 +1,23 @@
+---
+apiVersion: "logging.openshift.io/v1"
+kind: "ClusterLogForwarder"
+metadata:
+  name: "instance"
+  namespace: "openshift-logging"
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  outputs:
+    # Forward to the fluentdforward output
+    - name: olo-fluentdforward
+      type: fluentdForward
+      url: "tcp://fluentd.fluentd.svc.cluster.local:24224"
+  pipelines:
+    - name: fluentd-server-insecure-name
+      inputRefs:
+        - audit
+      outputRefs:
+        - olo-fluentdforward
+      parse: json
+      labels:
+        clusterId: "C1234"
