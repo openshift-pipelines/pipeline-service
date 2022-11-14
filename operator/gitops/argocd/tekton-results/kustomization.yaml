@@ -9,3 +9,4 @@ resources:
   - cert.yaml
   - route.yaml
   - deployment.yaml
+  - service.yaml
