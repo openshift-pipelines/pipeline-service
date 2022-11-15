@@ -47,7 +47,7 @@ spec:
           - "produce-cluster-name"
         params:
           - name: image
-            value: "quay.io/openshift-release-dev/ocp-release:4.11.13-x86_64"
+            value: "quay.io/openshift-release-dev/ocp-release:4.11.16-x86_64"
           - name: region
             value: "us-east-1"
           - name: cluster-name
@@ -125,7 +125,7 @@ spec:
             value: $(params.repo_url)
           - name: revision
             value: $(params.revision)
-      - name: ckcp-test
+      - name: setup-podman-container
         runAfter:
           - "fetch-repository"
         retries: 1
@@ -134,26 +134,17 @@ spec:
             workspace: source
           - name: kubeconfig-dir
             workspace: shared-workspace
+        params:
+          - name: workdir
+            value: "/source/work"
         taskSpec:
           workspaces:
             - name: source
             - name: kubeconfig-dir
+          params:
+            - name: workdir
           kind: ClusterTask
           steps:
-            - name: clean-podman-container
-              image: quay.io/redhat-pipeline-service/kubectl:1.25
-              resources:
-                requests:
-                  memory: 500Mi
-                  cpu: 300m
-              script: |
-                #!/usr/bin/env bash
-                export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
-
-                if kubectl -n default get pod podman; then
-                  echo "Delete the existing podman pod"
-                  kubectl -n default delete pod podman
-                fi
             - name: create-podman-container
               image: quay.io/redhat-pipeline-service/kubectl:1.25
               resources:
@@ -165,6 +156,21 @@ spec:
                 export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
 
                 kubectl -n openshift-config  get secret/pull-secret -o yaml | sed 's/openshift-config/default/' | sed 's/\.dockerconfigjson/auth.json/' | grep -v type: | kubectl apply -f -
+
+                kubectl -n default apply -f - <<EOF
+                apiVersion: v1
+                kind: PersistentVolumeClaim
+                metadata:
+                  name: podmanpvc
+                spec:
+                  accessModes:
+                    - ReadWriteOnce
+                  storageClassName: gp2
+                  resources:
+                    requests:
+                      storage: 5Gi
+                EOF
+
                 kubectl -n default apply -f - <<EOF
                 apiVersion: v1
                 kind: Pod
@@ -187,10 +193,15 @@ spec:
                     - name: pull-secret
                       mountPath: "/run/user/0/containers/"
                       readOnly: true
+                    - name: podman-storage
+                      mountPath: "/source"
                   volumes:
                   - name: pull-secret
                     secret:
                       secretName: pull-secret
+                  - name: podman-storage
+                    persistentVolumeClaim:
+                      claimName: podmanpvc
                 EOF
                 kubectl -n default wait pod/podman --for=condition=Ready --timeout=90s
                 kubectl -n default describe pod/podman
@@ -209,7 +220,7 @@ spec:
                 kubectl -n default exec pod/podman -- sh -c "curl --location -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/download/v2.4.7/argocd-linux-amd64 && chmod +x /usr/local/bin/argocd && argocd version --client"
                 kubectl -n default exec pod/podman -- sh -c "KUBECTL_VERSION=1.24.3 && curl -LO https://storage.googleapis.com/kubernetes-release/release/v\$KUBECTL_VERSION/bin/linux/amd64/kubectl && chmod +x ./kubectl && mv ./kubectl /usr/local/bin && kubectl version --client=true"
                 kubectl -n default exec pod/podman -- sh -c "wget https://github.com/mikefarah/yq/releases/download/v4.25.1/yq_linux_amd64 -O /usr/local/bin/yq && chmod +x /usr/local/bin/yq && yq --version"
-            - name: ckcp-setup
+            - name: prepare-scripts
               image: quay.io/redhat-pipeline-service/kubectl:1.25
               resources:
                 requests:
@@ -217,7 +228,7 @@ spec:
                   cpu: 300m
               script: |
                 #!/usr/bin/env bash
-                ## Produce a ckcp_setup.sh to assist execte ckcp sciprt
+                echo "Produce a ckcp_setup.sh with the execution of script openshift_dev_setup.sh"
                 cat <<'EOF' > $(workspaces.source.path)/ckcp_setup.sh
                 #!/usr/bin/env bash
                 set -o errexit
@@ -225,7 +236,7 @@ spec:
                 export PATH=/usr/local/go/bin:$PATH
                 export PATH=$(go env GOPATH)/bin:$PATH
                 export ALLOW_ROOTLESS=true
-
+                ls -l
                 echo "Start installing kcp plugin ..."
                 CKCP_DIR=$(find "$PWD" -type f -name openshift_dev_setup.sh -exec dirname {} +)
                 KCP_TAG="$(yq '.images[] | select(.name == "kcp") | .newTag' "$CKCP_DIR/openshift/overlays/dev/kustomization.yaml")"
@@ -234,28 +245,90 @@ spec:
                 curl -OL https://github.com/kcp-dev/kcp/releases/download/${KCP_TAG}/kubectl-kcp-plugin_${KCP_TAG_SHORT}_linux_amd64.tar.gz && tar -C /usr/local -xzf kubectl-kcp-plugin_${KCP_TAG_SHORT}_linux_amd64.tar.gz
                 kubectl-kcp --version
 
-                echo "\n\nStart ckcp setup ..."
-                cd $CKCP_DIR && ./openshift_dev_setup.sh -d
+                echo "Start executing ckcp setup ..."
+                $CKCP_DIR/openshift_dev_setup.sh -w "$(params.workdir)" -d
                 EOF
 
                 chmod +x "$(workspaces.source.path)/ckcp_setup.sh"
 
-                ## start executing ckcp setup script
-                export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
+                echo "Produce a ckcp_test.sh with the execution of script test.sh"
+                cat <<'EOF' > $(workspaces.source.path)/ckcp_test.sh
+                #!/usr/bin/env bash
+                set -o errexit
+                set -o pipefail
+                export PATH=/usr/local/go/bin:$PATH
+                export PATH=$(go env GOPATH)/bin:$PATH
 
-                echo "Copy pipeline-service source codes to podman container"
+                echo "Start executing pipeline cases ..."
+                TEST_DIR=$(find "$PWD" -type f -name test.sh -exec dirname {} +)
+                WORK_DIR="$(params.workdir)" CASES=pipelines $TEST_DIR/test.sh
+                EOF
+
+                chmod +x "$(workspaces.source.path)/ckcp_test.sh"
+
+                echo "Copy sources codes and scripts to Podman Container"
+                export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
                 kubectl cp $(workspaces.source.path) default/podman:/source
 
                 echo "Copy kubeconfig file to podman container"
                 kubectl cp "$(workspaces.kubeconfig-dir.path)/kubeconfig" default/podman:/kubeconfig
-
-                echo "Start to set up ckcp"
-                kubectl -n default exec pod/podman -- sh -c "export KUBECONFIG=/kubeconfig && /source/ckcp_setup.sh"
+      - name: ckcp-setup
+        runAfter:
+          - "setup-podman-container"
+        retries: 1
+        workspaces:
+          - name: kubeconfig-dir
+            workspace: shared-workspace
+        taskSpec:
+          workspaces:
+            - name: kubeconfig-dir
+          kind: ClusterTask
+          steps:
+            - name: run-ckcp-setup
+              image: quay.io/redhat-pipeline-service/kubectl:1.25
+              resources:
+                requests:
+                  memory: 500Mi
+                  cpu: 300m
+              script: |
+                #!/usr/bin/env bash
+                export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
+                apiServerURL=$(kubectl get infrastructures.config.openshift.io cluster -o jsonpath={.status.apiServerURL})
+                echo "OCP apiServerURL is ${apiServerURL}"
+                kubectl -n default exec pod/podman -- sh -c "export KUBECONFIG=/kubeconfig && /source/source/ckcp_setup.sh"
+      - name: tests
+        runAfter:
+          - "ckcp-setup"
+        retries: 1
+        workspaces:
+          - name: kubeconfig-dir
+            workspace: shared-workspace
+        taskSpec:
+          workspaces:
+            - name: kubeconfig-dir
+          kind: ClusterTask
+          steps:
+            - name: run-tests
+              image: quay.io/redhat-pipeline-service/kubectl:1.25
+              resources:
+                requests:
+                  memory: 500Mi
+                  cpu: 300m
+              script: |
+                #!/usr/bin/env bash
+                export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
+                apiServerURL=$(kubectl get infrastructures.config.openshift.io cluster -o jsonpath={.status.apiServerURL})
+                echo "OCP apiServerURL is ${apiServerURL}"
+                kubectl -n default exec pod/podman -- sh -c "/source/source/ckcp_test.sh"
     finally:
       - name: destroy-cluster
         params:
           - name: deploy-cluster-status
             value: "$(tasks.deploy-cluster.status)"
+          - name: ckcp-setup-status
+            value: "$(tasks.ckcp-setup.status)"
+          - name: tests-status
+            value: "$(tasks.tests.status)"
           - name: namespace
             value: "$(params.namespace)"
           - name: cluster-name
@@ -266,6 +339,8 @@ spec:
         taskSpec:
           params:
             - name: deploy-cluster-status
+            - name: ckcp-setup-status
+            - name: tests-status
             - name: namespace
             - name: cluster-name
           workspaces:
@@ -276,14 +351,14 @@ spec:
               image: quay.io/redhat-pipeline-service/kubectl:1.25
               script: |
                 #!/usr/bin/env bash
-                set -x
                 export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
 
-                if [[ "$(params.deploy-cluster-status)" != "Failed" ]]; then
-                  echo "Start pinting out debug information when task deploy-cluster fail ..."
+                if [[ "$(params.ckcp-setup-status)" == "Failed" || "$(params.tests-status)" == "Failed" ]]; then
+                  echo "Print out Nodes information"
+                  kubectl describe node
+                  echo ""
 
-                  echo -e "\n\nPrint out podman pod information..."
-                  kubectl -n default get pod
+                  echo "Print out podman pod information..."
                   kubectl -n default describe pod/podman
 
                   podman_staus="$(kubectl -n default get pod podman -o json | jq -r '.status.phase')"
