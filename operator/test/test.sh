@@ -54,7 +54,8 @@ kcp_kubeconfig() {
 }
 
 compute_kubeconfig() {
-    mapfile -t files < <(find "$WORK_DIR/credentials/kubeconfig/compute/" -name \*.kubeconfig)
+    # It needs admin user to list Pod resources in compute cluster
+    mapfile -t files < <(find "$WORK_DIR/credentials/kubeconfig/compute/" -name \*.kubeconfig.base)
     echo "${files[0]}"
 }
 
@@ -157,8 +158,6 @@ test_pipelines() {
   
   KCP_NS_NAME="$(get_namespace)"
   kubectl get pods -n "$KCP_NS_NAME"
-
-  test_results
 
   echo
 }
