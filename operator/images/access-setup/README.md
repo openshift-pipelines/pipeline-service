@@ -27,7 +27,7 @@ checking out the repository and running the script.
 
 The script will:
 1. Create the `$KCP_WORKSPACE` workspace in the organization workspace.
-2. Create a `pac-manager` serviceaccount in the new workspace, in the `pipelines-as-code` namespace.
+2. Create a `pipeline-service-manager` serviceaccount in the new workspace, in the `pipelines-as-code` namespace.
 3. Generate the kubeconfig for the serviceaccount.
 
 Example: `./setup_kcp.sh --kubeconfig /home/.kube/mykcp.kubeconfig --kcp-org root:pipeline-service --kcp-workspace compute --work-dir /path/to/sre/repository`
@@ -41,7 +41,7 @@ registration to kcp.
 each compute cluster operated by the Pipeline Service SRE team.
 
 The script will:
-1. Create a `pac-manager` serviceaccount in the `pipelines-as-code` namespace.
+1. Create a `pipeline-service-manager` serviceaccount in the `pipelines-as-code` namespace.
 2. Generate the kubeconfig for the serviceaccount.
 3. Create a default `kustomization.yaml` for the cluster under `environment/compute
 environment/compute`.

@@ -1,5 +1,5 @@
-#FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6
-FROM registry.access.redhat.com/ubi8/ubi-minimal@sha256:e58664de16551db29fb0eaaeb3c4a44eaf95ad89a5b2399a1107041c4f2d6d34
+#FROM registry.access.redhat.com/ubi8/ubi-minimal:8.7-923
+FROM registry.access.redhat.com/ubi8/ubi-minimal@sha256:4ed971a5564d2cfedf750793da53ef6f1fdf295263f1cc31d703aa8acf6d02cf
 LABEL build-date= \
     com.redhat.build-host= \
     description="This image provides shellcheck binary." \
@@ -20,12 +20,13 @@ RUN mkdir /workspace && chmod 777 /workspace && chown 65532:65532 /workspace
 ENV HOME /tmp/home
 RUN mkdir $HOME && chmod 777 $HOME && chown 65532:65532 $HOME
 RUN microdnf install -y tar-1.30 xz-5.2.4 findutils-4.6.0 && microdnf clean all
-RUN SHELLCHECK_VERSION=v0.8.0 && \
-    curl -L -o /tmp/shellcheck.tar.xz "https://github.com/koalaman/shellcheck/releases/download/$SHELLCHECK_VERSION/shellcheck-$SHELLCHECK_VERSION.linux.x86_64.tar.xz" && \
-    tar -xJvf /tmp/shellcheck.tar.xz -C /tmp && \
-    mv /tmp/shellcheck-$SHELLCHECK_VERSION/shellcheck /usr/local/bin/shellcheck && \
-    chmod 755 /usr/local/bin/shellcheck && \
-    shellcheck -V
+
+COPY shared /tmp/image-build/shared
+WORKDIR /tmp/image-build/shared/hack
+RUN set -x \
+    && ./install.sh --bin shellcheck \
+    && rm -rf /tmp/image-build
+
 USER 65532:65532
 VOLUME /workspace
 WORKDIR /workspace

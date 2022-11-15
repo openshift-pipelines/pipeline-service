@@ -71,12 +71,12 @@ Example:
 }
 
 parse_args() {
-  KUSTOMIZATION=${KUSTOMIZATION:-github.com/openshift-pipelines/pipeline-service/operator/gitops/compute/pac-manager?ref=main}
+  KUSTOMIZATION=${KUSTOMIZATION:-github.com/openshift-pipelines/pipeline-service/operator/gitops/compute/pipeline-service-manager?ref=main}
   GIT_URL=${GIT_URL:-"https://github.com/openshift-pipelines/pipeline-service.git"}
   GIT_REF=${GIT_REF:="main"}
   TEKTON_RESULTS_DATABASE_USER=${TEKTON_RESULTS_DATABASE_USER:-}
   TEKTON_RESULTS_DATABASE_PASSWORD=${TEKTON_RESULTS_DATABASE_PASSWORD:-}
-  
+
   while [[ $# -gt 0 ]]; do
     case "$1" in
     -k | --kubeconfig)
@@ -255,7 +255,7 @@ generate_compute_credentials() {
   kubectl apply -k "$KUSTOMIZATION" | indent 4
 
   printf -- "- Generate kubeconfig:\n"
-  get_context "pac-manager" "pipelines-as-code" "pac-manager" "$kubeconfig"
+  get_context "pipeline-service-manager" "pipelines-as-code" "pipeline-service-manager" "$kubeconfig"
   printf "KUBECONFIG=%s\n" "$kubeconfig" | indent 4
 
   printf "    - Generate kustomization.yaml: "

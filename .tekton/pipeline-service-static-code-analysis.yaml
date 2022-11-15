@@ -10,8 +10,8 @@ metadata:
     pipelinesascode.tekton.dev/max-keep-runs: "5"
 spec:
   timeouts:
-    pipeline: "0h5m0s"
-    tasks: "0h1m0s"
+    pipeline: "0h20m0s"
+    tasks: "0h5m0s"
   params:
     - name: repo_url
       value: "{{ repo_url }}"
@@ -50,7 +50,8 @@ spec:
               script: |
                 #!/usr/bin/env sh
                 shellcheck -V
-                find . -type f -name "*.sh" -print0 | xargs -r -n 1 -0 shellcheck -eSC1091 -eSC2001
+                cd $(workspaces.source.path)
+                find . -type f -name "*.sh" -print0 | xargs -r -0 shellcheck
           workspaces:
             - name: source
       - name: yamllint
@@ -66,7 +67,7 @@ spec:
               imagePullPolicy: Always
               script: |
                 #!/usr/bin/env bash
-                 yamllint -v
+                yamllint -v
                 cd $(workspaces.source.path)
                 yamllint -c ci/config/yamllint.yaml .
           workspaces:

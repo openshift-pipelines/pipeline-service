@@ -1,5 +1,5 @@
-#FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6
-FROM registry.access.redhat.com/ubi8/ubi-minimal@sha256:e58664de16551db29fb0eaaeb3c4a44eaf95ad89a5b2399a1107041c4f2d6d34
+#FROM registry.access.redhat.com/ubi8/ubi-minimal:8.7-923
+FROM registry.access.redhat.com/ubi8/ubi-minimal@sha256:4ed971a5564d2cfedf750793da53ef6f1fdf295263f1cc31d703aa8acf6d02cf
 LABEL build-date= \
       com.redhat.build-host= \
       description="This image provides the required tooling to update the image tags on the SRE gitops repository" \
@@ -19,15 +19,15 @@ WORKDIR /
 RUN mkdir /workspace && chmod 777 /workspace && chown 65532:65532 /workspace
 ENV HOME /tmp/home
 RUN mkdir $HOME && chmod 777 $HOME && chown 65532:65532 $HOME
-RUN YQ_VERSION="v4.24.5" && \
-    curl --fail -sSL -o "/usr/local/bin/yq" "https://github.com/mikefarah/yq/releases/download/$YQ_VERSION/yq_linux_amd64" && \
-    chmod 755 "/usr/local/bin/yq"
-RUN JQ_VERSION="1.6" && \
-    curl -sSL -o "/usr/local/bin/jq" "https://github.com/stedolan/jq/releases/download/jq-$JQ_VERSION/jq-linux64" && \
-    chmod 755 "/usr/local/bin/jq"
-COPY ./bin /usr/local/bin
-RUN chmod 755 /usr/local/bin/gitlab.sh && chmod 755 /usr/local/bin/update.sh
+
+COPY shared /tmp/image-build/shared
+WORKDIR /tmp/image-build/shared/hack
+RUN set -x \
+    && ./install.sh --bin jq,yq \
+    && rm -rf /tmp/image-build
+
+COPY operator/images/update-pipeline-service/content /opt/update-pipeline-service
 USER 65532:65532
 VOLUME /workspace
 WORKDIR /workspace
-ENTRYPOINT ["/usr/local/bin/update.sh"]
+ENTRYPOINT ["/opt/update-pipeline-service/bin/update.sh"]

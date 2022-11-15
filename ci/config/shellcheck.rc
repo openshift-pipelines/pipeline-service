@@ -1,0 +1,10 @@
+# Each code should be disabled on its own line, and have a comment which
+# follow this template:
+# Error message: Error message returned by shellcheck/
+# Reason for disabling: Reason why the error has been disabled.
+
+# Error message: See if you can use ${variable//search/replace} instead.
+# Reason for disabling: Cannot be consistenly enforced, as even the
+# documentation says 'Utilizing some of the more complex capabilities of
+# sed is required occasionally and it is safe to ignore SC2001.'.
+disable=SC2001

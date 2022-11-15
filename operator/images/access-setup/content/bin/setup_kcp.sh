@@ -65,7 +65,7 @@ Example:
 }
 
 parse_args() {
-  KUSTOMIZATION=${KUSTOMIZATION:-github.com/openshift-pipelines/pipeline-service/operator/gitops/kcp/pac-manager?ref=main}
+  KUSTOMIZATION=${KUSTOMIZATION:-github.com/openshift-pipelines/pipeline-service/operator/gitops/kcp/pipeline-service-manager?ref=main}
   while [[ $# -gt 0 ]]; do
     case "$1" in
     -k | --kubeconfig)
@@ -151,7 +151,7 @@ generate_kcp_credentials() {
   kubectl apply -k "$KUSTOMIZATION" | indent 4
 
   printf -- "- Generate kubeconfig:\n"
-  get_context "pac-manager" "pipelines-as-code" "pac-manager" "$kubeconfig"
+  get_context "pipeline-service-manager" "pipelines-as-code" "pipeline-service-manager" "$kubeconfig"
   printf "KUBECONFIG=%s\n" "$kubeconfig" | indent 4
 }
 
@@ -175,9 +175,6 @@ patches:
         path: /spec/template/spec/containers/0/args/2
         value: \"--api-export-workspace=$KCP_ORG:$KCP_WORKSPACE\"
 " >> "$manifests_dir/overlays/kustomization.yaml"
-  echo -n "---
-- 
-" > "$manifests_dir/overlays/workspace.yaml"
   printf "OK\n"
 }
 

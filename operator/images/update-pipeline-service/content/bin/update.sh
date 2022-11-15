@@ -9,7 +9,7 @@ SCRIPT_DIR="$(
   pwd
 )"
 
-# shellcheck source=operator/images/update-pipeline-service/bin/gitlab.sh
+# shellcheck source=operator/images/update-pipeline-service/content/bin/gitlab.sh
 source "$SCRIPT_DIR/gitlab.sh"
 
 usage() {
@@ -92,6 +92,7 @@ get_latest_commit() {
     case $resp_http_code in
     2*)
       LATEST_COMMIT=$(cut -c -7 <"$http_logs")
+      export LATEST_COMMIT
       break
       ;;
     *)
