@@ -36,14 +36,6 @@ Optional arguments:
         Directory in which to create the gitops file structure.
         If the directory already exists, all content will be removed.
         By default a temporary directory will be created in $TMPDIR.
-    --tekton-results-database-user TEKTON_RESULTS_DATABASE_USER
-        Username for tekton results database.
-        Can be read from \$TEKTON_RESULTS_DATABASE_USER
-        Default: %s
-    --tekton-results-database-password TEKTON_RESULTS_DATABASE_PASSWORD
-        Password for tekton results database.
-        Can be read from \$TEKTON_RESULTS_DATABASE_PASSWORD
-        Default: %s
     -d, --debug
         Activate tracing/debug mode.
     -h, --help
@@ -62,14 +54,6 @@ parse_args() {
       WORK_DIR="$1"
       mkdir -p "$WORK_DIR"
       WORK_DIR="$(cd "$1" >/dev/null; pwd)"
-      ;;
-    --tekton-results-database-user)
-      shift
-      TEKTON_RESULTS_DATABASE_USER="$1"
-      ;;
-    --tekton-results-database-password)
-      shift
-      TEKTON_RESULTS_DATABASE_PASSWORD="$1"
       ;;
     -d | --debug)
       set -x
