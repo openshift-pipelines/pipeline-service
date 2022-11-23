@@ -41,7 +41,7 @@ rules:
   - apiGroups:
       - networking.k8s.io
     resources:
-      - ingress
+      - ingresses
       - networkpolicies
     verbs:
       - "*"
