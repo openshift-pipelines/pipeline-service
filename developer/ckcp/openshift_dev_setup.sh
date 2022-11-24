@@ -366,17 +366,6 @@ install_pipeline_service() {
   KUBECONFIG="$KUBECONFIG" "$PROJECT_DIR/operator/images/cluster-setup/content/bin/install.sh" \
     ${DEBUG:+"$DEBUG"} \
     --workspace-dir "$WORK_DIR" | indent 2
-
-  echo "- Install Pipelines as Code:"
-  # Passing dummy values to the parameters of the pac/setup.sh script
-  # because we only want to install the runner side of resources.
-  GITOPS_REPO="https://example.git.com/my/repo" GIT_TOKEN="placeholder_token" \
-    WEBHOOK_SECRET="placeholder_webhook" \
-    "$GITOPS_DIR/pac/setup.sh" | indent 4
-
-  echo -n "- Install tekton-results DB: "
-  KUBECONFIG="$KUBECONFIG" kubectl apply -k "$CKCP_DIR/manifests/tekton-results-db/openshift" 2>&1 |
-  indent 4
 }
 
 register_compute() {
