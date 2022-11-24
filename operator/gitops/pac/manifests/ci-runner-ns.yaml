@@ -1,9 +1,0 @@
-# This file defines the namespace where the ci-runners get spawned
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: ci-runner
-  labels:
-    app.kubernetes.io/name: ci-runner
-    kubernetes.io/metadata.name: ci-runner

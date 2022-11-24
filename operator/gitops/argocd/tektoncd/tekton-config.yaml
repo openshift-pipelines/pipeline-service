@@ -8,6 +8,8 @@ metadata:
     # the CRD will be applied and the resource can be created once the required dependencies are met.
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
+  addon:
+    enablePipelinesAsCode: false
   profile: all
   targetNamespace: openshift-pipelines
   pipeline:
