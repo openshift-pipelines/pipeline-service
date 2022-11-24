@@ -179,13 +179,6 @@ install_kind() {
     kind --version
 }
 
-install_kcp() {
-    curl "${CURL_OPTS[@]}" -o "$TMPDIR/kubectl-kcp.tgz" "https://github.com/kcp-dev/kcp/releases/download/${KCP_VERSION}/kubectl-kcp-plugin_${KCP_VERSION:1}_linux_amd64.tar.gz"
-    tar -C "$TMPDIR" -xzf "$TMPDIR/kubectl-kcp.tgz" bin/kubectl-kcp
-    move_bin
-    kubectl-kcp --version
-}
-
 install_kubectl() {
     curl "${CURL_OPTS[@]}" -o "$TMPBIN/kubectl" "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
     move_bin
