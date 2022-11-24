@@ -1,9 +1,0 @@
----
-namespace: gateway
-resources:
-  - glbc-apibinding.yaml
-  - haproxy-ns.yaml
-  - haproxy-cfg-cm.yaml
-  - haproxy-deployment.yaml
-  - haproxy-ingress.yaml
-  - haproxy-service.yaml

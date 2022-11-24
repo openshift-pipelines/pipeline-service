@@ -113,7 +113,6 @@ switch_cluster() {
 install_clusters() {
   export KUBECONFIG="/tmp/cluster.kubeconfig"
   for i in "${!clusters[@]}"; do
-    printf "[Compute %s:\n" "${clusters[$i]}]"
     switch_cluster | indent 2
 
     printf -- "- Installing shared manifests... \n"

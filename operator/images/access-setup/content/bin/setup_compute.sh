@@ -34,7 +34,7 @@ Generate access credentials for a new compute cluster so it can be managed by pi
 
 Mandatory arguments:
     -k, --kubeconfig KUBECONFIG
-        kubeconfig to the kcp instance to configure.
+        kubeconfig to the compute instance to configure.
         The current context will be used.
         Default value: \$KUBECONFIG
 
@@ -248,14 +248,13 @@ tekton_results_manifest(){
 generate_compute_credentials() {
   current_context=$(kubectl config current-context)
   compute_name="$(yq '.contexts[] | select(.name == "'"$current_context"'") | .context.cluster' < "$KUBECONFIG" | sed 's/:.*//')"
-  printf "[Compute: %s]\n" "$compute_name"
   kubeconfig="$credentials_dir/compute/$compute_name.kubeconfig"
 
   printf -- "- Create ServiceAccount for Pipelines as Code:\n"
   kubectl apply -k "$KUSTOMIZATION" | indent 4
 
   printf -- "- Generate kubeconfig:\n"
-  get_context "pipeline-service-manager" "pipelines-as-code" "pipeline-service-manager" "$kubeconfig"
+  get_context "pipeline-service-manager" "pipeline-service" "pipeline-service-manager" "$kubeconfig"
   printf "KUBECONFIG=%s\n" "$kubeconfig" | indent 4
 
   printf "    - Generate kustomization.yaml: "
