@@ -8,55 +8,20 @@ set -euo pipefail
 
 usage() {
 
-    printf "Usage: WORK_DIR=/workspace CASES=pipelines ./test.sh\n\n"
+    printf "Usage: KUBECONFIG=/cluster.kubeconfig CASES=pipelines ./test.sh\n\n"
 
     # Parameters
-    printf "WORK_DIR: the location of the gitops files\n"
+    printf "KUBECONFIG: the path to the kubernetes KUBECONFIG file\n"
     printf "CASES: comma separated list of test cases. Test cases must be any of 'chains', 'pipelines' or 'triggers'. 'chains' and 'pipelines' are run by default.\n"
 }
 
 prechecks() {
-    WORK_DIR="${WORK_DIR:-}"
-    if [[ -z "${WORK_DIR}" ]]; then
-        printf "WORK_DIR not set\n\n"
+    KUBECONFIG="${KUBECONFIG:-}"
+    if [[ -z "$KUBECONFIG" ]]; then
+        printf "KUBECONFIG is not set\n\n"
         usage
         exit 1
     fi
-}
-
-get_namespace() {
-  # Retrieve the KCP namespace id
-  local ns_locator
-  ns_locator="\"workspace\":\"$(
-    KUBECONFIG="$KUBECONFIG_KCP" kubectl kcp workspace current | cut -d\" -f2
-  )\",\"namespace\":\"default\""
-  # Loop is necessary as it takes KCP time to create the namespace
-  while ! kubectl get ns -o yaml | grep -q "$ns_locator"; do
-    sleep 2
-  done
-
-  local KCP_NS_NAME
-  KCP_NS_NAME="$(kubectl get ns -l internal.workload.kcp.dev/cluster -o json \
-    | jq -r '.items[].metadata | select(.annotations."kcp.dev/namespace-locator"
-    | contains("\"namespace\":\"default\"")) | .name'
-  )"
-
-  if [ -z "$KCP_NS_NAME" ]; then
-    echo "[ERROR] Could not retrieve KCP_NS_NAME"
-    exit 1
-  fi
-  echo "$KCP_NS_NAME"
-}
-
-kcp_kubeconfig() {
-    mapfile -t files < <(find "$WORK_DIR/credentials/kubeconfig/kcp/" -name \*.kubeconfig)
-    echo "${files[0]}"
-}
-
-compute_kubeconfig() {
-    # It needs admin user to list Pod resources in compute cluster
-    mapfile -t files < <(find "$WORK_DIR/credentials/kubeconfig/compute/" -name \*.kubeconfig.base)
-    echo "${files[0]}"
 }
 
 init() {
@@ -64,10 +29,9 @@ init() {
     cd "$(dirname "$0")" >/dev/null
     pwd
   )
-  KUBECONFIG_KCP="$(kcp_kubeconfig)"
-  KUBECONFIG="$(compute_kubeconfig)"
   export KUBECONFIG
   CASES="${CASES:-"chains,pipelines"}"
+  PIPELINES_NS="pipelines-test"
 }
 
 test_chains() {
@@ -139,37 +103,31 @@ test_pipelines() {
   echo "[test_pipelines]"
   echo "Running a sample PipelineRun which sets and uses env variables (from tektoncd/pipeline/examples)"
   # create pipelinerun
-  if ! KUBECONFIG="$KUBECONFIG_KCP" kubectl get namespace default >/dev/null 2>&1; then
-    KUBECONFIG="$KUBECONFIG_KCP" kubectl create namespace default
+  if ! kubectl get namespace $PIPELINES_NS >/dev/null 2>&1; then
+    kubectl create namespace $PIPELINES_NS
   fi
-  if ! KUBECONFIG="$KUBECONFIG_KCP" kubectl get serviceaccount default >/dev/null 2>&1; then
-    KUBECONFIG="$KUBECONFIG_KCP" kubectl create serviceaccount default
+  if ! kubectl get -n $PIPELINES_NS serviceaccount default >/dev/null 2>&1; then
+    kubectl create -n $PIPELINES_NS  serviceaccount default
   fi
   BASE_URL="https://raw.githubusercontent.com/tektoncd/pipeline/v0.32.0"
   manifest="pipelineruns/using_context_variables.yaml"
   # change ubuntu image to ubi to avoid dockerhub registry pull limit
-  PIPELINE_RUN=$(curl --fail --silent "$BASE_URL/examples/v1beta1/$manifest" | sed 's|ubuntu|registry.access.redhat.com/ubi8/ubi-minimal:latest|' | sed '/serviceAccountName/d' | KUBECONFIG="$KUBECONFIG_KCP" kubectl create -f -)
+  PIPELINE_RUN=$(curl --fail --silent "$BASE_URL/examples/v1beta1/$manifest" | sed 's|ubuntu|registry.access.redhat.com/ubi8/ubi-minimal:latest|' | sed '/serviceAccountName/d' | kubectl create -n $PIPELINES_NS -f -)
   echo "$PIPELINE_RUN"
   
-  KUBECONFIG="$KUBECONFIG_KCP" kubectl wait --for=condition=Succeeded  PipelineRun --all --timeout=60s >/dev/null
-  echo "Print pipelines custom resources inside kcp"
-  KUBECONFIG="$KUBECONFIG_KCP" kubectl get pipelineruns
-  echo "Print kube resources in the physical cluster (Note: physical cluster will not know what pipelinesruns are)"
-  
-  KCP_NS_NAME="$(get_namespace)"
-  kubectl get pods -n "$KCP_NS_NAME"
-
-  echo
+  kubectl wait --for=condition=Succeeded  -n $PIPELINES_NS PipelineRun --all --timeout=60s >/dev/null
+  echo "Print pipelines"
+  kubectl get -n $PIPELINES_NS pipelineruns
 }
 
 test_triggers() {
   echo "[test_triggers]"
   echo "Simulating a Github PR through a curl request which creates a TaskRun (from tektoncd/triggers/examples)"
-  KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f https://raw.githubusercontent.com/tektoncd/triggers/v0.18.0/examples/v1beta1/github/github-eventlistener-interceptor.yaml
-  KUBECONFIG=$KUBECONFIG_KCP kubectl apply -f https://raw.githubusercontent.com/tektoncd/triggers/v0.18.0/examples/v1beta1/github/secret.yaml
+  kubectl apply -f https://raw.githubusercontent.com/tektoncd/triggers/v0.18.0/examples/v1beta1/github/github-eventlistener-interceptor.yaml
+  kubectl apply -f https://raw.githubusercontent.com/tektoncd/triggers/v0.18.0/examples/v1beta1/github/secret.yaml
   sleep 20
   # Simulate the behaviour of a webhook. GitHub sends some payload and trigger a TaskRun.
-  kubectl -n "$(get_namespace)" port-forward service/el-github-listener 8089:8080 &
+  kubectl port-forward service/el-github-listener 8089:8080 &
   SVC_FORWARD_PID=$!
   sleep 10
   curl -v \
@@ -180,12 +138,11 @@ test_triggers() {
   http://localhost:8089
   kill "$SVC_FORWARD_PID"
   sleep 20
-  KUBECONFIG="$KUBECONFIG_KCP" kubectl get pipelineruns
+  kubectl get pipelineruns
   echo
 }
 
 test_results() {
-  KCP_NS_NAME="$(get_namespace)"
   if [[ $PIPELINE_RUN == *"created"* ]]; then
     PIPELINE_RUN=$(echo "$PIPELINE_RUN" | grep -o -P '(?<=/).*(?= created)')
   fi
@@ -193,26 +150,26 @@ test_results() {
   echo "Verify tekton-results has stored the results in the database"
 
   # Prepare a custom Service Account that will be used for debugging purposes
-  if ! KUBECONFIG="$KUBECONFIG" kubectl get serviceaccount tekton-results-debug -n tekton-results >/dev/null 2>&1; then
-    KUBECONFIG="$KUBECONFIG" kubectl create serviceaccount tekton-results-debug -n tekton-results
+  if ! kubectl get serviceaccount tekton-results-debug -n tekton-results >/dev/null 2>&1; then
+    kubectl create serviceaccount tekton-results-debug -n tekton-results
   fi
   # Grant required privileges to the Service Account
-  if ! KUBECONFIG="$KUBECONFIG" kubectl get clusterrolebinding tekton-results-debug -n tekton-results >/dev/null 2>&1; then
-    KUBECONFIG="$KUBECONFIG" kubectl create clusterrolebinding tekton-results-debug --clusterrole=tekton-results-readonly --serviceaccount=tekton-results:tekton-results-debug
+  if ! kubectl get clusterrolebinding tekton-results-debug -n tekton-results >/dev/null 2>&1; then
+    kubectl create clusterrolebinding tekton-results-debug --clusterrole=tekton-results-readonly --serviceaccount=tekton-results:tekton-results-debug
   fi
 
   # Proxies the remote Service to localhost.
-  KUBECONFIG="$KUBECONFIG" kubectl port-forward -n tekton-results service/tekton-results-api-service 50051 >/dev/null & 
+  kubectl port-forward -n tekton-results service/tekton-results-api-service 50051 >/dev/null & 
   PORTFORWARD_PID=$!
   echo "$PORTFORWARD_PID"
   # download the API Server certificate locally and configure gRPC.
-  KUBECONFIG="$KUBECONFIG" kubectl get secrets tekton-results-tls -n tekton-results --template='{{index .data "tls.crt"}}' | base64 -d > /tmp/results.crt
+  kubectl get secrets tekton-results-tls -n tekton-results --template='{{index .data "tls.crt"}}' | base64 -d > /tmp/results.crt
   export GRPC_DEFAULT_SSL_ROOTS_FILE_PATH=/tmp/results.crt
   
-  RESULT_UID=$(kubectl get pipelinerun "$PIPELINE_RUN" -n "$KCP_NS_NAME" -o yaml | yq .metadata.uid)
+  RESULT_UID=$(kubectl get pipelinerun "$PIPELINE_RUN" -n $PIPELINES_NS -o yaml | yq .metadata.uid)
   
   # This is required to pass shellcheck due to the single quotes in the GetResult name parameter.
-  QUERY="name: \"$KCP_NS_NAME/results/$RESULT_UID\""
+  QUERY="name: \"default/results/$RESULT_UID\""
   RECORD_CMD=(
     "grpc_cli"
     "call"
@@ -244,7 +201,7 @@ main() {
   for case in "${cases[@]}"
   do
     case $case in
-    chains|pipelines|triggers)
+    chains|pipelines|results|triggers)
       test_"$case"
       ;;
     *)
