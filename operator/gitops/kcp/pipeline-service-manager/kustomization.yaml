@@ -1,6 +1,0 @@
----
-resources:
-  - namespace.yaml
-  - pipeline-service-manager.yaml
-  - role.yaml
-  - rolebinding.yaml

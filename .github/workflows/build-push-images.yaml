@@ -30,10 +30,6 @@ jobs:
               - '.github/workflows/build-push-images.yaml'
               - 'operator/images/cluster-setup/**'
               - 'shared/**'
-            kcp-registrar:
-              - '.github/workflows/build-push-images.yaml'
-              - 'operator/images/kcp-registrar/**'
-              - 'shared/**'
             quay-upload:
               - '.github/workflows/build-push-images.yaml'
               - 'ci/images/quay-upload/**'
@@ -123,44 +119,6 @@ jobs:
         if: steps.filter.outputs.cluster-setup != 'true'
         env:
           image: cluster-setup
-          registry: quay.io/redhat-pipeline-service
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_TOKEN }}
-        run: |
-          ./ci/images/quay-upload/image-upload.sh --debug
-
-      # Build and push kcp-registrar image, tagged with latest and the commit SHA.
-      - name: Build kcp-registrar Image
-        id: build-image-kcp-registrar
-        if: steps.filter.outputs.kcp-registrar == 'true'
-        uses: redhat-actions/buildah-build@v2
-        with:
-          image: kcp-registrar
-          context: .
-          tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
-          containerfiles: |
-            ./operator/images/kcp-registrar/Dockerfile
-          build-args: |
-            KCP_TAG=v0.9.0
-      - name: Push to quay.io
-        id: push-to-quay-kcp-registrar
-        if: steps.filter.outputs.kcp-registrar == 'true'
-        uses: redhat-actions/push-to-registry@v2
-        with:
-          image: ${{ steps.build-image-kcp-registrar.outputs.image }}
-          tags: ${{ steps.build-image-kcp-registrar.outputs.tags }} ${{ github.ref_name }}
-          registry: quay.io/redhat-pipeline-service
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_TOKEN }}
-      - name: Print image url
-        if: steps.filter.outputs.kcp-registrar == 'true'
-        run: |
-          echo "Image pushed to ${{ steps.push-to-quay-kcp-registrar.outputs.registry-paths }}"
-      - name: Tag latest commit ID to quay.io
-        id: tag-commit-quay-kcp-registrar
-        if: steps.filter.outputs.kcp-registrar != 'true'
-        env:
-          image: kcp-registrar
           registry: quay.io/redhat-pipeline-service
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}

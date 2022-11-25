@@ -1,6 +1,0 @@
----
-resources:
-  - tektoncd.yaml
-  - cert-manager-operator.yaml
-  - tekton-chains.yaml
-  - tekton-results.yaml
