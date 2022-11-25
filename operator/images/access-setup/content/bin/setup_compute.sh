@@ -30,7 +30,7 @@ usage() {
   printf "Usage:
     %s [options]
 
-Generate access credentials for a new compute cluster so it can be managed by pipelines as code
+Generate access credentials in order to manage cluster via gitops tools
 
 Mandatory arguments:
     -k, --kubeconfig KUBECONFIG
@@ -40,24 +40,8 @@ Mandatory arguments:
 
 Optional arguments:
     --kustomization KUSTOMIZATION
-        path to the directory holding the kustomization.yaml to apply.
+        path to the directory holding the kustomization.yaml to create Pipeline Service SA.
         Can be read from \$KUSTOMIZATION.
-        Default: %s
-    --git-remote-url GIT_URL
-        Git repo to be referenced to apply various customizations.
-        Can be read from \$GIT_URL.
-        Default: %s
-    --git-remote-ref GIT_REF
-        Git repo's ref to be referenced to apply various customizations.
-        Can be read from \$GIT_REF.
-        Default: %s
-    --tekton-results-database-user TEKTON_RESULTS_DATABASE_USER
-        Username for tekton results database.
-        Can be read from \$TEKTON_RESULTS_DATABASE_USER
-        Default: %s
-    --tekton-results-database-password TEKTON_RESULTS_DATABASE_PASSWORD
-        Password for tekton results database.
-        Can be read from \$TEKTON_RESULTS_DATABASE_PASSWORD
         Default: %s
     -w, --work-dir WORK_DIR
         Directory into which the credentials folder will be created.
@@ -67,15 +51,11 @@ Optional arguments:
         Display this message.
 Example:
     %s -d -k /path/to/compute.kubeconfig
-" "${0##*/}" "$KUSTOMIZATION" "$GIT_URL" "$GIT_REF" "$TEKTON_RESULTS_DATABASE_USER" "$TEKTON_RESULTS_DATABASE_PASSWORD" "${0##*/}" >&2
+" "${0##*/}" "$KUSTOMIZATION"  "${0##*/}" >&2
 }
 
 parse_args() {
   KUSTOMIZATION=${KUSTOMIZATION:-github.com/openshift-pipelines/pipeline-service/operator/gitops/compute/pipeline-service-manager?ref=main}
-  GIT_URL=${GIT_URL:-"https://github.com/openshift-pipelines/pipeline-service.git"}
-  GIT_REF=${GIT_REF:="main"}
-  TEKTON_RESULTS_DATABASE_USER=${TEKTON_RESULTS_DATABASE_USER:-}
-  TEKTON_RESULTS_DATABASE_PASSWORD=${TEKTON_RESULTS_DATABASE_PASSWORD:-}
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -86,22 +66,6 @@ parse_args() {
     --kustomization)
       shift
       KUSTOMIZATION="$1"
-      ;;
-    --git-remote-url)
-      shift
-      GIT_URL="$1"
-      ;;
-    --git-remote-ref)
-      shift
-      GIT_REF="$1"
-      ;;
-    --tekton-results-database-user)
-      shift
-      TEKTON_RESULTS_DATABASE_USER="$1"
-      ;;
-    --tekton-results-database-password)
-      shift
-      TEKTON_RESULTS_DATABASE_PASSWORD="$1"
       ;;
     -w | --work-dir)
       shift
@@ -136,113 +100,12 @@ prechecks() {
     exit 1
   fi
   export KUBECONFIG
-
-  WORK_DIR=${WORK_DIR:-./work}
 }
 
 init() {
   WORK_DIR="${WORK_DIR:-$SCRIPT_DIR/work}"
-
   credentials_dir="$WORK_DIR/credentials/kubeconfig"
-  manifests_dir="$WORK_DIR/credentials/manifests"
   mkdir -p "$credentials_dir"
-  mkdir -p "$manifests_dir"
-
-  detect_container_engine
-}
-
-detect_container_engine() {
-    CONTAINER_ENGINE="${CONTAINER_ENGINE:-}"
-    if [[ -n "${CONTAINER_ENGINE}" ]]; then
-      return
-    fi
-    CONTAINER_ENGINE=podman
-    if ! command -v podman >/dev/null; then
-        CONTAINER_ENGINE=docker
-        return
-    fi
-    if [[ "$OSTYPE" == "darwin"* && -z "$(podman ps)" ]]; then
-        # Podman machine is not started
-        CONTAINER_ENGINE=docker
-        return
-    fi
-    if [[ "$OSTYPE" == "darwin"* && -z "$(podman system connection ls --format=json)" ]]; then
-        CONTAINER_ENGINE=docker
-        return
-    fi
-}
-
-check_prerequisites() {
-  # Check that argocd has been installed
-  if [[ $(kubectl api-resources | grep -c "argoproj.io/") = "0" ]]; then
-    echo "Argo CD must be deployed on the cluster first" >&2
-    exit 1
-  fi
-}
-
-generate_shared_manifests(){
-  printf -- "- Generating shared manifests:\n"
-  printf -- "  - tekton-chains manifest:\n"
-  tekton_chains_manifest 2>&1 | indent 4
-  printf -- "  - tekton-results manifest:\n"
-  tekton_results_manifest 2>&1 | indent 4
-}
-
-tekton_chains_manifest(){
-  chains_kustomize="$manifests_dir/compute/tekton-chains/kustomization.yaml"
-  chains_namespace="$manifests_dir/compute/tekton-chains/namespace.yaml"
-  chains_secret="$manifests_dir/compute/tekton-chains/signing-secrets.yaml"
-  if [ ! -e "$chains_kustomize" ]; then
-    chains_tmp_dir="$(dirname "$chains_kustomize")/tmp"
-    mkdir -p "$chains_tmp_dir"
-    cosign_passwd="$( head -c 12 /dev/urandom | base64 )"
-    echo -n "$cosign_passwd" > "$chains_tmp_dir/cosign.password"
-    cosign_image="quay.io/redhat-appstudio/appstudio-utils:eb94f28fe2d7c182f15e659d0fdb66f87b0b3b6b"
-    $CONTAINER_ENGINE run \
-      --rm \
-      --env COSIGN_PASSWORD="$cosign_passwd" \
-      --volume "$chains_tmp_dir":/workspace:z \
-      --workdir /workspace \
-      --entrypoint /usr/bin/cosign \
-      "$cosign_image" generate-key-pair
-    kubectl create namespace tekton-chains --dry-run=client -o yaml > "$chains_namespace"
-    kubectl create secret generic -n tekton-chains signing-secrets --from-file="$chains_tmp_dir" --dry-run=client -o yaml | \
-            yq '. += {"immutable" :true}' | \
-            yq "sort_keys(.)" > "$chains_secret"
-    yq e -n '.resources += ["namespace.yaml", "signing-secrets.yaml"]' > "$chains_kustomize"
-    rm -rf "$chains_tmp_dir"
-    if [ "$(yq ".data" < "$chains_secret" | grep -cE "^cosign.key:|^cosign.password:|^cosign.pub:")" != "3" ]; then
-      printf "[ERROR] Invalid manifest: '%s'" "$chains_secret" >&2
-      exit 1
-    fi
-  fi
-  printf "OK\n"
-}
-
-tekton_results_manifest(){
-  results_kustomize="$manifests_dir/compute/tekton-results/kustomization.yaml"
-  results_namespace="$manifests_dir/compute/tekton-results/namespace.yaml"
-  results_secret="$manifests_dir/compute/tekton-results/tekton-results-secret.yaml"
-  if [ ! -e "$results_kustomize" ]; then
-    results_dir="$(dirname "$results_kustomize")"
-    mkdir -p "$results_dir"
-    if [[ -z $TEKTON_RESULTS_DATABASE_USER || -z $TEKTON_RESULTS_DATABASE_PASSWORD ]]; then
-      printf "[ERROR] Tekton results database variable is not set, either set the variables using \n \
-      the config.yaml under tekton_results_db \n \
-      Or create '%s' \n" "$results_secret" >&2
-      exit 1
-    fi
-
-    kubectl create namespace tekton-results --dry-run=client -o yaml > "$results_namespace"
-    kubectl create secret generic -n tekton-results tekton-results-database --from-literal=DATABASE_USER="$TEKTON_RESULTS_DATABASE_USER" --from-literal=DATABASE_PASSWORD="$TEKTON_RESULTS_DATABASE_PASSWORD" --dry-run=client -o yaml > "$results_secret"
-
-    yq e -n '.resources += ["namespace.yaml", "tekton-results-secret.yaml"]' > "$results_kustomize"
-    if [ "$(yq ".data" < "$results_secret" | grep -cE "DATABASE_USER|DATABASE_PASSWORD")" != "2" ]; then
-      printf "[ERROR] Invalid manifest: '%s'" "$results_secret" >&2
-      exit 1
-    fi
-  fi
-  printf "OK\n"
 }
 
 generate_compute_credentials() {
@@ -250,29 +113,18 @@ generate_compute_credentials() {
   compute_name="$(yq '.contexts[] | select(.name == "'"$current_context"'") | .context.cluster' < "$KUBECONFIG" | sed 's/:.*//')"
   kubeconfig="$credentials_dir/compute/$compute_name.kubeconfig"
 
-  printf -- "- Create ServiceAccount for Pipelines as Code:\n"
+  printf -- "- Create ServiceAccount for Pipeline Service:\n"
   kubectl apply -k "$KUSTOMIZATION" | indent 4
 
   printf -- "- Generate kubeconfig:\n"
   get_context "pipeline-service-manager" "pipeline-service" "pipeline-service-manager" "$kubeconfig"
   printf "KUBECONFIG=%s\n" "$kubeconfig" | indent 4
-
-  printf "    - Generate kustomization.yaml: "
-  manifests_dir="$WORK_DIR/environment/compute/$compute_name"
-  mkdir -p "$manifests_dir"
-  echo -n "---
-resources:
-  - git::$GIT_URL/operator/gitops/argocd?ref=$GIT_REF
-" >"$manifests_dir/kustomization.yaml"
-  printf "%s\n" "$manifests_dir/kustomization.yaml"
 }
 
 main() {
   parse_args "$@"
   prechecks
   init
-  check_prerequisites
-  generate_shared_manifests
   generate_compute_credentials
 }
 

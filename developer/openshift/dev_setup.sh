@@ -175,27 +175,28 @@ install_openshift_gitops() {
 	fi
 }
 
-install_pipeline_service() {
-
-  TEKTON_RESULTS_DATABASE_USER="$(yq '.tekton_results_db.user' "$CONFIG")"
-  TEKTON_RESULTS_DATABASE_PASSWORD="$(yq '.tekton_results_db.password' "$CONFIG")"
-
-  TEKTON_RESULTS_DATABASE_USER=${TEKTON_RESULTS_DATABASE_USER:="tekton"}
-  TEKTON_RESULTS_DATABASE_PASSWORD=${TEKTON_RESULTS_DATABASE_PASSWORD:=$(openssl rand -base64 20)}
-
-  echo "- Setup compute access:"
+setup_compute_access(){
   "$PROJECT_DIR/operator/images/access-setup/content/bin/setup_compute.sh" \
     ${DEBUG:+"$DEBUG"} \
     --kubeconfig "$KUBECONFIG" \
     --work-dir "$WORK_DIR" \
-    --kustomization "$GIT_URL/operator/gitops/compute/pipeline-service-manager?ref=$GIT_REF" \
-    --git-remote-url "$GIT_URL" \
-    --git-remote-ref "$GIT_REF" \
-    --tekton-results-database-user "$TEKTON_RESULTS_DATABASE_USER" \
-    --tekton-results-database-password "$TEKTON_RESULTS_DATABASE_PASSWORD" 2>&1 |
+    --kustomization "$GIT_URL/operator/gitops/compute/pipeline-service-manager?ref=$GIT_REF"  |
+    indent 2
+}
+
+install_pipeline_service() {
+
+  export TEKTON_RESULTS_DATABASE_USER="$(yq '.tekton_results_db.user' "$CONFIG")"
+  export TEKTON_RESULTS_DATABASE_PASSWORD="$(yq '.tekton_results_db.password' "$CONFIG")"
+
+  echo "- Setup working directory:"
+  "$PROJECT_DIR/operator/images/access-setup/content/bin/setup_work_dir.sh" \
+    ${DEBUG:+"$DEBUG"} \
+    --work-dir "$WORK_DIR" \
+    --kustomization "$GIT_URL/operator/gitops/argocd?ref=$GIT_REF" |
     indent 2
 
-  echo "- Deploy compute:"
+  echo "- Deploy applications:"
   $PROJECT_DIR/operator/images/cluster-setup/content/bin/install.sh \
     ${DEBUG:+"$DEBUG"} \
     --workspace-dir "$WORK_DIR" | indent 2
@@ -206,6 +207,9 @@ main() {
   precheck_binary "kubectl" "yq" "curl" "argocd"
   init
   check_cluster_role
+  echo "[compute-access]"
+  setup_compute_access
+  echo
   for APP in "${APP_LIST[@]}"; do
     echo "[$APP]"
     install_"$(echo "$APP" | tr '-' '_')" | indent 2
