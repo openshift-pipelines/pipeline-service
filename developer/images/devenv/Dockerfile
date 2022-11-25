@@ -18,7 +18,7 @@ RUN set -x \
 
 COPY shared /tmp/image-build/shared
 
-RUN /tmp/image-build/shared/hack/install.sh --debug --bin argocd,bitwarden,grpc_cli,hadolint,jq,kcp,kind,kubectl,oc,shellcheck,tkn,yamllint,yq \
+RUN /tmp/image-build/shared/hack/install.sh --debug --bin argocd,bitwarden,grpc_cli,hadolint,jq,kind,kubectl,oc,shellcheck,tkn,yamllint,yq \
     && rm -rf /tmp/image-build
 
 WORKDIR "/workspace"

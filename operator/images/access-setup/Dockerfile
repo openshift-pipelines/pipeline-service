@@ -10,7 +10,7 @@ RUN microdnf install -y gzip-1.9 tar-1.30 && microdnf clean all
 COPY shared /tmp/image-build/shared
 WORKDIR /tmp/image-build/shared/hack
 RUN set -x \
-    && ./install.sh --bin jq,kcp,kubectl \
+    && ./install.sh --bin jq,kubectl \
     && rm -rf /tmp/image-build
 
 COPY operator/images/access-setup/content /opt/access-setup

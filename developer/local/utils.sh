@@ -32,14 +32,6 @@ cleanup() {
     else
       printf "\nExit on failure...\n"
     fi
-    if [[ "${#KCP_PIDS[@]}" -gt 0 ]]; then
-      printf "\nCleaning up processes %s\n" "${KCP_PIDS[*]}"
-      kill "${KCP_PIDS[@]}"
-    fi
-    if [[ "${#KCP_CIDS[@]}" -gt 0 ]]; then
-      printf "\nStopping containers %s\n" "${KCP_CIDS[*]}"
-      $CONTAINER_ENGINE stop "${KCP_CIDS[@]}"
-    fi
 }
 
 setupTraps() {

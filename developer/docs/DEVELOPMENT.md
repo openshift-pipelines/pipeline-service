@@ -1,9 +1,6 @@
 # Setting up a development environment
 
-For setting up a development environment you will need two things:
-
-- Kubernetes workload clusters
-- A kcp cluster
+For setting up a development environment you will need admin access on a kubernetes cluster.
 
 We have therefore two scripts to get them running on your local machine with minimal resource consumption.
 
@@ -15,7 +12,7 @@ Prerequisites:
 - [git](https://git-scm.com/)
 - [jq](https://stedolan.github.io/jq/)
 
-## Workload clusters with kind
+## kubernetes clusters with kind
 
 [developer/local/kind/setup.sh](../local/kind/setup.sh) will create two kind clusters and output the kubeconfig files that can be used to interact with the Kubernetes clusters. An amended version of the kubeconfig file with the suffix '_ip' can be used for registering the clusters to Argo CD. A routable IP is used instead of localhost. Simply run:
 
@@ -32,57 +29,6 @@ By default, Argo CD is installed on both clusters. It is possible to deactivate 
 2. Podman defaults to running as rootless (see the [kind documentation](https://kind.sigs.k8s.io/docs/user/rootless/) for the prerequisites). To run podman as `root`, prefix `CONTAINER_ENGINE` with `sudo` (e.g. `CONTAINER_ENGINE="sudo docker"`).
 
 ---
-
-## kcp cluster
-
-[developer/local/kcp/start.sh](../local/kcp/start.sh) will set up a kcp cluster.
-
-The script can be customized by setting the following optional environment variables:
-
-| Name | Description |
-|------|-------------|
-| KCP_DIR | a directory with kcp source code, default to a git clone of kcp in the system temp directory |
-| KCP_BRANCH | the branch to use. Mind that the script will do a git checkout, to a default release if the branch is not specified |
-| PARAMS | the parameters to start kcp with |
-
-The script will output:
-	- the location of the kubeconfig file that can be used to interact with the kcp API.
-	- the location of the kubectl kcp plugin which provides KCP specific sub-command for kubectl
-
-```console
-developer/local/kcp/start.sh
-```
-
----
-**_NOTE:_** Podman is used as the default container engine, if available on the machine. If both podman and docker are available it is possible to force the use of docker by setting an environment variable `CONTAINER_ENGINE=docker`.
-
----
-
-[The kcp registration page](../../operator/docs/kcp-registration.md) provides instructions to register workload clusters to kcp.
-
-Here is an example for running the registration image in a development environment:
-
-```bash
-podman run --env KCP_ORG='root:pipeline-service' --env KCP_WORKSPACE='compute' --env WORKSPACE_DIR='/workspace' --privileged --volume /home/myusername/plnsvc:/workspace quay.io/redhat-pipeline-service/kcp-registrar:main
-```
-
-Make sure that iptables/firewalld is not preventing the communication (tcp initiated from the kind clusters) between the containers running on the kind network and the kcp process on the host.
-
-To check iptables rules:
-
-```bash
-sudo iptables -L -n -v
-```
-
-The following command can be used to insert a new rule allowing the podman network `10.88.0.1/24` to access the port `6443` of the kcp API server running on a host with IP `192.168.0.121`:
-
-```bash
-sudo iptables -I INPUT -p tcp --src 10.88.0.1/24 --dport 6443 --dst 192.168.0.121 -j ACCEPT
-```
-
-## Gateway
-
-A gateway can be installed to expose endpoints running on the workload clusters through kcp load balancer. Refer to the [gateway documentation](../../architect/gateway.md) for the instructions.
 
 ## GitOps
 
@@ -102,18 +48,15 @@ argocd login argocd-server-argocd.apps.127.0.0.1.nip.io:8443
 
 Argo CD web UI is accessible at <https://argocd-server-argocd.apps.127.0.0.1.nip.io:8443/applications>.
 
-GitOps is the preferred approach for deploying the Pipeline Service. The installed instances of Argo CD can be leveraged for creating organisations in kcp, universal workspaces used by the infrastructure, installing the Tekton controllers and registering the workload clusters.
+GitOps is the preferred approach for deploying the Pipeline Service.
 
 The cluster where Argo CD runs is automatically registered to Argo CD.
 
 ## Tearing down the environment
 
-As indicated by the kcp start script `ctrl-C` stops all components: kcp, ingress controller and envoy.
-
-The files used by kcp are stored in the directory that was created, whose path was printed out by the script, for example: `/tmp/kcp-pipeline-service.uD5nOWUtU/`
 Files in /tmp are usually cleared by a reboot and depending on the operating system may be cleansed when they have not been accessed for 10 days or another elapse of time.
 
-Workload clusters created with kind can be removed with the usual kind command for the purpose `kind delete clusters us-east1 us-west1`
+Clusters created with kind can be removed with the usual kind command for the purpose `kind delete clusters us-east1 us-west1`
 Files for the kind clusters are stored in a directory located in /tmp as well if `$TMPDIR` has not been set to another location.
 
 ## Troubleshooting
