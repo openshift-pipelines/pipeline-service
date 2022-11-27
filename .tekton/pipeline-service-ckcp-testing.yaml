@@ -128,6 +128,7 @@ spec:
       - name: ckcp-test
         runAfter:
           - "fetch-repository"
+        retries: 1
         workspaces:
           - name: source
             workspace: source
@@ -139,6 +140,20 @@ spec:
             - name: kubeconfig-dir
           kind: ClusterTask
           steps:
+            - name: clean-podman-container
+              image: quay.io/redhat-pipeline-service/kubectl:1.25
+              resources:
+                requests:
+                  memory: 500Mi
+                  cpu: 300m
+              script: |
+                #!/usr/bin/env bash
+                export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
+
+                if kubectl -n default get pod podman; then
+                  echo "Delete the existing podman pod"
+                  kubectl -n default delete pod podman
+                fi
             - name: create-podman-container
               image: quay.io/redhat-pipeline-service/kubectl:1.25
               resources:
@@ -261,7 +276,23 @@ spec:
               image: quay.io/redhat-pipeline-service/kubectl:1.25
               script: |
                 #!/usr/bin/env bash
+                set -x
                 export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
+
+                if [[ "$(params.deploy-cluster-status)" != "Failed" ]]; then
+                  echo "Start pinting out debug information when task deploy-cluster fail ..."
+
+                  echo -e "\n\nPrint out podman pod information..."
+                  kubectl -n default get pod
+                  kubectl -n default describe pod/podman
+
+                  podman_staus="$(kubectl -n default get pod podman -o json | jq -r '.status.phase')"
+                  if [ "$(kubectl -n ckcp get pod -l=app=kcp-in-a-pod | grep -c ckcp)" -eq 1 ]; then
+                    kubectl -n ckcp describe pod -l=app=kcp-in-a-pod
+                    print "\n\nPrint out logs of kcp pod"
+                    kubectl -n ckcp logs -l=app=kcp-in-a-pod
+                  fi
+                fi
 
                 if [[ "$(params.deploy-cluster-status)" != "None" ]]; then
                   echo "Started to destroy cluster [$(params.cluster-name)]..."
