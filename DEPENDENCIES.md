@@ -30,16 +30,17 @@
 
 ### **Tools**
 
-| **Component**      | **Version**                                          | **Purpose**                                                                 | **Comments**                                                                                                                                                     |
-|--------------------|------------------------------------------------------|-----------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Component**      | **Version**                                          | **Purpose**                                                                 | **Comments** |
+|--------------------|------------------------------------------------------|-----------------------------------------------------------------------------|--------------|
 | oc (OpenShift CLI) | see [dependencies.sh](shared/config/dependencies.sh) | To interact with the cluster                                                | Follows OpenShift version |
 | kubectl            | see [dependencies.sh](shared/config/dependencies.sh) | To interact with the cluster                                                | Follows kubernetes version which follows OpenShift version. We only need either oc or kubectl |
 | kcp plugin         | see [dependencies.sh](shared/config/dependencies.sh) | To interact with the kcp workspace                                          | Follows kcp api/server version |
 | tkn                | see [dependencies.sh](shared/config/dependencies.sh) | To interact with tekton                                                     | |
 | tkn pac plugin     | 0.10.0                                               | To set up PaC                                                               | Optional plugin for customers during the cluster setup phase. Follows PaC Version |
 | Argo CD (client)   | see [dependencies.sh](shared/config/dependencies.sh) | To run Argo CD related commands                                             | Follows version of argocd engine used in openshift gitops |
+| skopeo             | 1.y.z                                                | Interact with images                                                        | |
 | yq                 | see [dependencies.sh](shared/config/dependencies.sh) | Required for parsing things; used in various scripts throughout the project | Certain features are not supported with versions < 4.18.1. Use Latest version to avoid any issues |
-| docker             | 20.10.x                                              | For local development only                                                  | Only one of docker or podman is required. No requirement to use a particular version; users can install the latest version available at the time |
+| docker             | 20.10.z                                              | For local development only                                                  | Only one of docker or podman is required. No requirement to use a particular version; users can install the latest version available at the time |
 | podman             | 4.0.0                                                | For local development only                                                  | Only one of docker or podman is required. No requirement to use a particular version; users can install the latest version available at the time |
 | openssl            | 3.0.2                                                | To manipulate certificate information during cluster regsitration           | |
 | bitwarden          | see [dependencies.sh](shared/config/dependencies.sh) | To store credentials outside the gitops repository                          | |
