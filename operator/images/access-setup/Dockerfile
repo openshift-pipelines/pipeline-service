@@ -1,4 +1,4 @@
-#FROM registry.access.redhat.com/ubi8/ubi-minimal:8.7-923
+#@FROM registry.access.redhat.com/ubi8/ubi-minimal
 FROM registry.access.redhat.com/ubi8/ubi-minimal@sha256:4ed971a5564d2cfedf750793da53ef6f1fdf295263f1cc31d703aa8acf6d02cf
 WORKDIR /
 RUN mkdir /workspace && chmod 777 /workspace && chown 65532:65532 /workspace
