@@ -18,10 +18,10 @@ jobs:
         id: fetch-kcp-version
         run: |
           ./developer/images/dependencies-update/update.sh -t update_kcp_version
-          if [ -e "$TMPDIR/update-commit-msg.txt" ]; then
+          if [ -e "$TMPDIR/update_commit_msg.txt" ]; then
             echo "CREATE_PR=true" >> $GITHUB_OUTPUT
-            echo "COMMIT_TITLE=$(head -1 "$TMPDIR/update-commit-msg.txt")" >> $GITHUB_OUTPUT
-            echo "COMMIT_MSG="$(cat "$TMPDIR/update-commit-msg.txt)" >> $GITHUB_OUTPUT
+            echo "COMMIT_TITLE=\"$(head -1 "$TMPDIR/update_commit_msg.txt")\"" >> $GITHUB_OUTPUT
+            echo "COMMIT_MSG=\"$(cat "$TMPDIR/update_commit_msg.txt")\"" >> $GITHUB_OUTPUT
           fi
       - name: Create PR if a new kcp version exists
         if: ${{ steps.fetch-kcp-version.outputs.CREATE_PR == 'true' }}
@@ -44,11 +44,11 @@ jobs:
         id: update_dockerfiles
         run: |
           ./developer/images/dependencies-update/update.sh -t update_dockerfiles_base_images
-          if [ -e "$TMPDIR/update-commit-msg.txt" ]; then
+          if [ -e "$TMPDIR/update_commit_msg.txt" ]; then
             echo "CREATE_PR=true" >> $GITHUB_OUTPUT
             COMMIT_TITLE="Update Dockerfiles base images version"
-            echo "COMMIT_TITLE=$COMMIT_TITLE" >> $GITHUB_OUTPUT
-            echo "COMMIT_MSG="$COMMIT_TITLE\n\n$(cat "$TMPDIR/update-commit-msg.txt)" >> $GITHUB_OUTPUT
+            echo "COMMIT_TITLE=\"$COMMIT_TITLE\"" >> $GITHUB_OUTPUT
+            echo -e "COMMIT_MSG=\"$COMMIT_TITLE\n\n$(cat "$TMPDIR/update_commit_msg.txt")\"" >> $GITHUB_OUTPUT
           fi
       - name: Create PR if a new kcp version exists
         if: ${{ steps.update_dockerfiles.outputs.CREATE_PR == 'true' }}
