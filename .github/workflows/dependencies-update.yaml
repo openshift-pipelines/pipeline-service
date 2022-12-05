@@ -17,6 +17,7 @@ jobs:
       - name: Check if a new kcp version exists and update the files if it does
         id: fetch-kcp-version
         run: |
+          export TMPDIR="${TMPDIR:-/tmp}"
           ./developer/images/dependencies-update/update.sh -t update_kcp_version
           if [ -e "$TMPDIR/update_commit_msg.txt" ]; then
             echo "CREATE_PR=true" >> $GITHUB_OUTPUT
@@ -43,6 +44,7 @@ jobs:
       - name: Update the Dockerfiles
         id: update_dockerfiles
         run: |
+          export TMPDIR="${TMPDIR:-/tmp}"
           ./developer/images/dependencies-update/update.sh -t update_dockerfiles_base_images
           if [ -e "$TMPDIR/update_commit_msg.txt" ]; then
             echo "CREATE_PR=true" >> $GITHUB_OUTPUT
@@ -50,7 +52,7 @@ jobs:
             echo "COMMIT_TITLE=\"$COMMIT_TITLE\"" >> $GITHUB_OUTPUT
             echo -e "COMMIT_MSG=\"$COMMIT_TITLE\n\n$(cat "$TMPDIR/update_commit_msg.txt")\"" >> $GITHUB_OUTPUT
           fi
-      - name: Create PR if a new kcp version exists
+      - name: Create PR if new base images have been set
         if: ${{ steps.update_dockerfiles.outputs.CREATE_PR == 'true' }}
         id: create-pull-request
         uses: peter-evans/create-pull-request@v4
