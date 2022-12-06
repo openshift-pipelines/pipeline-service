@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 
 # Copyright 2022 The Pipeline Service Authors.
@@ -37,6 +36,7 @@ Optional arguments:
     --kustomization KUSTOMIZATION
         path to the directory holding the kustomization.yaml to deploy Pipeline Service via ArgoCD.
         Can be read from \$KUSTOMIZATION.
+        Default: %s
     -w, --work-dir WORK_DIR
         Directory into which the credentials folder will be created.
     -d, --debug

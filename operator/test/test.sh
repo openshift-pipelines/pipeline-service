@@ -178,7 +178,7 @@ test_triggers() {
   -H 'Content-Type: application/json' \
   -d '{"action": "opened", "pull_request":{"head":{"sha": "28911bbb5a3e2ea034daf1f6be0a822d50e31e73"}},"repository":{"clone_url": "https://github.com/tektoncd/triggers.git"}}' \
   http://localhost:8089
-  kill $SVC_FORWARD_PID
+  kill "$SVC_FORWARD_PID"
   sleep 20
   KUBECONFIG="$KUBECONFIG_KCP" kubectl get pipelineruns
   echo
@@ -204,7 +204,7 @@ test_results() {
   # Proxies the remote Service to localhost.
   KUBECONFIG="$KUBECONFIG" kubectl port-forward -n tekton-results service/tekton-results-api-service 50051 >/dev/null & 
   PORTFORWARD_PID=$!
-  echo $PORTFORWARD_PID
+  echo "$PORTFORWARD_PID"
   # download the API Server certificate locally and configure gRPC.
   KUBECONFIG="$KUBECONFIG" kubectl get secrets tekton-results-tls -n tekton-results --template='{{index .data "tls.crt"}}' | base64 -d > /tmp/results.crt
   export GRPC_DEFAULT_SSL_ROOTS_FILE_PATH=/tmp/results.crt

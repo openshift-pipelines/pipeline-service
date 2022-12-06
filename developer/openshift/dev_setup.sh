@@ -95,9 +95,6 @@ init() {
     APP_LIST+=("$app")
   done
 
-  # get cluster type
-  cluster_type=$(yq '.cluster_type // "openshift"' "$CONFIG")
-
   GIT_URL=$(yq '.git_url // "https://github.com/openshift-pipelines/pipeline-service.git"' "$CONFIG")
   GIT_REF=$(yq '.git_ref // "main"' "$CONFIG")
 
@@ -186,8 +183,10 @@ setup_compute_access(){
 
 install_pipeline_service() {
 
-  export TEKTON_RESULTS_DATABASE_USER="$(yq '.tekton_results_db.user' "$CONFIG")"
-  export TEKTON_RESULTS_DATABASE_PASSWORD="$(yq '.tekton_results_db.password' "$CONFIG")"
+  TEKTON_RESULTS_DATABASE_USER="$(yq '.tekton_results_db.user' "$CONFIG")"
+  TEKTON_RESULTS_DATABASE_PASSWORD="$(yq '.tekton_results_db.password' "$CONFIG")"
+  export TEKTON_RESULTS_DATABASE_USER
+  export TEKTON_RESULTS_DATABASE_PASSWORD
 
   echo "- Setup working directory:"
   "$PROJECT_DIR/operator/images/access-setup/content/bin/setup_work_dir.sh" \
@@ -197,7 +196,7 @@ install_pipeline_service() {
     indent 2
 
   echo "- Deploy applications:"
-  $PROJECT_DIR/operator/images/cluster-setup/content/bin/install.sh \
+  "$PROJECT_DIR/operator/images/cluster-setup/content/bin/install.sh" \
     ${DEBUG:+"$DEBUG"} \
     --workspace-dir "$WORK_DIR" | indent 2
 }
