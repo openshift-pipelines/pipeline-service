@@ -184,19 +184,6 @@ jobs:
             echo "No vulnerabilities found"
           fi
 
-      - name: Check kcp registrar results
-        id: check-kcp-registrar-results
-        if: always()
-        run: |
-          res=${{ needs.scans.outputs.kcp-registrar-output }}
-          res=${res:=0}
-          if [[ $res != 0 ]]; then
-            echo "Vulnerabilities found with kcp-registrar image. Please check scans job for more details."
-            exit 1
-          else
-            echo "No vulnerabilities found"
-          fi
-
       - name: Check quay upload results
         id: check-quay-upload-results
         if: always()
