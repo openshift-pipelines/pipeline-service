@@ -25,7 +25,6 @@ jobs:
       access-setup-output: ${{ steps.access-setup-scan.outputs.VULNERABILITIES_EXIST }}
       cluster-setup-output: ${{ steps.cluster-setup-scan.outputs.VULNERABILITIES_EXIST }}
       devenv-output: ${{ steps.devenv-scan.outputs.VULNERABILITIES_EXIST }}
-      kcp-registrar-output: ${{ steps.kcp-registrar-scan.outputs.VULNERABILITIES_EXIST }}
       quay-upload-output: ${{ steps.quay-upload-scan.outputs.VULNERABILITIES_EXIST }}
       shellcheck-output: ${{ steps.shellcheck-scan.outputs.VULNERABILITIES_EXIST }}
       update-pipeline-service-output: ${{ steps.update-pipeline-service-scan.outputs.VULNERABILITIES_EXIST }}
@@ -46,9 +45,6 @@ jobs:
               - 'shared/**'
             devenv:
               - 'developer/images/devenv/**'
-              - 'shared/**'
-            kcp-registrar:
-              - 'operator/images/kcp-registrar/**'
               - 'shared/**'
             quay-upload:
               - 'ci/quay-upload/**'
@@ -93,16 +89,6 @@ jobs:
           echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
         env:
           IMAGE_NAME: devenv
-
-      - name: kcp-registrar scan
-        continue-on-error: true
-        id: kcp-registrar-scan
-        if: steps.filter.outputs.kcp-registrar == 'true'
-        run: |
-          ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
-          echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
-        env:
-          IMAGE_NAME: kcp-registrar
 
       - name: quay-upload scan
         continue-on-error: true

@@ -7,33 +7,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  kcp-upgrade:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout source branch
-        uses: actions/checkout@v3
-        with:
-          ref: main
-      - name: Check if a new kcp version exists and update the files if it does
-        id: fetch-kcp-version
-        run: |
-          export TMPDIR="${TMPDIR:-/tmp}"
-          ./developer/images/dependencies-update/update.sh -t update_kcp_version
-          if [ -e "$TMPDIR/update_commit_msg.txt" ]; then
-            echo "CREATE_PR=true" >> $GITHUB_OUTPUT
-            echo "COMMIT_TITLE=\"$(head -1 "$TMPDIR/update_commit_msg.txt")\"" >> $GITHUB_OUTPUT
-            echo "COMMIT_MSG=\"$(cat "$TMPDIR/update_commit_msg.txt")\"" >> $GITHUB_OUTPUT
-          fi
-      - name: Create PR if a new kcp version exists
-        if: ${{ steps.fetch-kcp-version.outputs.CREATE_PR == 'true' }}
-        id: create-pull-request
-        uses: peter-evans/create-pull-request@v4
-        with:
-          token: ${{ secrets.UPGRADE_TOKEN }}
-          commit-message: "${{ steps.fetch-kcp-version.outputs.COMMIT_MSG }}"
-          branch: upgrade_kcp
-          delete-branch: true
-          title: "${{ steps.fetch-kcp-version.outputs.COMMIT_TITLE }}"
   dockerfiles-update:
     runs-on: ubuntu-latest
     steps:

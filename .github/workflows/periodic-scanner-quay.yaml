@@ -26,7 +26,6 @@ jobs:
               "access-setup"
               "cluster-setup"
               "devenv"
-              "kcp-registrar"
               "quay-upload"
               "shellcheck"
               "update-pipeline-service"
