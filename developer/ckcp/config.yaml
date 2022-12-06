@@ -22,7 +22,7 @@ kcp:
     - pipelineruns.tekton.dev
     - tasks.tekton.dev
     - repositories.pipelinesascode.tekton.dev
-  version: v0.9.0
+  version: 0.9.1
   workspace: root:default:pipeline-service-compute
 
 # Applications to be deployed on the cluster
