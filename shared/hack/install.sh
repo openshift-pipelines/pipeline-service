@@ -62,7 +62,7 @@ init() {
 }
 
 parse_args() {
-    while [[ $# -gt 0 ]]; do
+    while [ $# -gt 0 ]; do
         case $1 in
         --bin)
             shift
@@ -214,7 +214,7 @@ install_tkn() {
 
 install_yamllint() {
     pip3 install --no-cache-dir yamllint=="${YAMLLINT_VERSION}"
-    yamllint -v
+    yamllint --version
 }
 
 install_yq() {

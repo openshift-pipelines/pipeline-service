@@ -26,10 +26,9 @@ jobs:
       cluster-setup-output: ${{ steps.cluster-setup-scan.outputs.VULNERABILITIES_EXIST }}
       devenv-output: ${{ steps.devenv-scan.outputs.VULNERABILITIES_EXIST }}
       quay-upload-output: ${{ steps.quay-upload-scan.outputs.VULNERABILITIES_EXIST }}
-      shellcheck-output: ${{ steps.shellcheck-scan.outputs.VULNERABILITIES_EXIST }}
+      static-checks-output: ${{ steps.static-checks-scan.outputs.VULNERABILITIES_EXIST }}
       update-pipeline-service-output: ${{ steps.update-pipeline-service-scan.outputs.VULNERABILITIES_EXIST }}
       vulnerability-scan-output: ${{ steps.vulnerability-scan.outputs.VULNERABILITIES_EXIST }}
-      yamllint-scan-output: ${{ steps.yamllint-scan.outputs.VULNERABILITIES_EXIST }}
     steps:
       - uses: actions/checkout@v2
 
@@ -48,17 +47,14 @@ jobs:
               - 'shared/**'
             quay-upload:
               - 'ci/quay-upload/**'
-            shellcheck:
-              - 'ci/images/shellcheck/**'
+            static-checks:
+              - 'ci/images/static-checks/**'
               - 'shared/**'
             update-pipeline-service:
               - 'operator/images/update-pipeline-service/**'
               - 'shared/**'
             vulnerability:
               - 'ci/images/vulnerability-scan/**'
-            yamllint:
-              - 'ci/images/yamllint/**'
-              - 'shared/**'
 
       - name: access-setup scan
         continue-on-error: true
@@ -100,15 +96,15 @@ jobs:
         env:
           IMAGE_NAME: quay-upload
 
-      - name: shellcheck scan
+      - name: static-checks scan
         continue-on-error: true
-        id: shellcheck-scan
-        if: steps.filter.outputs.shellcheck == 'true'
+        id: static-checks-scan
+        if: steps.filter.outputs.static-checks == 'true'
         run: |
           ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
           echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
         env:
-          IMAGE_NAME: shellcheck
+          IMAGE_NAME: static-checks
 
       - name: update-pipeline-service scan
         continue-on-error: true
@@ -129,16 +125,6 @@ jobs:
           echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
         env:
           IMAGE_NAME: vulnerability-scan
-
-      - name: yamllint scan
-        continue-on-error: true
-        id: yamllint-scan
-        if: steps.filter.outputs.yamllint == 'true'
-        run: |
-          ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
-          echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
-        env:
-          IMAGE_NAME: yamllint
 
   check-results:
     runs-on: ubuntu-latest
@@ -197,14 +183,14 @@ jobs:
             echo "No vulnerabilities found"
           fi
 
-      - name: Check shellcheck results
-        id: check-shellcheck-results
+      - name: Check static-checks results
+        id: check-static-checks-results
         if: always()
         run: |
-          res=${{ needs.scans.outputs.shellcheck-output }}
+          res=${{ needs.scans.outputs.static-checks-output }}
           res=${res:=0}
           if [[ $res != 0 ]]; then
-            echo "Vulnerabilities found with shellcheck image. Please check scans job for more details."
+            echo "Vulnerabilities found with static-checks image. Please check scans job for more details."
             exit 1
           else
             echo "No vulnerabilities found"
@@ -231,19 +217,6 @@ jobs:
           res=${res:=0}
           if [[ $res != 0 ]]; then
             echo "Vulnerabilities found with vulnerability-scan image. Please check scans job for more details."
-            exit 1
-          else
-            echo "No vulnerabilities found"
-          fi
-
-      - name: Check yamllint results
-        id: check-yamllint-results
-        if: always()
-        run: |
-          res=${{ needs.scans.outputs.yamllint-output }}
-          res=${res:=0}
-          if [[ $res != 0 ]]; then
-            echo "Vulnerabilities found with yamllint image. Please check scans job for more details."
             exit 1
           else
             echo "No vulnerabilities found"

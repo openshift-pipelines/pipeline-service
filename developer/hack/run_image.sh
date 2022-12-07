@@ -51,6 +51,8 @@ Optional arguments:
     -- CONTAINER_RUN_ARGS
         Arguments to pass to the container.
         Must be last.
+    -q, --quiet
+        Only output information from the container run.
     -t, --tty
         Open a terminal.
     -w, --workspace_dir WORKSPACE_DIR.
@@ -62,15 +64,19 @@ Optional arguments:
         Display this message.
 
 Example:
-    ${0##*/}
+    ${0##*/} --quiet ci/images/shellcheck -- --workspace_dir $PROJECT_DIR
 " >&2
 }
 
 parse_args() {
   CONTAINER_OPTIONS=( "--rm" )
   WORKSPACE_DIR="$PROJECT_DIR"
+  STDOUT="/dev/stdout"
   while [[ $# -gt 0 ]]; do
     case $1 in
+    -q | --quiet)
+      STDOUT="/dev/null"
+      ;;
     -t | --tty)
       CONTAINER_OPTIONS+=( "--entrypoint" "/bin/sh" "--interactive" "--tty" )
       ;;
@@ -163,7 +169,7 @@ run_image() {
     CONTAINER_OPTIONS+=( "--volume" "$WORKSPACE_DIR:/workspace:Z" )
   fi
 
-  echo "[Run $image_name]"
+  echo "[Run $image_name]" >"$STDOUT"
   $CONTAINER_ENGINE run "${CONTAINER_OPTIONS[@]}" "$image_name" "${CONTAINER_RUN_CMD[@]}"
 }
 
@@ -173,7 +179,7 @@ main() {
   fi
   parse_args "$@"
   init
-  build_image
+  build_image >"$STDOUT"
   run_image
 }
 

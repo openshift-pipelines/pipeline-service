@@ -1,1 +1,1 @@
-ci/config/shellcheck.rc
+ci/images/static-checks/content/config/shellcheck.rc
