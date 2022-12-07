@@ -69,7 +69,7 @@ spec:
                 #!/usr/bin/env bash
                 yamllint -v
                 cd $(workspaces.source.path)
-                yamllint -c ci/config/yamllint.yaml .
+                yamllint -c ci/images/static-checks/content/config/yamllint.yaml .
           workspaces:
             - name: source
       - name: hadolint
@@ -85,7 +85,7 @@ spec:
               script: |
                 #!/usr/bin/env bash
                 cd $(workspaces.source.path)
-                find . -name Dockerfile -exec hadolint -c ci/config/hadolint.yaml {} +
+                find . -name Dockerfile -exec hadolint -c ci/images/static-checks/content/config/hadolint.yaml {} +
           workspaces:
             - name: source
       - name: checkov
@@ -101,7 +101,7 @@ spec:
               script: |
                 #!/usr/bin/env bash
                 cd $(workspaces.source.path)
-                checkov --directory . --config-file ci/config/checkov.yaml
+                checkov --directory . --config-file ci/images/static-checks/content/config/checkov.yaml
           workspaces:
             - name: source
   workspaces:

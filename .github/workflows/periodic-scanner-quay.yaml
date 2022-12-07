@@ -27,10 +27,9 @@ jobs:
               "cluster-setup"
               "devenv"
               "quay-upload"
-              "shellcheck"
+              "static-checks"
               "update-pipeline-service"
               "vulnerability-scan"
-              "yamllint"
             )
           quay_url: "https://quay.io/api/v1/repository/redhat-pipeline-service"
 
