@@ -140,6 +140,11 @@ install_bitwarden() {
     bw --version
 }
 
+install_checkov() {
+    pip3 install --no-cache-dir checkov=="${CHECKOV_VERSION}"
+    checkov --version
+}
+
 install_grpc_cli() {
     # Build from code
     git clone https://github.com/grpc/grpc.git

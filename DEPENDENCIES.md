@@ -36,7 +36,11 @@
 | tkn                | see [dependencies.sh](shared/config/dependencies.sh) | To interact with tekton                                                     | |
 | tkn pac plugin     | 0.10.0                                               | To set up PaC                                                               | Optional plugin for customers during the cluster setup phase. Follows PaC Version |
 | Argo CD (client)   | see [dependencies.sh](shared/config/dependencies.sh) | To run Argo CD related commands                                             | Follows version of argocd engine used in openshift gitops |
+| checkov            | see [dependencies.sh](shared/config/dependencies.sh) | Validate k8s manifests                                                      | |
+| hadolint           | see [dependencies.sh](shared/config/dependencies.sh) | Validate Dockerfiles                                                        | |
+| shellcheck         | see [dependencies.sh](shared/config/dependencies.sh) | Validate shell scripts | |
 | skopeo             | 1.y.z                                                | Interact with images                                                        | |
+| yamllint           | see [dependencies.sh](shared/config/dependencies.sh) | Validate YAML                                                               | |
 | yq                 | see [dependencies.sh](shared/config/dependencies.sh) | Required for parsing things; used in various scripts throughout the project | Certain features are not supported with versions < 4.18.1. Use Latest version to avoid any issues |
 | docker             | 20.10.z                                              | For local development only                                                  | Only one of docker or podman is required. No requirement to use a particular version; users can install the latest version available at the time |
 | podman             | 4.0.0                                                | For local development only                                                  | Only one of docker or podman is required. No requirement to use a particular version; users can install the latest version available at the time |
