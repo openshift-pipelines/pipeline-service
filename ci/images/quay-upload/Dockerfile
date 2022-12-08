@@ -1,5 +1,5 @@
 #@FROM registry.access.redhat.com/ubi8/ubi-minimal
-FROM registry.access.redhat.com/ubi8/ubi-minimal@sha256:4ed971a5564d2cfedf750793da53ef6f1fdf295263f1cc31d703aa8acf6d02cf
+FROM registry.access.redhat.com/ubi8/ubi-minimal@sha256:6910799b75ad41f00891978575a0d955be2f800c51b955af73926e7ab59a41c3
 LABEL build-date= \
       com.redhat.build-host= \
       description="This image provides binaries and a script to tag images with the latest commit ID on quay.io" \
