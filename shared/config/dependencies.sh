@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 export ARGOCD_VERSION="v2.4.5"
 export BITWARDEN_VERSION="v2022.10.0"
-export CHECKOV_VERSION="2.2.112"
+export CHECKOV_VERSION="2.2.130"
 export GRPC_CLI_VERSION="v1.50.0"
 export HADOLINT_VERSION="v2.10.0"
 export JQ_VERSION="1.6"
