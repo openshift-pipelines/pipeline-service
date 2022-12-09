@@ -134,18 +134,10 @@ spec:
             workspace: source
           - name: kubeconfig-dir
             workspace: shared-workspace
-        params:
-          - name: url   #  TODO: for debugging
-            value: $(params.repo_url)
-          - name: revision
-            value: $(params.revision)
         taskSpec:
           workspaces:
             - name: source
             - name: kubeconfig-dir
-          params:
-            - name: url
-            - name: revision
           kind: ClusterTask
           steps:
             - name: create-podman-container
@@ -156,8 +148,6 @@ spec:
                   cpu: 300m
               script: |
                 #!/usr/bin/env bash
-                ##TODO: for debugging
-                echo "repo_url:revision $(params.url):$(params.revision)"
                 export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
 
                 kubectl -n openshift-config  get secret/pull-secret -o yaml | sed 's/openshift-config/default/' | sed 's/\.dockerconfigjson/auth.json/' | grep -v type: | kubectl apply -f -
@@ -250,10 +240,18 @@ spec:
             workspace: shared-workspace
           - name: source
             workspace: source
+        params:
+          - name: repo_url
+            value: $(params.repo_url)
+          - name: revision
+            value: $(params.revision)
         taskSpec:
           workspaces:
             - name: kubeconfig-dir
             - name: source
+          params:
+            - name: repo_url
+            - name: revision
           kind: ClusterTask
           steps:
             - name: run-plnsvc-setup
@@ -272,7 +270,11 @@ spec:
                 set -o pipefail
 
                 OPENSHIFT_DIR=$(find "$PWD" -type f -name dev_setup.sh -exec dirname {} +)
+                CONFIG="$OPENSHIFT_DIR/../config.yaml"
                 echo "Start executing pipeline-service setup ..."
+                yq -i e '.git_url="$(params.repo_url)"' "$CONFIG"
+                yq -i e '.git_ref="$(params.revision)"' "$CONFIG"
+
                 $OPENSHIFT_DIR/dev_setup.sh -d
                 EOF
 
