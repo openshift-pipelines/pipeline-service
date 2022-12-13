@@ -45,13 +45,11 @@ spec:
         taskSpec:
           steps:
             - name: run-shellcheck
-              image: quay.io/redhat-pipeline-service/shellcheck:main
+              image: quay.io/redhat-pipeline-service/static-checks:main
               imagePullPolicy: Always
               script: |
-                #!/usr/bin/env sh
-                shellcheck -V
-                cd $(workspaces.source.path)
-                find . -type f -name "*.sh" -print0 | xargs -r -0 shellcheck
+                #!/usr/bin/env bash
+                /opt/static-checks/bin/shellcheck.sh --workspace_dir $(workspaces.source.path)
           workspaces:
             - name: source
       - name: yamllint
@@ -63,13 +61,11 @@ spec:
         taskSpec:
           steps:
             - name: run-yamllint
-              image: quay.io/redhat-pipeline-service/yamllint:main
+              image: quay.io/redhat-pipeline-service/static-checks:main
               imagePullPolicy: Always
               script: |
                 #!/usr/bin/env bash
-                yamllint -v
-                cd $(workspaces.source.path)
-                yamllint -c ci/images/static-checks/content/config/yamllint.yaml .
+                /opt/static-checks/bin/yamllint.sh --workspace_dir $(workspaces.source.path)
           workspaces:
             - name: source
       - name: hadolint
@@ -81,11 +77,10 @@ spec:
         taskSpec:
           steps:
             - name: run-hadolint
-              image: ghcr.io/hadolint/hadolint:v2.10.0-debian
+              image: quay.io/redhat-pipeline-service/static-checks:main
               script: |
                 #!/usr/bin/env bash
-                cd $(workspaces.source.path)
-                find . -name Dockerfile -exec hadolint -c ci/images/static-checks/content/config/hadolint.yaml {} +
+                /opt/static-checks/bin/hadolint.sh --workspace_dir $(workspaces.source.path)
           workspaces:
             - name: source
       - name: checkov
@@ -97,11 +92,10 @@ spec:
         taskSpec:
           steps:
             - name: run-checkov
-              image: quay.io/redhat-pipeline-service/checkov:2
+              image: quay.io/redhat-pipeline-service/static-checks:main
               script: |
                 #!/usr/bin/env bash
-                cd $(workspaces.source.path)
-                checkov --directory . --config-file ci/images/static-checks/content/config/checkov.yaml
+                /opt/static-checks/bin/checkov.sh --workspace_dir $(workspaces.source.path)
           workspaces:
             - name: source
   workspaces:
