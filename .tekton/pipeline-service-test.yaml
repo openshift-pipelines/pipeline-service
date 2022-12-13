@@ -37,7 +37,7 @@ spec:
               description: Openshift cluster name
           steps:
             - name: cluster-name
-              image: registry.access.redhat.com/ubi8/openssl:8.6-32
+              image: registry.access.redhat.com/ubi9/openssl:9.1-2
               script: |
                 #!/usr/bin/env bash
                 CLUSTER_NAME="ci-$( openssl rand -hex 5 )"

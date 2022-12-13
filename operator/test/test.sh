@@ -112,9 +112,14 @@ test_pipelines() {
   BASE_URL="https://raw.githubusercontent.com/tektoncd/pipeline/v0.32.0"
   manifest="pipelineruns/using_context_variables.yaml"
   # change ubuntu image to ubi to avoid dockerhub registry pull limit
-  PIPELINE_RUN=$(curl --fail --silent "$BASE_URL/examples/v1beta1/$manifest" | sed 's|ubuntu|registry.access.redhat.com/ubi8/ubi-minimal:latest|' | sed '/serviceAccountName/d' | kubectl create -n $PIPELINES_NS -f -)
+  PIPELINE_RUN=$(
+    curl --fail --silent "$BASE_URL/examples/v1beta1/$manifest" |
+      sed 's|ubuntu|registry.access.redhat.com/ubi9/ubi-minimal:latest|' |
+      sed '/serviceAccountName/d' |
+      kubectl create -n $PIPELINES_NS -f -
+  )
   echo "$PIPELINE_RUN"
-  
+
   kubectl wait --for=condition=Succeeded  -n $PIPELINES_NS PipelineRun --all --timeout=60s >/dev/null
   echo "Print pipelines"
   kubectl get -n $PIPELINES_NS pipelineruns
