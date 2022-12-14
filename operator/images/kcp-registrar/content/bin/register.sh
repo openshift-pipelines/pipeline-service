@@ -297,7 +297,7 @@ check_cr_sync() {
         if [ "$wait_period" -gt 300 ]; then
             echo "Failed to sync following resources to KCP: "
             cr_synced=$(KUBECONFIG="${kcp_kcfg}" kubectl api-resources -o name)
-            for cr in "${CRS_TO_SYNC[@]}"; do
+            for cr in $(echo "${CRS_TO_SYNC[@]}" | tr ',' '\n'); do
                 if [ "$(echo "$cr_synced" | grep -wc "$cr")" -eq 0 ]; then
                     echo "    * $cr"
                 fi

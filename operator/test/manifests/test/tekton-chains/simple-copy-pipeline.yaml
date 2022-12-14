@@ -29,12 +29,17 @@ spec:
             description: Reference of the image buildah will pull.
           - name: IMAGE_DST
             description: Reference of the image buildah will push.
-          - name: BUILDER_IMAGE
+          - name: SKOPEO_IMAGE
             description: The location of the buildah builder image.
-            default: quay.io/buildah/stable:v1.18.0
-        workspaces:
-          - name: sslcertdir
-            optional: true
+            default: quay.io/skopeo/stable:v1.9.0
+          - name: srcTLSverify
+            description: Verify the TLS on the src registry endpoint
+            type: string
+            default: "true"
+          - name: destTLSverify
+            description: Verify the TLS on the dest registry endpoint
+            type: string
+            default: "true"
         results:
           - name: IMAGE_DIGEST
             description: Digest of the image just built.
@@ -42,28 +47,23 @@ spec:
             description: Reference of the image the pipeline will produce.
         steps:
           - name: copy
-            image: $(params.BUILDER_IMAGE)
+            env:
+            - name: HOME
+              value: /tekton/home
+            image: $(params.SKOPEO_IMAGE)
             script: |
-              [[ "$(workspaces.sslcertdir.bound)" == "true" ]] && CERT_DIR_FLAG="--cert-dir $(workspaces.sslcertdir.path)"
-              echo "# Pulling image from: $(params.IMAGE_SRC)"
-              buildah \
-                ${CERT_DIR_FLAG} \
-                pull \
-                $(params.IMAGE_SRC)
-              echo "# Pushing image to: $(params.IMAGE_DST)"
-              buildah \
-                ${CERT_DIR_FLAG} \
-                push \
-                --digestfile /tmp/image-digest \
-                $(params.IMAGE_SRC) docker://$(params.IMAGE_DST)
-              cat "/tmp/image-digest" | tee $(results.IMAGE_DIGEST.path)
-              echo "$(params.IMAGE_DST)" | tee $(results.IMAGE_URL.path)
-            volumeMounts:
-              - name: varlibcontainers
-                mountPath: /var/lib/containers
-        volumes:
-          - name: varlibcontainers
-            emptyDir: {}
+              set -o errexit
+              set -o pipefail
+              if [ "$(params.IMAGE_SRC)" != "" ] && [ "$(params.IMAGE_DST)" != "" ] ; then
+                skopeo copy docker://"$(params.IMAGE_SRC)" docker://"$(params.IMAGE_DST)" --src-tls-verify="$(params.srcTLSverify)" --dest-tls-verify="$(params.destTLSverify)"
+                echo "$(params.IMAGE_DST)" > "$(results.IMAGE_URL.path)"
+                skopeo inspect --format "{{.Digest}}" docker://"$(params.IMAGE_DST)" > "$(results.IMAGE_DIGEST.path)"
+              else
+                return 1
+              fi
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 65532
       params:
         - name: IMAGE_SRC
           value: $(params.image-src)
