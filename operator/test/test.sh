@@ -44,8 +44,7 @@ test_chains() {
   kubectl apply -k "$SCRIPT_DIR/manifests/test/tekton-chains" -n "$ns"
 
   # Wait for pipelines to set up all the components
-  while [ "$(kubectl get applications -n openshift-gitops tekton-chains -o json | jq -r ".status.sync.status")" != "Synced" ] || \
-    [ "$(kubectl get serviceaccounts -n test-tekton-chains | grep -cE "^pipeline ")" != "1" ]; do
+  while [ "$(kubectl get serviceaccounts -n test-tekton-chains | grep -cE "^pipeline ")" != "1" ]; do
     echo -n "."
     sleep 2
   done
