@@ -42,7 +42,7 @@ spec:
               value: tekton-results-database-service.tekton-results.svc.cluster.local
             - name: DB_NAME
               value: tekton_results
-          image: quay.io/redhat-appstudio/tekton-results-api@sha256:56471d0c0582e8c4e4c109ef615b66e94a7fba258ab5960e36adce71d5a6e7f1
+          image: tekton-results-api
           name: api
           volumeMounts:
             - mountPath: /etc/tls
@@ -108,7 +108,7 @@ spec:
             - tekton-results-api-service.tekton-results.svc.cluster.local:50051
             - -auth_mode
             - token
-          image: quay.io/redhat-appstudio/tekton-results-watcher@sha256:2a3ae9fca05bfef0195f6d11a2c1b6111288617bad4f7106400330c7fb016d14
+          image: tekton-results-watcher
           name: watcher
           volumeMounts:
             - mountPath: /etc/tls
