@@ -23,13 +23,14 @@ jobs:
         env:
           AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
           images: (
-              "access-setup"
-              "cluster-setup"
-              "devenv"
-              "quay-upload"
-              "static-checks"
-              "update-pipeline-service"
-              "vulnerability-scan"
+            "access-setup"
+            "cluster-setup"
+            "dependencies-update"
+            "devenv"
+            "quay-upload"
+            "static-checks"
+            "update-pipeline-service"
+            "vulnerability-scan"
             )
           quay_url: "https://quay.io/api/v1/repository/redhat-pipeline-service"
 

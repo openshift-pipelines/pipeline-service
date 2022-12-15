@@ -37,6 +37,9 @@ jobs:
               - '.github/workflows/build-push-images.yaml'
               - 'operator/images/update-pipeline-service/**'
               - 'shared/**'
+            dependencies-update:
+              - '.github/workflows/build-push-images.yaml'
+              - 'developer/images/dependencies/**'
             devenv:
               - '.github/workflows/build-push-images.yaml'
               - 'developer/images/devenv/**'
@@ -187,6 +190,42 @@ jobs:
         if: steps.filter.outputs.update-pipeline-service != 'true'
         env:
           image: update-pipeline-service
+          registry: quay.io/redhat-pipeline-service
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_TOKEN }}
+        run: |
+          ./ci/images/quay-upload/image-upload.sh --debug
+
+      # Build and push dependencies-update image, tagged with the branch name and the commit SHA.
+      - name: Build dependencies-update Image
+        id: build-image-dependencies-update
+        if: steps.filter.outputs.dependencies-update == 'true'
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: dependencies-update
+          context: .
+          tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
+          containerfiles: |
+            ./developer/images/dependencies-update/Dockerfile
+      - name: Push to quay.io
+        id: push-to-quay-dependencies-update
+        if: steps.filter.outputs.dependencies-update == 'true'
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-image-dependencies-update.outputs.image }}
+          tags: ${{ steps.build-image-dependencies-update.outputs.tags }} ${{ github.ref_name }}
+          registry: quay.io/redhat-pipeline-service
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_TOKEN }}
+      - name: Print image url
+        if: steps.filter.outputs.dependencies-update == 'true'
+        run: |
+          echo "Image pushed to ${{ steps.push-to-quay-dependencies-update.outputs.registry-paths }}"
+      - name: Tag latest commit ID to quay.io
+        id: tag-commit-quay-dependencies-update
+        if: steps.filter.outputs.dependencies-update != 'true'
+        env:
+          image: dependencies-update
           registry: quay.io/redhat-pipeline-service
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}

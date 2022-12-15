@@ -18,46 +18,27 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-SCRIPT_DIR="$(
-  cd "$(dirname "$0")" >/dev/null
-  pwd
-)"
-PROJECT_DIR="$(
-  cd "$SCRIPT_DIR/../../.." >/dev/null || exit 1
-  pwd
-)"
-export PROJECT_DIR
-
 usage() {
   echo "
 Usage:
     ${0##*/} [options]
 
-Upgrade Pipeline Service dependencies.
+Update the sha of the base images in the Dockefiles.
 
 Optional arguments:
-    -t, --task TASKNAME
-        Only run the selected task. Can be repeated to run multiple tasks.
-        TASKNAME must be in [$(echo "${DEFAULT_TASKS[@]}" | sed 's: :, :')].
     -d, --debug
         Activate tracing/debug mode.
     -h, --help
         Display this message.
 
 Example:
-    ${0##*/} --task update_dockerfiles_base_images
+    ${0##*/}
 " >&2
 }
 
 parse_args() {
-  mapfile -t DEFAULT_TASKS < <(find "$SCRIPT_DIR/tasks" -type f -name \*.sh -exec basename {} \; | sed 's:...$::')
-  TASKS=()
   while [[ $# -gt 0 ]]; do
     case $1 in
-    -t | --task)
-      shift
-      TASKS+=("$1")
-      ;;
     -d | --debug)
       set -x
       DEBUG="--debug"
@@ -78,14 +59,44 @@ parse_args() {
 }
 
 init() {
-  if [ -z "${TASKS[*]}" ]; then
-    TASKS=( "${DEFAULT_TASKS[@]}" )
+  if [ -z "${PROJECT_DIR:-}" ]; then
+    echo "[ERROR] Unset variable: PROJECT_DIR" >&2
+    exit 1
   fi
-  COMMIT_MSG="${TMPDIR:-/tmp}/update_commit_msg.txt"
-  export COMMIT_MSG
-  if [ -e "$COMMIT_MSG" ]; then
-    rm -f "$COMMIT_MSG"
+}
+
+process_dockerfiles() {
+  mapfile -t DOCKERFILES < <(
+    find "$PROJECT_DIR" -type f -name Dockerfile |
+      sed "s:$PROJECT_DIR/::" |
+      grep --invert-match --extended-regexp "developer/exploration" |
+      sort
+  )
+  while read -r from_base_image; do
+    process_base_image_cmd
+  done < <(grep --no-filename --regexp "^#@FROM " "${DOCKERFILES[@]}" | sort -u)
+}
+
+process_base_image_cmd() {
+  base_image_name=$(echo "$from_base_image" | sed 's:^.* ::')
+  echo -n "- $base_image_name"
+  get_base_image_sha
+  echo -n "@$base_image_sha : "
+  if grep --max-count=1 --quiet "FROM $base_image_name@$base_image_sha" "${DOCKERFILES[@]}"; then
+    echo "No update"
+  else
+    update_base_image_sha
+    echo "Updated to '$base_image_sha'"
   fi
+}
+
+get_base_image_sha() {
+  base_image_sha=$(skopeo inspect "docker://$base_image_name" | yq ".Digest")
+}
+
+update_base_image_sha() {
+  sed -i "s|^FROM  *$base_image_name@.*|FROM $base_image_name@$base_image_sha|" "${DOCKERFILES[@]}"
+  echo "- Update base image SHA for '$base_image_name' to '$base_image_sha'" >> "$COMMIT_MSG"
 }
 
 main() {
@@ -94,11 +105,8 @@ main() {
   fi
   parse_args "$@"
   init
-  for task_name in "${TASKS[@]}"; do
-    echo "[$task_name]"
-    "$SCRIPT_DIR/tasks/$task_name.sh"
-    echo
-  done
+  process_dockerfiles
+  echo "Done"
 }
 
 if [ "${BASH_SOURCE[0]}" == "$0" ]; then

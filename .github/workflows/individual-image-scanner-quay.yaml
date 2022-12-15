@@ -24,6 +24,7 @@ jobs:
     outputs:
       access-setup-output: ${{ steps.access-setup-scan.outputs.VULNERABILITIES_EXIST }}
       cluster-setup-output: ${{ steps.cluster-setup-scan.outputs.VULNERABILITIES_EXIST }}
+      dependencies-update-output: ${{ steps.dependencies-update-scan.outputs.VULNERABILITIES_EXIST }}
       devenv-output: ${{ steps.devenv-scan.outputs.VULNERABILITIES_EXIST }}
       quay-upload-output: ${{ steps.quay-upload-scan.outputs.VULNERABILITIES_EXIST }}
       static-checks-output: ${{ steps.static-checks-scan.outputs.VULNERABILITIES_EXIST }}
@@ -42,6 +43,9 @@ jobs:
             cluster-setup:
               - 'operator/images/cluster-setup/**'
               - 'shared/**'
+            dependencies-update:
+              - '.github/workflows/build-push-images.yaml'
+              - 'developer/images/dependencies/**'
             devenv:
               - 'developer/images/devenv/**'
               - 'shared/**'
@@ -75,6 +79,14 @@ jobs:
           echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
         env:
           IMAGE_NAME: cluster-setup
+
+      - name: dependencies-update scan
+        continue-on-error: true
+        id: dependencies-update-scan
+        if: steps.filter.outputs.dependencies-update == 'true'
+        run: |
+          ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
+          echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
 
       - name: devenv scan
         continue-on-error: true
@@ -152,6 +164,19 @@ jobs:
           res=${res:=0}
           if [[ $res != 0 ]]; then
             echo "Vulnerabilities found with cluster-setup image. Please check scans job for more details."
+            exit 1
+          else
+            echo "No vulnerabilities found"
+          fi
+
+      - name: Check dependencies-update results
+        id: check-dependencies-update-results
+        if: always()
+        run: |
+          res=${{ needs.scans.outputs.dependencies-update-output }}
+          res=${res:=0}
+          if [[ $res != 0 ]]; then
+            echo "Vulnerabilities found with dependencies-update image. Please check scans job for more details."
             exit 1
           else
             echo "No vulnerabilities found"
