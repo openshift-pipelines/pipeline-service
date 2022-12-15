@@ -11,3 +11,10 @@ resources:
   - route.yaml
   - deployment.yaml
   - service.yaml
+images:
+  - name: tekton-results-api
+    newName: quay.io/redhat-appstudio/tekton-results-api
+    newTag: f3b3da2e10f840a2d87cbace6702fb5615ae0ad3
+  - name: tekton-results-watcher
+    newName: quay.io/redhat-appstudio/tekton-results-watcher
+    newTag: f3b3da2e10f840a2d87cbace6702fb5615ae0ad3
