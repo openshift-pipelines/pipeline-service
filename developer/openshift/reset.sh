@@ -20,12 +20,12 @@ SCRIPT_DIR="$(
 )"
 
 PROJECT_DIR="$(
-  cd "$SCRIPT_DIR/../../../.." >/dev/null || exit 1
+  cd "$SCRIPT_DIR/../.." >/dev/null || exit 1
   pwd
 )"
-CKCP_DIR="$PROJECT_DIR/developer/ckcp"
-GITOPS_DIR="$PROJECT_DIR/gitops"
-CONFIG="$CKCP_DIR/config.yaml"
+DEV_DIR="$PROJECT_DIR/developer/openshift"
+GITOPS_DIR="$PROJECT_DIR/operator/gitops/argocd/pipeline-service"
+COMPUTE_DIR="$PROJECT_DIR/operator/gitops/compute/pipeline-service-manager"
 
 RESET_HARD="false"
 
@@ -34,12 +34,11 @@ usage() {
 Usage:
     %s [options]
 
-Scrap ckcp and free resources deployed by openshift_dev_setup.sh script.
+Scrap local Pipeline-Service environment and free resources deployed by dev_setup.sh script.
 
 Mandatory arguments:
     --work-dir WORK_DIR
         Location of the cluster files related to the environment.
-        A single file with extension kubeconfig is expected in the subdirectory: credentials/kubeconfig/kcp
         Kubeconfig files for compute clusters are expected in the subdirectory: credentials/kubeconfig/compute
 
 Optional arguments:
@@ -105,49 +104,37 @@ prechecks() {
       exit 1
     fi
     export KUBECONFIG="$KUBECONFIG"
-    KCP_KUBECONFIG="$(find "$WORK_DIR/credentials/kubeconfig/kcp" -name \*.kubeconfig | head -1)"
-    if [ ! -f "$KCP_KUBECONFIG" ]; then
-      printf "\n[ERROR] Couldn't find the user's kcp workspace kubeconfig." >&2
-      printf "\nExpected kcp KUBECONFIG dir:'WORK_DIR/credentials/kubeconfig/kcp'"
-      exit 1
-    fi
 }
 
-# Removes Argo CD applications deployed by openshift_dev_setup.sh
 uninstall_pipeline_service() {
     printf "\n  Uninstalling Pipeline Service:\n"
-    # Remove pipeline-service Argo CD application and
-    # remove all the child applications deployed by Pipeline-Service
+    # Remove pipeline-service Argo CD application
     if ! argocd app get pipeline-service >/dev/null 2>&1; then
       printf "\n[ERROR] Couldn't find the 'pipeline-service' application in argocd apps.\n" >&2
       exit 1
     fi
-    argocd app delete pipeline-service --cascade --yes
 
-    # Check if the Argo CD applications have been indeed removed
-    # list of all the Argo Apps that a user can deploy using Pipeline Service
-    mapfile -t all_argo_apps < <(kubectl kustomize "$GITOPS_DIR/argocd/argo-apps"  | yq '.metadata.name' | grep -v '^---$')
-    all_argo_apps+=("pipeline-service")
-    # list of all the Argo Apps still deployed
-    mapfile -t argo_apps_deployed < <(argocd app list -o yaml | yq '.[].metadata.name')
-    matched_apps=()
-    for app in "${all_argo_apps[@]}"; do
-        for deployed_app in "${argo_apps_deployed[@]}"; do
-            if [ "$app" == "$deployed_app" ]; then
-              matched_apps+=("$app")
-            fi
-        done
-    done
-    if (( ${#matched_apps[@]} >= 1 )); then
-        printf "\n[ERROR] Couldn't uninstall deployed Argo CD applications:%s ${matched_apps[*]}" >&2
+    argocd app delete pipeline-service --yes
+    # Remove any finalizers that might inhibit deletion
+    if argocd app get pipeline-service >/dev/null 2>&1; then
+        kubectl patch applications.argoproj.io -n openshift-gitops pipeline-service --type json --patch='[ { "op": "remove", "path": "/metadata/finalizers" } ]' >/dev/null 2>&1
+    fi
+
+    # Check if the Argo CD application have been indeed removed
+    if argocd app get pipeline-service >/dev/null 2>&1; then
+        printf "\n[ERROR] Couldn't uninstall Pipeline-Service Argo CD application." >&2
         exit 1
     fi
-    printf "\nAll the Argo CD applications are successfully uninstalled.\n"
+
+    # Remove pipeline-service-manager resources
+    kubectl delete -k "$COMPUTE_DIR" --ignore-not-found=true
+
+    printf "\nPipeline-Service Argo CD application has been successfully removed.\n"
 }
 
 uninstall_operators(){
     printf "\n  Uninstalling Openshift-GitOps Operator:\n"
-    kubectl delete -k "$CKCP_DIR/openshift-operators/openshift-gitops" --ignore-not-found=true
+    kubectl delete -k "$DEV_DIR/operators/openshift-gitops" --ignore-not-found=true
     openshift_gitops_csv=$(kubectl get csv -n openshift-operators | grep -ie "openshift-gitops-operator" | cut -d " " -f 1)
     if [[ -n "$openshift_gitops_csv" ]]; then
       kubectl delete csv -n openshift-operators "$openshift_gitops_csv"
@@ -165,17 +152,31 @@ uninstall_operators(){
       kubectl delete operator "$gitops_operator"
     fi
 
-    printf "\n  Uninstalling PAC Controllers:\n"
-    kubectl delete -k "$GITOPS_DIR/pac/manifests" --ignore-not-found=true
+    printf "\n  Uninstalling PAC:\n"
+    kubectl delete -k "$GITOPS_DIR/pipelines-as-code" --ignore-not-found=true
     pac_ns=$(kubectl get ns | grep -ie "pipelines-as-code" | cut -d " " -f 1)
     if [[ -n "$pac_ns" ]]; then
       kubectl delete ns "$pac_ns"
     fi
 
+    printf "\n  Uninstalling tekton-chains:\n"
+    kubectl delete -k "$GITOPS_DIR/tekton-chains/overlays/openshift" --ignore-not-found=true
+    tkn_chains_ns=$(kubectl get ns | grep -ie "tekton-chains" | cut -d " " -f 1)
+    if [[ -n "$pac_ns" ]]; then
+      kubectl delete ns "$tkn_chains_ns"
+    fi
+
+    printf "\n  Uninstalling tekton-results:\n"
+    kubectl delete -k "$GITOPS_DIR/tekton-results" --ignore-not-found=true
+    tkn_results_ns=$(kubectl get ns | grep -ie "tekton-results" | cut -d " " -f 1)
+    if [[ -n "$pac_ns" ]]; then
+      kubectl delete ns "$tkn_results_ns"
+    fi
+
     printf "\n  Uninstalling Openshift-Pipelines Operator:\n"
     # We start with deleting tektonconfig so that the 'tekton.dev' CRs are removed gracefully by it.
     kubectl delete tektonconfig config
-    kubectl delete -k "$GITOPS_DIR/argocd/tektoncd" --ignore-not-found=true
+    kubectl delete -k "$GITOPS_DIR/openshift-pipelines" --ignore-not-found=true
     openshift_pipelines_csv=$(kubectl get csv -n openshift-operators | grep -ie "openshift-pipelines-operator" | cut -d " " -f 1)
     if [[ -n "$openshift_pipelines_csv" ]]; then
       kubectl delete csv -n openshift-operators "$openshift_pipelines_csv"
@@ -194,7 +195,7 @@ uninstall_operators(){
     fi
 
     printf "\n  Uninstalling cert-manager Operator:\n"
-    kubectl delete -k "$PROJECT_DIR/operator/cert-manager" --ignore-not-found=true
+    kubectl delete -k "$GITOPS_DIR/cert-manager" --ignore-not-found=true
     mapfile -t cert_manager_crds < <(kubectl get crd | grep -iE "cert-manager.io|certmanagers" | cut -d " " -f 1)
     if [[ "${#cert_manager_crds[@]}" -gt 0 ]]; then
       for crd in "${cert_manager_crds[@]}"; do
@@ -214,76 +215,21 @@ uninstall_operators(){
         printf "\n[ERROR] Couldn't uninstall all Operators, please try removing them manually." >&2
         exit 1
     fi
-    printf "\nAll the operators are successfully uninstalled.\n"
-}
 
-# Cleans ckcp deployed resources from the cluster
-uninstall_ckcp(){
-    # Extract label from synctargets inside the kcp user workspace to be able to select namespaces
-    # created in the compute cluster by the same kcp-workspace.
-    ns_label=$(KUBECONFIG=${KCP_KUBECONFIG} kubectl get synctargets.workload.kcp.dev -o yaml | yq '.items[0].metadata.labels' | grep -ie "internal.workload.kcp.dev/key")
-    if [[ -z $ns_label ]]; then
-        printf "\n[ERROR] Couldn't extract labels from kcp synctarget object.\n" >&2
-        printf "\nMake sure you pass the correct directory for fetching user's kcp workspace credentials using --work-dir arg\n"
+    # Checks if the operators are uninstalled successfully
+    mapfile -t controllers < <(kubectl get ns | grep -iE "tekton-results|tekton-chains|pipelines-as-code" | cut -d " " -f 1)
+    if (( ${#controllers[@]} >= 1 )); then
+        printf "\n[ERROR] Couldn't remove all Controllers, please try removing them manually." >&2
         exit 1
     fi
 
-    # remove resources created by ckcp
-    printf "\n  Uninstalling ckcp from the cluster:\n"
-    kubectl delete -k "$CKCP_DIR/openshift/overlays/dev" --ignore-not-found=true
-    # Check if the ckcp pod is removed from the compute cluster
-    mapfile -t ckcp_pod < <(kubectl get pods -n ckcp -l "app=kcp-in-a-pod" | cut -d " " -f 1 | tail -n +2)
-    if (( ${#ckcp_pod[@]} >= 1  )); then
-        printf "\n[ERROR] Couldn't remove the ckcp pods: %s ${ckcp_pod[*]}" >&2
-        exit 1
-    fi
-
-    # remove syncer resources
-    printf "\n  Removing resources created by the syncer:\n"
-    current_context="$(yq e ".current-context" <"$KUBECONFIG")"
-    current_context=$(echo "$current_context" | sed 's,default/,,g; s,:6443/kube:admin,,g')
-    syncer_manifest=/tmp/syncer-"$current_context".yaml
-    if [ ! -f "$syncer_manifest" ]; then
-      printf "\n[ERROR] Couldn't find syncer manifest." >&2
-      printf "\nExpected syncer manifest dir:'%s'" "$syncer_manifest"
-      exit 1
-    fi
-    kubectl delete -f "$syncer_manifest" --ignore-not-found=true
-
-    # remove namesapces created by ckcp
-    printf "\n  Removing namespaces created by ckcp:\n"
-    mapfile -t ckcp_generated_ns < <(kubectl get ns -l "${ns_label//\/key: /\/cluster=}" | cut -d " " -f 1 | tail -n +2)
-    for ns in "${ckcp_generated_ns[@]}"; do
-        printf " - %s\n" "$ns"
-        kubectl delete ns "$ns"
-    done
-
-    # Check if the namespaces created by ckcp are removed
-    for i in {1..7}; do
-      mapfile -t ckcp_generated_ns < <(kubectl get ns -l "${ns_label//\/key: /\/cluster=}" | cut -d " " -f 1 | tail -n +2)
-      if (( i == 7 )); then
-        printf "\n[ERROR] Couldn't remove the namespaces created by ckcp: %s ${ckcp_generated_ns[*]}" >&2
-        exit 1
-      elif (( ${#ckcp_generated_ns[@]} >= 1  )); then
-        sleep 5
-      else
-        break
-      fi
-    done
-    printf "\nckcp reset successful.\n"
+    printf "\nAll the operators and controllers are successfully uninstalled.\n"
 }
 
 main(){
     parse_args "$@"
     prechecks
-    APPS=()
-    read -ra APPS <<< "$(yq eval '.apps | join(" ")' "$CONFIG")"
-    for app in "${APPS[@]}"; do
-        "uninstall_$app"
-    done
-
-    uninstall_ckcp
-
+    uninstall_pipeline_service
     if [ "$(echo "$RESET_HARD" | tr "[:upper:]" "[:lower:]")" == "true" ] || [ "$RESET_HARD" == "1" ]; then
       uninstall_operators
     fi
