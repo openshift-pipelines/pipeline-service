@@ -44,6 +44,14 @@ spec:
                 secretKeyRef:
                   key: DATABASE_PASSWORD
                   name: tekton-results-database
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - "ALL"
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
           ports:
             - containerPort: 5432
               name: postgredb
