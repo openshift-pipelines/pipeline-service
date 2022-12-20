@@ -8,6 +8,14 @@ patchesStrategicMerge:
 
 patchesJson6902:
   - target:
+      kind: Namespace
+      name: tekton-chains
+    patch: |-
+      - op: add
+        path: "/metadata/labels"
+        value:
+          argocd.argoproj.io/managed-by: openshift-gitops
+  - target:
       kind: RoleBinding
       name: grant-argocd
       namespace: tekton-chains
