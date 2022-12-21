@@ -1,0 +1,178 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  annotations:
+    pipelinesascode.tekton.dev/on-event: "[push]"
+    pipelinesascode.tekton.dev/on-target-branch: "[refs/heads/*]"
+    pipelinesascode.tekton.dev/task: "[git-clone]"
+    pipelinesascode.tekton.dev/max-keep-runs: "5"
+  name: pipeline-service-update-dependencies
+spec:
+  timeouts:
+    pipeline: "0h20m0s"
+    tasks: "0h5m0s"
+  params:
+    - name: repo_name
+      value: "{{ repo_name }}"
+    - name: repo_owner
+      value: "{{ repo_owner }}"
+    - name: repo_url
+      value: "{{ repo_url }}"
+    - name: source_branch
+      value: "{{ source_branch }}"
+  pipelineSpec:
+    params:
+      - name: repo_name
+      - name: repo_owner
+      - name: repo_url
+      - name: source_branch
+    workspaces:
+      - name: source
+    tasks:
+      - name: git-clone
+        taskRef:
+          name: git-clone
+          kind: ClusterTask
+        workspaces:
+          - name: output
+            workspace: source
+        params:
+          - name: url
+            value: $(params.repo_url)
+          - name: revision
+            value: "origin/$(params.source_branch)"
+          - name: refspec
+            value: "refs/heads/$(params.source_branch)"
+      - name: update-dockerfiles
+        runAfter:
+          - git-clone
+        workspaces:
+          - name: source
+            workspace: source
+        params:
+          - name: repo_name
+            value: $(params.repo_name)
+          - name: repo_owner
+            value: $(params.repo_owner)
+          - name: source_branch
+            value: $(params.source_branch)
+          - name: target_branch
+            value: "robot/$(params.source_branch)/update_dockerfiles"
+        taskSpec:
+          params:
+            - name: repo_name
+            - name: repo_owner
+            - name: source_branch
+            - name: target_branch
+          results:
+            - name: skip-open-pr
+              description: Flag that controls whether or not to open a PR
+              type: string
+          steps:
+            - name: setup-local-repository
+              image: quay.io/rarnaud/dependencies-update:latest
+              imagePullPolicy: Always
+              script: |
+                #!/usr/bin/env bash
+                set -o errexit
+                set -o pipefail
+                set -x
+                cd "$(workspaces.source.path)"
+
+                # Setup user
+                git config --local user.email "pipeline-service@example.com"
+                git config --local user.name "Pipeline Service CI Robot"
+
+                # Use SSH authentication
+                git config --replace-all remote.origin.url "$(
+                  git config --get remote.origin.url | \
+                    sed -e "s|^https\?://github.com/|git@github.com:|" -e "s|\(\.git\)\?$|.git|"
+                )"
+
+                # Set the branch
+                git checkout -b "$(params.source_branch)"
+            - name: update-dockerfiles
+              image: quay.io/rarnaud/dependencies-update:latest
+              imagePullPolicy: Always
+              script: |
+                #!/usr/bin/env bash
+                set -o errexit
+                set -o pipefail
+                set -x
+                cd "$(workspaces.source.path)"
+
+                /opt/dependencies-update/bin/update.sh \
+                  --commit_to "$(params.target_branch)" \
+                  --task update_dockerfiles_base_images_sha \
+                  --workspace_dir "$(workspaces.source.path)"
+            - name: is-pr-required
+              image: quay.io/rarnaud/dependencies-update:latest
+              imagePullPolicy: Always
+              env:
+                - name: GITHUB_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: github
+                      key: token
+              script: |
+                #!/usr/bin/env bash
+                set -o errexit
+                set -o pipefail
+                set -x
+                echo OK
+                cd "$(workspaces.source.path)"
+
+                if git diff --quiet "$(params.target_branch)"; then
+                  printf "yes" > "$(results.skip-open-pr.path)"
+                  exit
+                fi
+
+                IS_PR_CREATED=$(
+                  curl \
+                    --data-urlencode "head=$(params.repo_owner):$(params.target_branch)" \
+                    --fail \
+                    --get \
+                    --header "Accept: application/vnd.github+json" \
+                    --header "Authorization: Bearer $GITHUB_TOKEN"\
+                    --silent \
+                    "https://api.github.com/repos/$(params.repo_owner)/$(params.repo_name)/pulls" |
+                    jq ". | length"
+                )
+                if [ "$IS_PR_CREATED" = "0" ]; then
+                  printf "yes"
+                else
+                  printf "Pull request already opened"
+                fi > "$(results.skip-open-pr.path)"
+          workspaces:
+            - name: source
+      - name: open-pr
+        when:
+          - input: "$(tasks.update-dockerfiles.results.skip-open-pr)"
+            operator: in
+            values: ["no"]
+        runAfter:
+          - update-dockerfiles
+        taskRef:
+          name: github-open-pr
+          kind: ClusterTask
+        params:
+          - name: REPO_FULL_NAME
+            value: "$(params.repo_owner)/$(params.repo_name)"
+          - name: BASE
+            value: $(params.source_branch)
+          - name: HEAD
+            value: robot/$(params.source_branch)/update_dockerfiles
+          - name: BODY
+            value: Generated by developer/images/dependencies-update/content/bin/update.sh
+          - name: TITLE
+            value: Update Dockerfiles
+  workspaces:
+    - name: source
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
