@@ -110,6 +110,11 @@ spec:
             - token
           image: tekton-results-watcher
           name: watcher
+          env:
+            - name: SYSTEM_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
           volumeMounts:
             - mountPath: /etc/tls
               name: tls
