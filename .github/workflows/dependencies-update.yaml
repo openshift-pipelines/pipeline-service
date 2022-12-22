@@ -18,7 +18,7 @@ jobs:
         id: update_dockerfiles
         run: |
           export TMPDIR="${TMPDIR:-/tmp}"
-          ./developer/images/dependencies-update/update.sh -t update_dockerfiles_base_images_sha
+          ./developer/images/dependencies-update/content/bin/update.sh -t update_dockerfiles_base_images_sha
           if [ -e "$TMPDIR/update_commit_msg.txt" ]; then
             PR_TITLE="Update Dockerfiles base images version"
             COMMIT_MSG=$(echo "$PR_TITLE"; echo; cat "$TMPDIR/update_commit_msg.txt")
