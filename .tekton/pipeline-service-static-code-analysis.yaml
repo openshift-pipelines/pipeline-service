@@ -5,7 +5,7 @@ metadata:
   name: pipeline-service-static-code-analysis
   annotations:
     pipelinesascode.tekton.dev/on-event: "[pull_request, push]"
-    pipelinesascode.tekton.dev/on-target-branch: "main"
+    pipelinesascode.tekton.dev/on-target-branch: "[refs/heads/*]"
     pipelinesascode.tekton.dev/task: "[git-clone]"
     pipelinesascode.tekton.dev/max-keep-runs: "5"
 spec:
@@ -17,6 +17,8 @@ spec:
       value: "{{ repo_url }}"
     - name: revision
       value: "{{ revision }}"
+    - name: source_branch
+      value: "{{ source_branch }}"
   pipelineSpec:
     params:
       - name: repo_url
@@ -45,7 +47,7 @@ spec:
         taskSpec:
           steps:
             - name: run-shellcheck
-              image: quay.io/redhat-pipeline-service/static-checks:main
+              image: quay.io/redhat-pipeline-service/static-checks:$(params.source_branch)
               imagePullPolicy: Always
               script: |
                 #!/usr/bin/env bash
@@ -61,7 +63,7 @@ spec:
         taskSpec:
           steps:
             - name: run-yamllint
-              image: quay.io/redhat-pipeline-service/static-checks:main
+              image: quay.io/redhat-pipeline-service/static-checks:$(params.source_branch)
               imagePullPolicy: Always
               script: |
                 #!/usr/bin/env bash
@@ -77,7 +79,7 @@ spec:
         taskSpec:
           steps:
             - name: run-hadolint
-              image: quay.io/redhat-pipeline-service/static-checks:main
+              image: quay.io/redhat-pipeline-service/static-checks:$(params.source_branch)
               script: |
                 #!/usr/bin/env bash
                 /opt/static-checks/bin/hadolint.sh --workspace_dir $(workspaces.source.path)
@@ -92,7 +94,7 @@ spec:
         taskSpec:
           steps:
             - name: run-checkov
-              image: quay.io/redhat-pipeline-service/static-checks:main
+              image: quay.io/redhat-pipeline-service/static-checks:$(params.source_branch)
               script: |
                 #!/usr/bin/env bash
                 /opt/static-checks/bin/checkov.sh --workspace_dir $(workspaces.source.path)
