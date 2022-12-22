@@ -19,6 +19,7 @@ rules:
       - validatingwebhookconfigurations
     verbs:
       - create
+      - delete
   - apiGroups:
       - monitoring.coreos.com
     resources:
