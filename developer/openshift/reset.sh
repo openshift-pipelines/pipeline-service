@@ -193,23 +193,8 @@ uninstall_operators(){
       kubectl delete operator "$openshift_pipelines_operator"
     fi
 
-    printf "\n  Uninstalling cert-manager Operator:\n"
-    kubectl delete -k "$PROJECT_DIR/operator/cert-manager" --ignore-not-found=true
-    mapfile -t cert_manager_crds < <(kubectl get crd | grep -iE "cert-manager.io|certmanagers" | cut -d " " -f 1)
-    if [[ "${#cert_manager_crds[@]}" -gt 0 ]]; then
-      for crd in "${cert_manager_crds[@]}"; do
-        kubectl delete crd "$crd" &
-        kubectl patch crd "$crd" --type json --patch='[ { "op": "remove", "path": "/metadata/finalizers" } ]' >/dev/null 2>&1
-        wait
-      done
-    fi
-    cert_manager_operator=$(kubectl get operator | grep -ie "cert-manager-operator" | cut -d " " -f 1)
-    if [[ -n "$cert_manager_operator" ]]; then
-      kubectl delete operator "$cert_manager_operator"
-    fi
-
     # Checks if the operators are uninstalled successfully
-    mapfile -t operators < <(kubectl get operators | grep -iE "cert-manager-operator|openshift-gitops-operator|openshift-pipelines-operator" | cut -d " " -f 1)
+    mapfile -t operators < <(kubectl get operators | grep -iE "openshift-gitops-operator|openshift-pipelines-operator" | cut -d " " -f 1)
     if (( ${#operators[@]} >= 1 )); then
         printf "\n[ERROR] Couldn't uninstall all Operators, please try removing them manually." >&2
         exit 1
