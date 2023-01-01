@@ -4,7 +4,6 @@ kind: Kustomization
 
 resources:
   - openshift-pipelines
-  - cert-manager
   - pipelines-as-code
   - tekton-chains
   - tekton-results
