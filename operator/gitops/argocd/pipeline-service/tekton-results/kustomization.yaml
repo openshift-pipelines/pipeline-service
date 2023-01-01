@@ -6,7 +6,6 @@ resources:
   - permissions.yaml
   - service-account.yaml
   - configmap.yaml
-  - cert.yaml
   - route.yaml
   - deployment.yaml
   - service.yaml
