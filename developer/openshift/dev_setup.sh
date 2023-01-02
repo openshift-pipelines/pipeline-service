@@ -199,8 +199,6 @@ install_pipeline_service() {
   "$PROJECT_DIR/operator/images/cluster-setup/content/bin/install.sh" \
     ${DEBUG:+"$DEBUG"} \
     --workspace-dir "$WORK_DIR" | indent 2
-  echo -n "- Install tekton-results DB: "
-  KUBECONFIG="$KUBECONFIG" kubectl apply -k "$DEV_DIR/manifests/tekton-results-db/openshift" 2>&1 | indent 2
 }
 
 main() {
