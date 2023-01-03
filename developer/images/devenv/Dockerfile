@@ -12,14 +12,14 @@ RUN /tmp/image-build/shared/hack/install.sh --debug --bin grpc_cli
 
 
 
-FROM quay.io/podman/stable:v4.3.0
+FROM quay.io/podman/stable:v4.3.1
 RUN set -x \
     && mkdir ~/.kube \
     && mkdir -p /tmp/image-build \
     && dnf install -y \
         # gcc is needed when installing checkov's dependencies
         gcc-c++-12.2.1 \
-        git-2.38.1 \
+        git-2.39.0 \
         openssl-3.0.5 \
         procps-ng-3.3.17 \
         # python3-devl is needed when installing checkov's dependencies
