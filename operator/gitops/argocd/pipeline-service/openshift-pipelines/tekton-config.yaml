@@ -10,23 +10,13 @@ metadata:
 spec:
   addon:
     enablePipelinesAsCode: false
-  profile: all
-  targetNamespace: openshift-pipelines
   pipeline:
+    default-service-account: pipeline
     enable-tekton-oci-bundles: true
   pruner:
+    keep: 10
     resources:
-      # Only prune taskruns until re-reconciling of resources is fixed.
-      - taskrun
-    keep: 100
-    # Note: `keep-since` and `keep` options are not available simultaniously to us.
-    # Upcoming versions of Openshift-Pipelines will have this option.
-    # Follow the PR - https://github.com/tektoncd/operator/pull/1025
-    # Since tekton-config resources are additive, adding `keep-since` here, would conflict with the `keep`
-    # which comes with default configurations when Openshift-Pipelines is deployed.
-    # To Do: Use `keep-since` option
-    # Retain resources younger than 2 days (2880 mins)
-    # keep-since: 2880
-    # Run the TaskRun pruner every day at 0800 Hrs (8:00 AM) system time.
-    # Refer <https://en.wikipedia.org/wiki/Cron> for detailed Cron format.
-    schedule: "0 8 * * *"
+      - pipelinerun
+    schedule: 0/10 * * * *
+  profile: all
+  targetNamespace: openshift-pipelines
