@@ -46,6 +46,7 @@ jobs:
             dependencies-update:
               - '.github/workflows/build-push-images.yaml'
               - 'developer/images/dependencies/**'
+              - 'shared/**'
             devenv:
               - 'developer/images/devenv/**'
               - 'shared/**'
