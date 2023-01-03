@@ -52,5 +52,5 @@ Considerations for testing a new component:-
 
 One can reset its environement and all the resources deployed by dev scripts :-
 ```bash
-developer/reset.sh --work-dir /path/to/my_dir
+developer/openshift/reset.sh --work-dir /path/to/my_dir
 ```

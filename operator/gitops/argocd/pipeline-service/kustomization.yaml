@@ -6,7 +6,7 @@ resources:
   - openshift-pipelines
   - pipelines-as-code
   - tekton-chains
-  - tekton-results
+  - tekton-results/overlays/dev
 
   # Skip applying the Tekton operands while the Tekton operator is being installed.
   # See more information about this option, here:

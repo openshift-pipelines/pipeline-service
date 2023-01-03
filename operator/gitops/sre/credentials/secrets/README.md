@@ -12,7 +12,7 @@ credentials:
     path:
 ```
 
-### Bitwarden Example  
+### Bitwarden Example
 
 Create a new file named `bitwarden.yaml` under secrets directory and provide a list of id & path values for each secret.
 ```

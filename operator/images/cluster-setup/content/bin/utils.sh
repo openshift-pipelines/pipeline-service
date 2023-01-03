@@ -32,6 +32,7 @@ check_deployments() {
     if ! timeout 300s bash -c "while ! kubectl get deployment/$deploy -n $ns >/dev/null 2>/dev/null; do printf '.'; sleep 10; done"; then
       printf "%s not found (timeout)\n" "$deploy"
       kubectl get deployment/"$deploy" -n "$ns"
+      kubectl -n "$ns" get events | grep Warning
       exit 1
     else
       printf "Exists"
@@ -43,9 +44,43 @@ check_deployments() {
     else
       kubectl -n "$ns" describe "deployment/$deploy"
       kubectl -n "$ns" logs "deployment/$deploy"
+      kubectl -n "$ns" get events | grep Warning
       exit 1
     fi
   done
+}
+
+check_pod_by_label() {
+  local ns="$1"
+  local label="$2"
+
+  printf -- "- pod with label %s: " "$label"
+
+  #a loop to check if the pod exists
+  local numOfAttempts=40
+  local i=0
+  while [ -z "$(kubectl get pods -l "$label" -n "$ns" --no-headers -o custom-columns=':metadata.name')" ]; do
+    printf '.'; sleep 5;
+    i=$((i+1))
+    if [[ $i -eq "${numOfAttempts}" ]]; then
+      printf "\n[ERROR] Pod %s not found by timeout \n" "$label" >&2
+      kubectl -n "$ns" get events | grep Warning
+      exit 1
+    fi
+  done
+
+  printf "Exists"
+
+  #a loop to check if the pod is Available and Ready
+  if kubectl wait --for=condition=ready pod -l "$label" -n "$ns" --timeout=100s >/dev/null; then
+    printf ", Ready\n"
+  else
+    printf "\n[ERROR] Pod %s failed to start\n" "$label" >&2
+    kubectl -n "$ns" describe pod -l "$label" 
+    kubectl -n "$ns" logs -l "$label" 
+    kubectl -n "$ns" get events | grep Warning
+    exit 1
+  fi
 }
 
 fetch_bitwarden_secrets() {
