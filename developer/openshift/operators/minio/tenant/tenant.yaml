@@ -1,0 +1,71 @@
+---
+apiVersion: minio.min.io/v2
+kind: Tenant
+metadata:
+  name: storage
+  namespace: tekton-results
+  labels:
+    app: minio
+  annotations:
+    prometheus.io/path: /minio/v2/metrics/cluster
+    prometheus.io/port: "9000"
+    prometheus.io/scrape: "true"
+spec:
+  exposeServices:
+    console: true
+    minio: true
+  features:
+    bucketDNS: false
+    domains: { }
+  # This desired part doesn't work. Issues:
+  # https://github.com/minio/operator/issues/1345
+  # https://github.com/minio/operator/issues/1346
+  # users:
+  #   - name: storage-user
+  # buckets:
+  #   - name: "tekton-results"
+  #     region: "us-east-1"
+  #     objectLock: true
+  certConfig: { }
+  podManagementPolicy: Parallel
+  configuration:
+    name: storage-configuration
+  env: [ ]
+  serviceMetadata:
+    minioServiceLabels: { }
+    minioServiceAnnotations: { }
+    consoleServiceLabels: { }
+    consoleServiceAnnotations: { }
+  priorityClassName: ""
+  externalCaCertSecret: [ ]
+  externalCertSecret: [ ]
+  externalClientCertSecrets: [ ]
+  image: quay.io/minio/minio:RELEASE.2022-09-17T00-09-45Z
+  imagePullSecret: { }
+  mountPath: /export
+  subPath: ""
+  serviceAccountName: ""
+  pools:
+    - servers: 1
+      name: pool-0
+      volumesPerServer: 2
+      nodeSelector: { }
+      tolerations: [ ]
+      affinity:
+        nodeAffinity: { }
+        podAffinity: { }
+        podAntiAffinity: { }
+      resources: { }
+      volumeClaimTemplate:
+        apiVersion: v1
+        kind: persistentvolumeclaims
+        metadata: { }
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+        status: { }
+      securityContext: {}
+  requestAutoCert: true
