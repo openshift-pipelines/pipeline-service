@@ -24,6 +24,7 @@ jobs:
           AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
           images: (
             "access-setup"
+            "ci-runner"
             "cluster-setup"
             "dependencies-update"
             "devenv"

@@ -23,6 +23,7 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     outputs:
       access-setup-output: ${{ steps.access-setup-scan.outputs.VULNERABILITIES_EXIST }}
+      ci-runner-output: ${{ steps.ci-runner-scan.outputs.VULNERABILITIES_EXIST }}
       cluster-setup-output: ${{ steps.cluster-setup-scan.outputs.VULNERABILITIES_EXIST }}
       dependencies-update-output: ${{ steps.dependencies-update-scan.outputs.VULNERABILITIES_EXIST }}
       devenv-output: ${{ steps.devenv-scan.outputs.VULNERABILITIES_EXIST }}
@@ -39,6 +40,9 @@ jobs:
           filters: |
             access-setup:
               - 'operator/images/access-setup/**'
+              - 'shared/**'
+            ci-runner:
+              - 'ci/images/ci-runner/**'
               - 'shared/**'
             cluster-setup:
               - 'operator/images/cluster-setup/**'
@@ -69,6 +73,16 @@ jobs:
           echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
         env:
           IMAGE_NAME: access-setup
+
+      - name: ci-runner scan
+        continue-on-error: true
+        id: ci-runner-scan
+        if: steps.filter.outputs.ci-runner == 'true'
+        run: |
+          ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
+          echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
+        env:
+          IMAGE_NAME: ci-runner
 
       - name: cluster-setup scan
         continue-on-error: true
@@ -143,7 +157,7 @@ jobs:
     needs: scans
     if: always()
     steps:
-      - name: Check access setup results
+      - name: Check access-setup results
         id: check-access-setup-results
         if: always()
         run: |
@@ -156,7 +170,20 @@ jobs:
             echo "No vulnerabilities found"
           fi
 
-      - name: Check cluster setup results
+      - name: Check ci-runner results
+        id: check-ci-runner-results
+        if: always()
+        run: |
+          res=${{ needs.scans.outputs.ci-runner-output }}
+          res=${res:=0}
+          if [[ $res != 0 ]]; then
+            echo "Vulnerabilities found with ci-runner image. Please check scans job for more details."
+            exit 1
+          else
+            echo "No vulnerabilities found"
+          fi
+
+      - name: Check cluster-setup results
         id: check-cluster-setup-results
         if: always()
         run: |
@@ -195,7 +222,7 @@ jobs:
             echo "No vulnerabilities found"
           fi
 
-      - name: Check quay upload results
+      - name: Check quay-upload results
         id: check-quay-upload-results
         if: always()
         run: |
@@ -221,7 +248,7 @@ jobs:
             echo "No vulnerabilities found"
           fi
 
-      - name: Check update pipeline service results
+      - name: Check update-pipeline-service results
         id: check-update-pipeline-service-results
         if: always()
         run: |

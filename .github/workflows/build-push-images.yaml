@@ -26,6 +26,10 @@ jobs:
               - '.github/workflows/build-push-images.yaml'
               - 'operator/images/access-setup/**'
               - 'shared/**'
+            ci-runner:
+              - '.github/workflows/build-push-images.yaml'
+              - 'ci/images/ci-runner/**'
+              - 'shared/**'
             cluster-setup:
               - '.github/workflows/build-push-images.yaml'
               - 'operator/images/cluster-setup/**'
@@ -82,6 +86,42 @@ jobs:
         if: steps.filter.outputs.access-setup != 'true'
         env:
           image: access-setup
+          registry: quay.io/redhat-pipeline-service
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_TOKEN }}
+        run: |
+          ./ci/images/quay-upload/image-upload.sh --debug
+
+      # Build and push ci-runner image, tagged with latest and the commit SHA.
+      - name: Build ci-runner Image
+        id: build-image-ci-runner
+        if: steps.filter.outputs.ci-runner == 'true'
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: ci-runner
+          context: .
+          tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
+          containerfiles: |
+            ./ci/images/ci-runner/Dockerfile
+      - name: Push to quay.io
+        id: push-to-quay-ci-runner
+        if: steps.filter.outputs.ci-runner == 'true'
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-image-ci-runner.outputs.image }}
+          tags: ${{ steps.build-image-ci-runner.outputs.tags }} ${{ github.ref_name }}
+          registry: quay.io/redhat-pipeline-service
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_TOKEN }}
+      - name: Print image url
+        if: steps.filter.outputs.ci-runner == 'true'
+        run: |
+          echo "Image pushed to ${{ steps.push-to-quay-ci-runner.outputs.registry-paths }}"
+      - name: Tag latest commit ID to quay.io
+        id: tag-commit-quay-ci-runner
+        if: steps.filter.outputs.ci-runner != 'true'
+        env:
+          image: ci-runner
           registry: quay.io/redhat-pipeline-service
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}

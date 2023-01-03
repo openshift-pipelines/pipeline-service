@@ -89,7 +89,7 @@ spec:
               script: |
                 envsubst < $(workspaces.hypershift-cluster-template.path)/cluster-template.yaml | tee $(workspaces.output.path)/hypershift_deployment.yaml
             - name: deploy-cluster
-              image: quay.io/redhat-pipeline-service/kubectl:1.25
+              image: quay.io/redhat-pipeline-service/ci-runner:main
               script: |
                 #!/usr/bin/env bash
                 set -o errexit
@@ -141,7 +141,7 @@ spec:
           kind: ClusterTask
           steps:
             - name: create-podman-container
-              image: quay.io/redhat-pipeline-service/kubectl:1.25
+              image: quay.io/redhat-pipeline-service/ci-runner:main
               resources:
                 requests:
                   memory: 500Mi
@@ -201,7 +201,7 @@ spec:
                 kubectl -n default wait pod/podman --for=condition=Ready --timeout=90s
                 kubectl -n default describe pod/podman
             - name: install-softwares-to-podman-container
-              image: quay.io/redhat-pipeline-service/kubectl:1.25
+              image: quay.io/redhat-pipeline-service/ci-runner:main
               resources:
                 requests:
                   memory: 500Mi
@@ -216,7 +216,7 @@ spec:
                 kubectl -n default exec pod/podman -- sh -c "KUBECTL_VERSION=1.24.3 && curl -LO https://storage.googleapis.com/kubernetes-release/release/v\$KUBECTL_VERSION/bin/linux/amd64/kubectl && chmod +x ./kubectl && mv ./kubectl /usr/local/bin && kubectl version --client=true"
                 kubectl -n default exec pod/podman -- sh -c "wget https://github.com/mikefarah/yq/releases/download/v4.25.1/yq_linux_amd64 -O /usr/local/bin/yq && chmod +x /usr/local/bin/yq && yq --version"
             - name: copy-plnsvc-codes
-              image: quay.io/redhat-pipeline-service/kubectl:1.25
+              image: quay.io/redhat-pipeline-service/ci-runner:main
               resources:
                 requests:
                   memory: 500Mi
@@ -255,7 +255,7 @@ spec:
           kind: ClusterTask
           steps:
             - name: run-plnsvc-setup
-              image: quay.io/redhat-pipeline-service/kubectl:1.25
+              image: quay.io/redhat-pipeline-service/ci-runner:main
               resources:
                 requests:
                   memory: 500Mi
@@ -301,7 +301,7 @@ spec:
           kind: ClusterTask
           steps:
             - name: run-tests
-              image: quay.io/redhat-pipeline-service/kubectl:1.25
+              image: quay.io/redhat-pipeline-service/ci-runner:main
               resources:
                 requests:
                   memory: 500Mi
@@ -356,7 +356,7 @@ spec:
           kind: ClusterTask
           steps:
             - name: destroy
-              image: quay.io/redhat-pipeline-service/kubectl:1.25
+              image: quay.io/redhat-pipeline-service/ci-runner:main
               script: |
                 #!/usr/bin/env bash
                 export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
