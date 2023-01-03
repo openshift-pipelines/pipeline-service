@@ -18,57 +18,22 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-usage() {
-  echo "
-Usage:
-    ${0##*/} [options]
+SCRIPT_DIR="$(
+  cd "$(dirname "$0")" >/dev/null
+  pwd
+)"
+# shellcheck source=developer/images/dependencies-update/content/bin/task.sh
+source "$SCRIPT_DIR/../task.sh"
 
-Update the sha of the base images in the Dockefiles.
-
-Optional arguments:
-    -d, --debug
-        Activate tracing/debug mode.
-    -h, --help
-        Display this message.
-
-Example:
-    ${0##*/}
-" >&2
-}
-
-parse_args() {
-  while [[ $# -gt 0 ]]; do
-    case $1 in
-    -d | --debug)
-      set -x
-      DEBUG="--debug"
-      export DEBUG
-      ;;
-    -h | --help)
-      usage
-      exit 0
-      ;;
-    *)
-      echo "Unknown argument: $1"
-      usage
-      exit 1
-      ;;
-    esac
-    shift
-  done
-}
-
-init() {
-  if [ -z "${PROJECT_DIR:-}" ]; then
-    echo "[ERROR] Unset variable: PROJECT_DIR" >&2
-    exit 1
-  fi
+run_task() {
+  echo "Update base images SHA in Dockerfiles" >"$COMMIT_MSG"
+  process_dockerfiles
 }
 
 process_dockerfiles() {
   mapfile -t DOCKERFILES < <(
-    find "$PROJECT_DIR" -type f -name Dockerfile |
-      sed "s:$PROJECT_DIR/::" |
+    find "$WORKSPACE_DIR" -type f -name Dockerfile |
+      sed "s:$WORKSPACE_DIR/::" |
       grep --invert-match --extended-regexp "developer/exploration" |
       sort
   )
@@ -82,31 +47,22 @@ process_base_image_cmd() {
   echo -n "- $base_image_name"
   get_base_image_sha
   echo -n "@$base_image_sha : "
-  if grep --max-count=1 --quiet "FROM $base_image_name@$base_image_sha" "${DOCKERFILES[@]}"; then
+  update_base_image_sha
+  if git diff --quiet; then
     echo "No update"
   else
-    update_base_image_sha
-    echo "Updated to '$base_image_sha'"
+    echo "Updated"
+    echo "- Update base image SHA for '$base_image_name' to '$base_image_sha'" >>"$COMMIT_MSG"
+    git add .
   fi
 }
 
 get_base_image_sha() {
-  base_image_sha=$(skopeo inspect "docker://$base_image_name" | yq ".Digest")
+  base_image_sha=$(skopeo inspect "docker://$base_image_name" --format="{{.Digest}}")
 }
 
 update_base_image_sha() {
-  sed -i "s|^FROM  *$base_image_name@.*|FROM $base_image_name@$base_image_sha|" "${DOCKERFILES[@]}"
-  echo "- Update base image SHA for '$base_image_name' to '$base_image_sha'" >> "$COMMIT_MSG"
-}
-
-main() {
-  if [ -n "${DEBUG:-}" ]; then
-    set -x
-  fi
-  parse_args "$@"
-  init
-  process_dockerfiles
-  echo "Done"
+  sed -i "s|^FROM  *$base_image_name@[^ ]*|FROM $base_image_name@$base_image_sha|" "${DOCKERFILES[@]}"
 }
 
 if [ "${BASH_SOURCE[0]}" == "$0" ]; then

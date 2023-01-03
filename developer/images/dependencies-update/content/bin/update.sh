@@ -36,9 +36,15 @@ Usage:
 Upgrade Pipeline Service dependencies.
 
 Optional arguments:
+    -c, --commit_to BRANCH_NAME
+        Commit changes to BRANCH_NAME
+        Default: robot/\$CURRENT_BRANCH_NAME/update_dependencies.
     -t, --task TASKNAME
         Only run the selected task. Can be repeated to run multiple tasks.
         TASKNAME must be in [$(echo "${DEFAULT_TASKS[@]}" | sed 's: :, :')].
+    -w, --workspace_dir WORKSPACE_DIR.
+        Workspace directory.
+        Default: $PROJECT_DIR
     -d, --debug
         Activate tracing/debug mode.
     -h, --help
@@ -52,11 +58,20 @@ Example:
 parse_args() {
   mapfile -t DEFAULT_TASKS < <(find "$SCRIPT_DIR/tasks" -type f -name \*.sh -exec basename {} \; | sed 's:...$::')
   TASKS=()
+  WORKSPACE_DIR="$PROJECT_DIR"
   while [[ $# -gt 0 ]]; do
     case $1 in
+    -c | --commit_to)
+      shift
+      BRANCH_NAME="$1"
+      ;;
     -t | --task)
       shift
       TASKS+=("$1")
+      ;;
+    -w | --workspace_dir)
+      shift
+      WORKSPACE_DIR="$1"
       ;;
     -d | --debug)
       set -x
@@ -82,9 +97,53 @@ init() {
     TASKS=( "${DEFAULT_TASKS[@]}" )
   fi
   COMMIT_MSG="${TMPDIR:-/tmp}/update_commit_msg.txt"
+  export BRANCH_NAME
   export COMMIT_MSG
-  if [ -e "$COMMIT_MSG" ]; then
-    rm -f "$COMMIT_MSG"
+  export WORKSPACE_DIR
+  cd "$WORKSPACE_DIR"
+}
+
+prepare_branch(){
+  CURRENT_BRANCH_NAME=$(git branch --show-current)
+  BRANCH_NAME=${BRANCH_NAME:-robot/$CURRENT_BRANCH_NAME/update_dependencies}
+
+  # Revert any change to the current branch
+  if ! git diff --quiet; then
+    git stash --include-untracked
+    GIT_STASH="true"
+  fi
+  GIT_STASH=${GIT_STASH:-}
+
+  # Create a new branch from the current branch
+  git branch --copy --force "$BRANCH_NAME"
+  git checkout "$BRANCH_NAME"
+}
+
+push_changes(){
+  local push="false"
+  if ! git diff --quiet "$CURRENT_BRANCH_NAME"; then
+    if ! git fetch origin "refs/heads/$BRANCH_NAME" 2>/dev/null; then
+      push="true"
+    elif ! git diff --quiet "origin/$BRANCH_NAME"; then
+      push="true"
+    fi
+  fi
+
+  echo
+  echo "[Summary]"
+  if [ "$push" = "true" ]; then
+    git log --format="%B" "$CURRENT_BRANCH_NAME..HEAD"
+    git push --force --quiet --set-upstream "origin" "$BRANCH_NAME"
+  else
+    echo "No update to push"
+  fi
+}
+
+revert_to_current_branch(){
+  echo
+  git checkout "$CURRENT_BRANCH_NAME"
+  if [ -n "$GIT_STASH" ]; then
+    git stash pop
   fi
 }
 
@@ -94,11 +153,15 @@ main() {
   fi
   parse_args "$@"
   init
+
+  prepare_branch
   for task_name in "${TASKS[@]}"; do
+    echo
     echo "[$task_name]"
     "$SCRIPT_DIR/tasks/$task_name.sh"
-    echo
   done
+  push_changes
+  revert_to_current_branch
 }
 
 if [ "${BASH_SOURCE[0]}" == "$0" ]; then
