@@ -173,7 +173,7 @@ test_results() {
   RESULT_UID=$(kubectl get pipelinerun "$PIPELINE_RUN" -n $PIPELINES_NS -o yaml | yq .metadata.uid)
   
   # This is required to pass shellcheck due to the single quotes in the GetResult name parameter.
-  QUERY="name: \"default/results/$RESULT_UID\""
+  QUERY="name: \"$PIPELINES_NS/results/$RESULT_UID\""
   RECORD_CMD=(
     "grpc_cli"
     "call"
@@ -182,7 +182,7 @@ test_results() {
     "--call_creds=access_token=$(kubectl get secrets -n tekton-results -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='tekton-results-debug')].data.token}"| cut -d ' ' -f 2 | base64 --decode)"
     "localhost:50051"
     "tekton.results.v1alpha2.Results.GetResult"
-    "'$QUERY'")
+    "$QUERY")
   RECORD_RESULT=$("${RECORD_CMD[@]}")
 
   # kill backgrounded port forwarding process as it is no longer required. 

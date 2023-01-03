@@ -343,7 +343,7 @@ spec:
 
                 echo "Start executing pipeline cases ..."
                 TEST_DIR=$(find "$PWD" -type f -name test.sh -exec dirname {} +)
-                CASES=pipelines $TEST_DIR/test.sh
+                CASES=pipelines,results,chains $TEST_DIR/test.sh
                 EOF
 
                 chmod +x plnsvc_test.sh
