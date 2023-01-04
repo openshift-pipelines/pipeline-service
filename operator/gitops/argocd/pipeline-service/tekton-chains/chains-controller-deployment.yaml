@@ -1,3 +1,23 @@
+---
+########################
+# Mount the secrets volume where chains CA cert is located
+########################
+# Apply operator security standards (drop capabilities, resourece limits, run as non root, etc)
+########################
+#
+# The default install of chains includes the following
+# which (iiuc) works in kubernetes but not openshift.
+#
+#    # User 65532 is the distroless nonroot user ID
+#    runAsUser: 65532
+#    runAsGroup: 65532
+#
+# The suggested workaround is to run this command:
+#   oc adm policy add-scc-to-user anyuid -z tekton-chains-controller
+#
+# but instead of that workaround we'll remove the runAsUser and
+# runAsGroup config.
+########################
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -7,11 +27,30 @@ spec:
   template:
     spec:
       containers:
-      - name: tekton-chains-controller
-        volumeMounts:
-        - mountPath: /etc/ssl/certs
-          name: chains-ca-cert
+        - name: tekton-chains-controller
+          volumeMounts:
+            # Mount the secrets volume
+            - mountPath: /etc/ssl/certs
+              name: chains-ca-cert
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - "ALL"
+            runAsNonRoot: true
+            runAsGroup:
+            runAsUser:
+            seccompProfile:
+              type: RuntimeDefault
+            readOnlyRootFilesystem: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+            limits:
+              cpu: 500m
+              memory: 500Mi
       volumes:
-      - name: chains-ca-cert
-        secret:
-          secretName: chains-ca-cert
+        - name: chains-ca-cert
+          secret:
+            secretName: chains-ca-cert
