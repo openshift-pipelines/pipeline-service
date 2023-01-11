@@ -1,11 +1,5 @@
 # Pipeline Service
 
-Pipeline Service provides a SaaS for pipelines. It leverages:
-
-- Kubernetes / OpenShift for the compute
-- Tekton Pipelines, Results and friends for the core of the service
-- OpenShift GitOps / Argo CD, Pipelines as Code for managing the infrastructure
-
 
 ## TODO
 
