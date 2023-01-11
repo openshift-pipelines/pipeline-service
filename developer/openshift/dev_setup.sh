@@ -78,7 +78,7 @@ parse_args() {
 precheck_binary() {
   for binary in "$@"; do
     command -v "$binary" >/dev/null 2>&1 || {
-      echo >&2 "openshift_dev_setup.sh requires '$binary' command-line utility to be installed on your local machine. Aborting..."
+      echo "[ERROR] This script requires '$binary' to be installed on your local machine." >&2
       exit 1
     }
   done
@@ -119,7 +119,7 @@ init() {
 check_cluster_role() {
   if [ "$(kubectl auth can-i '*' '*' --all-namespaces)" != "yes" ]; then
     echo
-    echo "[ERROR] User '$(oc whoami)' does not have the required 'cluster-admin' role." 1>&2
+    echo "[ERROR] User '$(oc whoami)' does not have the required 'cluster-admin' role." >&2
     echo "Log into the cluster with a user with the required privileges (e.g. kubeadmin) and retry."
     exit 1
   fi
@@ -203,7 +203,7 @@ install_pipeline_service() {
 
 main() {
   parse_args "$@"
-  precheck_binary "kubectl" "yq" "curl" "argocd"
+  precheck_binary "curl" "argocd" "kubectl" "yq"
   init
   check_cluster_role
   echo "[compute-access]"

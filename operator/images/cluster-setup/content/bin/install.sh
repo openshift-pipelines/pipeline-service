@@ -108,6 +108,12 @@ switch_cluster() {
   if ! kubectl config use-context "${contexts[$i]}" >/dev/null; then
     exit_error "\nCannot use '${contexts[$i]}' context in '$KUBECONFIG'."
   fi
+
+  # Check that argocd has been installed
+  if [[ $(kubectl api-resources | grep -c "argoproj.io/") = "0" ]]; then
+    echo "[ERROR] Argo CD must be deployed on the cluster for kubeconfig/context: '${kubeconfigs[$i]}'/'${contexts[$i]}'" >&2
+    exit 1
+  fi
 }
 
 install_clusters() {
