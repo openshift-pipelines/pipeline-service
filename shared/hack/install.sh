@@ -145,6 +145,11 @@ install_checkov() {
     checkov --version
 }
 
+install_go(){
+    curl "${CURL_OPTS[@]}" -o "$TMPDIR/go.tgz" https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz
+    tar -C /usr/local -xzf "$TMPDIR/go.tgz"
+}
+
 install_grpc_cli() {
     # Build from code
     git clone https://github.com/grpc/grpc.git

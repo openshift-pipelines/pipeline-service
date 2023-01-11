@@ -107,17 +107,13 @@ detect_container_engine() {
     CONTAINER_ENGINE=podman
     if ! command -v podman >/dev/null; then
         CONTAINER_ENGINE=docker
-        return
-    fi
-    if [[ "$OSTYPE" == "darwin"* && -z "$(podman ps)" ]]; then
+    elif [[ "$OSTYPE" == "darwin"* && -z "$(podman ps)" ]]; then
         # Podman machine is not started
         CONTAINER_ENGINE=docker
-        return
-    fi
-    if [[ "$OSTYPE" == "darwin"* && -z "$(podman system connection ls --format=json)" ]]; then
+    elif [[ "$OSTYPE" == "darwin"* && -z "$(podman system connection ls --format=json)" ]]; then
         CONTAINER_ENGINE=docker
-        return
     fi
+    command -v "${CONTAINER_ENGINE}" >/dev/null
 }
 
 generate_shared_manifests(){
