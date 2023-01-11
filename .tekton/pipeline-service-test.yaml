@@ -40,6 +40,10 @@ spec:
               image: registry.access.redhat.com/ubi9/openssl:9.1-2
               script: |
                 #!/usr/bin/env bash
+                set -o errexit
+                set -o nounset
+                set -o pipefail
+                set -x
                 CLUSTER_NAME="ci-$( openssl rand -hex 5 )"
                 echo -n "$CLUSTER_NAME" | tee $(results.cluster-name.path)
       - name: deploy-cluster
@@ -90,9 +94,14 @@ spec:
                 envsubst < $(workspaces.hypershift-cluster-template.path)/cluster-template.yaml | tee $(workspaces.output.path)/hypershift_deployment.yaml
             - name: deploy-cluster
               image: quay.io/redhat-pipeline-service/ci-runner:main
+              imagePullPolicy:  Always
               script: |
                 #!/usr/bin/env bash
                 set -o errexit
+                set -o nounset
+                set -o pipefail
+                set -x
+
                 export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
                 kubectl -n $(params.namespace) apply -f $(workspaces.output.path)/hypershift_deployment.yaml
                 echo "Wait until hypershift cluster is ready..."
@@ -100,7 +109,7 @@ spec:
                 while [[ "$(kubectl -n $(params.namespace) get hypershiftdeployment $(params.cluster-name) -o json | jq -r '.status.conditions[]? | select(.type == "HostedClusterProgress") | .reason')" != "Completed" ]]
                 do
                   if [ "$wait_period" -gt 1200 ]; then
-                    echo "Failed to create OCP cluster."
+                    echo "[ERROR] Failed to create OCP cluster." >&2
                     kubectl -n $(params.namespace) get hypershiftdeployment $(params.cluster-name) -o yaml
                     exit 1
                   fi
@@ -109,7 +118,7 @@ spec:
                   echo "Waited $wait_period seconds..."
                 done
 
-                echo "Hypershit is ready, the following is the cluser kubeconfig"
+                echo "Hypershift is ready, the following is the cluster kubeconfig"
                 kubectl get secret -n clusters "$(params.cluster-name)-admin-kubeconfig" -o json | jq -r '.data.kubeconfig'  | base64 -d | tee $(workspaces.output.path)/kubeconfig
       - name: fetch-repository
         runAfter:
@@ -125,7 +134,7 @@ spec:
             value: $(params.repo_url)
           - name: revision
             value: $(params.revision)
-      - name: setup-podman-container
+      - name: setup-ci-runner-container
         runAfter:
           - "fetch-repository"
         retries: 1
@@ -140,7 +149,7 @@ spec:
             - name: kubeconfig-dir
           kind: ClusterTask
           steps:
-            - name: create-podman-container
+            - name: create-ci-runner-container
               image: quay.io/redhat-pipeline-service/ci-runner:main
               resources:
                 requests:
@@ -148,15 +157,22 @@ spec:
                   cpu: 300m
               script: |
                 #!/usr/bin/env bash
+                set -o errexit
+                set -o nounset
+                set -o pipefail
+                set -x
+
                 export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
 
-                kubectl -n openshift-config  get secret/pull-secret -o yaml | sed 's/openshift-config/default/' | sed 's/\.dockerconfigjson/auth.json/' | grep -v type: | kubectl apply -f -
+                kubectl -n openshift-config get secret/pull-secret -o yaml > /tmp/pull-secret.yaml
+                yq -i '.metadata.namespace="default" | del(.type) | del(.metadata.uid) | del(.metadata.resourceVersion) | .data.["auth.json"]=.data.[".dockerconfigjson"] | del(.data.[".dockerconfigjson"])' /tmp/pull-secret.yaml
+                kubectl -n default apply -f /tmp/pull-secret.yaml
 
                 kubectl -n default apply -f - <<EOF
                 apiVersion: v1
                 kind: PersistentVolumeClaim
                 metadata:
-                  name: podmanpvc
+                  name: ci-runner-pvc
                 spec:
                   accessModes:
                     - ReadWriteOnce
@@ -170,52 +186,41 @@ spec:
                 apiVersion: v1
                 kind: Pod
                 metadata:
-                  name: podman
+                  name: ci-runner
                 spec:
                   containers:
-                  - name: podman
-                    image: registry.redhat.io/rhel8/podman:latest
+                  - name: ci-runner
+                    image: quay.io/redhat-pipeline-service/ci-runner:main
+                    imagePullPolicy:  Always
                     resources:
                       requests:
                         ephemeral-storage: "2Gi"
                       limits:
                         ephemeral-storage: "2Gi"
                     command:
-                    - /usr/sbin/init
+                    - /bin/bash
+                    - -c
+                    - sleep 3600
                     securityContext:
                       privileged: true
                     volumeMounts:
                     - name: pull-secret
                       mountPath: "/run/user/0/containers/"
                       readOnly: true
-                    - name: podman-storage
+                    - name: ci-runner-storage
                       mountPath: "/source"
                   volumes:
                   - name: pull-secret
                     secret:
                       secretName: pull-secret
-                  - name: podman-storage
+                  - name: ci-runner-storage
                     persistentVolumeClaim:
-                      claimName: podmanpvc
+                      claimName: ci-runner-pvc
                 EOF
-                kubectl -n default wait pod/podman --for=condition=Ready --timeout=90s
-                kubectl -n default describe pod/podman
-            - name: install-softwares-to-podman-container
-              image: quay.io/redhat-pipeline-service/ci-runner:main
-              resources:
-                requests:
-                  memory: 500Mi
-                  cpu: 300m
-              script: |
-                #!/usr/bin/env bash
-                export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
 
-                kubectl -n default exec pod/podman -- sh -c "yum install -y python3-pip xz wget git make jq gcc && yum clean all"
-                kubectl -n default exec pod/podman -- sh -c "wget -c https://go.dev/dl/go1.19.1.linux-amd64.tar.gz && tar -C /usr/local -xzf go1.19.1.linux-amd64.tar.gz && rm -rf go1.19.1.linux-amd64.tar.gz"
-                kubectl -n default exec pod/podman -- sh -c "curl --location -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/download/v2.4.7/argocd-linux-amd64 && chmod +x /usr/local/bin/argocd && argocd version --client"
-                kubectl -n default exec pod/podman -- sh -c "KUBECTL_VERSION=1.24.3 && curl -LO https://storage.googleapis.com/kubernetes-release/release/v\$KUBECTL_VERSION/bin/linux/amd64/kubectl && chmod +x ./kubectl && mv ./kubectl /usr/local/bin && kubectl version --client=true"
-                kubectl -n default exec pod/podman -- sh -c "wget https://github.com/mikefarah/yq/releases/download/v4.25.1/yq_linux_amd64 -O /usr/local/bin/yq && chmod +x /usr/local/bin/yq && yq --version"
-            - name: copy-plnsvc-codes
+                kubectl -n default wait pod/ci-runner --for=condition=Ready --timeout=90s
+                kubectl -n default describe pod/ci-runner
+            - name: copy-plnsvc-code
               image: quay.io/redhat-pipeline-service/ci-runner:main
               resources:
                 requests:
@@ -224,16 +229,20 @@ spec:
               workingDir: "$(workspaces.source.path)"
               script: |
                 #!/usr/bin/env bash
+                set -o errexit
+                set -o nounset
+                set -o pipefail
+                set -x
+
                 export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
+                echo "Copy source code of pipeline service to the ci-runner container"
+                kubectl cp ./ default/ci-runner:/source
 
-                echo "Copy sources codes of pipeline to Podman Container"
-                kubectl cp ./ default/podman:/source
-
-                echo "Copy new cluster's kubeconfig to podman container"
-                kubectl cp "$(workspaces.kubeconfig-dir.path)/kubeconfig" default/podman:/kubeconfig
+                echo "Copy new cluster's kubeconfig to the ci-runner container"
+                kubectl cp "$KUBECONFIG" default/ci-runner:/kubeconfig
       - name: plnsvc-setup
         runAfter:
-          - "setup-podman-container"
+          - "setup-ci-runner-container"
         retries: 1
         workspaces:
           - name: kubeconfig-dir
@@ -263,12 +272,18 @@ spec:
               workingDir: "$(workspaces.source.path)"
               script: |
                 #!/usr/bin/env bash
+                set -o errexit
+                set -o nounset
+                set -o pipefail
+                set -x
                 echo "Produce a plnsvc_setup.sh with the execution of script dev_setup.sh"
                 cat <<'EOF' > plnsvc_setup.sh
                 #!/usr/bin/env bash
                 set -o errexit
+                set -o nounset
                 set -o pipefail
 
+                export KUBECONFIG="/kubeconfig"
                 OPENSHIFT_DIR=$(find "$PWD" -type f -name dev_setup.sh -exec dirname {} +)
                 CONFIG="$OPENSHIFT_DIR/../config.yaml"
                 echo "Start executing pipeline-service setup ..."
@@ -280,11 +295,11 @@ spec:
 
                 chmod +x plnsvc_setup.sh
                 export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
-                echo "Copy plnsvc_setup.sh to podman pod ..."
-                kubectl cp ./plnsvc_setup.sh default/podman:/source
+                echo "Copy plnsvc_setup.sh to the ci-runner pod ..."
+                kubectl cp ./plnsvc_setup.sh default/ci-runner:/source
 
                 echo "Execute dev_setup.sh script to set up pipeline-service ..."
-                kubectl -n default exec pod/podman -- sh -c "export KUBECONFIG=/kubeconfig && /source/plnsvc_setup.sh"
+                kubectl -n default exec pod/ci-runner -- sh -c "/source/plnsvc_setup.sh"
       - name: tests
         runAfter:
           - "plnsvc-setup"
@@ -309,25 +324,35 @@ spec:
               workingDir: "$(workspaces.source.path)"
               script: |
                 #!/usr/bin/env bash
+                set -o errexit
+                set -o nounset
+                set -o pipefail
+                set -x
+
+                export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
+
                 echo "Produce a plnsvc_test.sh with the execution of script test.sh"
                 cat <<'EOF' > plnsvc_test.sh
                 #!/usr/bin/env bash
                 set -o errexit
+                set -o nounset
                 set -o pipefail
+                set -x
+
+                export KUBECONFIG="/kubeconfig"
 
                 echo "Start executing pipeline cases ..."
                 TEST_DIR=$(find "$PWD" -type f -name test.sh -exec dirname {} +)
-                KUBECONFIG=/kubeconfig CASES=pipelines $TEST_DIR/test.sh
+                CASES=pipelines $TEST_DIR/test.sh
                 EOF
 
                 chmod +x plnsvc_test.sh
 
-                export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
-                echo "Copy plnsvc_test.sh to podman pod ..."
-                kubectl cp plnsvc_test.sh default/podman:/source
+                echo "Copy plnsvc_test.sh to the ci-runner pod ..."
+                kubectl cp plnsvc_test.sh default/ci-runner:/source
 
                 echo "Execute test.sh script to verify pipeline-service ..."
-                kubectl -n default exec pod/podman -- sh -c "/source/plnsvc_test.sh"
+                kubectl -n default exec pod/ci-runner -- sh -c "/source/plnsvc_test.sh"
     finally:
       - name: destroy-cluster
         params:
@@ -359,16 +384,12 @@ spec:
               image: quay.io/redhat-pipeline-service/ci-runner:main
               script: |
                 #!/usr/bin/env bash
+                set -o errexit
+                set -o nounset
+                set -o pipefail
+                set -x
+
                 export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
-
-                if [[ "$(params.plnsvc-setup-status)" == "Failed" || "$(params.tests-status)" == "Failed" ]]; then
-                  echo "Print out Nodes information"
-                  kubectl describe node
-                  echo ""
-
-                  echo "Print out podman pod information..."
-                  kubectl -n default describe pod/podman
-                fi
 
                 if [[ "$(params.deploy-cluster-status)" != "None" ]]; then
                   echo "Started to destroy cluster [$(params.cluster-name)]..."
