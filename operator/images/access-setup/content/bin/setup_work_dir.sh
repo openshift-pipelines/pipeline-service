@@ -80,12 +80,14 @@ parse_args() {
   done
 }
 
-prechecks(){
-  # Check that argocd has been installed
-  if [[ $(kubectl api-resources | grep -c "argoproj.io/") = "0" ]]; then
-    echo "Argo CD must be deployed on the cluster first" >&2
-    exit 1
-  fi
+# Checks if a binary is present on the local system
+precheck_binary() {
+  for binary in "$@"; do
+    command -v "$binary" >/dev/null 2>&1 || {
+      echo "[ERROR] This script requires '$binary' to be installed on your local machine." >&2
+      exit 1
+    }
+  done
 }
 
 init() {
@@ -196,7 +198,7 @@ tekton_results_manifest(){
 
 main() {
   parse_args "$@"
-  prechecks
+  precheck_binary "kubectl" "yq"
   init
   generate_shared_manifests
   configure_argocd_apps
