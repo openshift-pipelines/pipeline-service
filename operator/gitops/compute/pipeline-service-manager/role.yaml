@@ -92,6 +92,14 @@ rules:
     verbs:
       - "*"
   - apiGroups:
+      - operators.coreos.com
+    resources:
+      - subscriptions
+    verbs:
+      - "get"
+      - "create"
+      - "update"
+  - apiGroups:
       - pipelinesascode.tekton.dev
     resources:
       - repositories

@@ -181,26 +181,6 @@ setup_compute_access(){
     indent 2
 }
 
-install_minio() {
-  APP="minio"
-
-  local ns="$APP"
-  #############################################################################
-  # Install the minio operator
-  #############################################################################
-  echo -n "- Minio: "
-  kubectl apply -k "$DEV_DIR/operators/$APP" >/dev/null
-  echo "OK"
-
-  check_deployments "openshift-operators" "minio-operator" | indent 2
-
-  echo -n "- Minio tenant: "
-  kubectl apply -k "$DEV_DIR/operators/$APP/tenant" >/dev/null
-  echo "OK"
-
-  check_pod_by_label "tekton-results" "app=minio" | indent 2
-}
-
 install_pipeline_service() {
 
   TEKTON_RESULTS_DATABASE_USER="$(yq '.tekton_results_db.user' "$CONFIG")"
@@ -225,8 +205,6 @@ install_pipeline_service() {
     ${DEBUG:+"$DEBUG"} \
     --workspace-dir "$WORK_DIR"
     #  | indent 2
-
-  install_minio
 }
 
 main() {
