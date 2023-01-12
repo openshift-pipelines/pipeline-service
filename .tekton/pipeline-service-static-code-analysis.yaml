@@ -17,12 +17,13 @@ spec:
       value: "{{ repo_url }}"
     - name: revision
       value: "{{ revision }}"
-    - name: source_branch
-      value: "{{ source_branch }}"
+    - name: target_branch
+      value: "{{ target_branch }}"
   pipelineSpec:
     params:
       - name: repo_url
       - name: revision
+      - name: target_branch
     workspaces:
       - name: source
     tasks:
@@ -44,10 +45,15 @@ spec:
         workspaces:
           - name: source
             workspace: source
+        params:
+          - name: target_branch
+            value: $(params.target_branch)
         taskSpec:
+          params:
+            - name: target_branch
           steps:
             - name: run-shellcheck
-              image: quay.io/redhat-pipeline-service/static-checks:$(params.source_branch)
+              image: quay.io/redhat-pipeline-service/static-checks:$(params.target_branch)
               imagePullPolicy: Always
               script: |
                 #!/usr/bin/env bash
@@ -60,10 +66,15 @@ spec:
         workspaces:
           - name: source
             workspace: source
+        params:
+          - name: target_branch
+            value: $(params.target_branch)
         taskSpec:
+          params:
+            - name: target_branch
           steps:
             - name: run-yamllint
-              image: quay.io/redhat-pipeline-service/static-checks:$(params.source_branch)
+              image: quay.io/redhat-pipeline-service/static-checks:$(params.target_branch)
               imagePullPolicy: Always
               script: |
                 #!/usr/bin/env bash
@@ -76,10 +87,15 @@ spec:
         workspaces:
           - name: source
             workspace: source
+        params:
+          - name: target_branch
+            value: $(params.target_branch)
         taskSpec:
+          params:
+            - name: target_branch
           steps:
             - name: run-hadolint
-              image: quay.io/redhat-pipeline-service/static-checks:$(params.source_branch)
+              image: quay.io/redhat-pipeline-service/static-checks:$(params.target_branch)
               script: |
                 #!/usr/bin/env bash
                 /opt/static-checks/bin/hadolint.sh --workspace_dir $(workspaces.source.path)
@@ -91,10 +107,15 @@ spec:
         workspaces:
           - name: source
             workspace: source
+        params:
+          - name: target_branch
+            value: $(params.target_branch)
         taskSpec:
+          params:
+            - name: target_branch
           steps:
             - name: run-checkov
-              image: quay.io/redhat-pipeline-service/static-checks:$(params.source_branch)
+              image: quay.io/redhat-pipeline-service/static-checks:$(params.target_branch)
               script: |
                 #!/usr/bin/env bash
                 /opt/static-checks/bin/checkov.sh --workspace_dir $(workspaces.source.path)

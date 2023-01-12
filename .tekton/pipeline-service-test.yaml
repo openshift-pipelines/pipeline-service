@@ -151,7 +151,7 @@ spec:
                 envsubst < $(workspaces.hypershift-cluster-template.path)/cluster-template.yaml | tee $(workspaces.output.path)/hypershift_deployment.yaml
             - name: deploy-cluster
               image: quay.io/redhat-pipeline-service/ci-runner:main
-              imagePullPolicy:  Always
+              imagePullPolicy: Always
               script: |
                 #!/usr/bin/env bash
                 set -o errexit
