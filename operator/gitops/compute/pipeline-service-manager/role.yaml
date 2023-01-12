@@ -22,6 +22,7 @@ rules:
       - secrets
       - serviceaccounts
       - services
+      - pods
     verbs:
       - "*"
   - apiGroups:
