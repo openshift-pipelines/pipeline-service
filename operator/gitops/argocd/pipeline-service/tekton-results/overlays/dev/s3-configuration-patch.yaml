@@ -1,0 +1,37 @@
+---
+# Enable logs api
+- op: add
+  path: "/spec/template/spec/containers/0/env/-"
+  value:
+    name: LOGS_API
+    value: "true"
+# Set up log type "S3"
+- op: add
+  path: "/spec/template/spec/containers/0/env/-"
+  value:
+    name: LOG_TYPE
+    value: S3
+# Set up S3 bucket name, where will be stored logs
+- op: add
+  path: "/spec/template/spec/containers/0/env/-"
+  value:
+    name: S3_BUCKET_NAME
+    value: tekton-results
+# Set up Minio tenant endpoint url
+- op: add
+  path: "/spec/template/spec/containers/0/env/-"
+  value:
+    name: S3_ENDPOINT
+    value: https://minio.tekton-results.svc.cluster.local
+# Set up S3 endpoint host name without bucket prefix
+- op: add
+  path: "/spec/template/spec/containers/0/env/-"
+  value:
+    name: S3_HOSTNAME_IMMUTABLE
+    value: "true"
+# Set up S3 region
+- op: add
+  path: "/spec/template/spec/containers/0/env/-"
+  value:
+    name: S3_REGION
+    value: us-east-1

@@ -181,12 +181,37 @@ setup_compute_access(){
     indent 2
 }
 
+install_minio() {
+  APP="minio"
+
+  local ns="$APP"
+  #############################################################################
+  # Install the minio operator
+  #############################################################################
+  echo -n "- Minio: "
+  kubectl apply -k "$DEV_DIR/operators/$APP" >/dev/null
+  echo "OK"
+
+  check_deployments "openshift-operators" "minio-operator" | indent 2
+
+  echo -n "- Minio tenant: "
+  kubectl apply -k "$DEV_DIR/operators/$APP/tenant" >/dev/null
+  echo "OK"
+
+  check_pod_by_label "tekton-results" "app=minio" | indent 2
+}
+
 install_pipeline_service() {
 
   TEKTON_RESULTS_DATABASE_USER="$(yq '.tekton_results_db.user' "$CONFIG")"
   TEKTON_RESULTS_DATABASE_PASSWORD="$(yq '.tekton_results_db.password' "$CONFIG")"
   export TEKTON_RESULTS_DATABASE_USER
   export TEKTON_RESULTS_DATABASE_PASSWORD
+
+  TEKTON_RESULTS_MINIO_USER="$(yq '.tekton_results_log.user' "$CONFIG")"
+  TEKTON_RESULTS_MINIO_PASSWORD="$(yq '.tekton_results_log.password' "$CONFIG")"
+  export TEKTON_RESULTS_MINIO_USER
+  export TEKTON_RESULTS_MINIO_PASSWORD
 
   echo "- Setup working directory:"
   "$PROJECT_DIR/operator/images/access-setup/content/bin/setup_work_dir.sh" \
@@ -198,7 +223,10 @@ install_pipeline_service() {
   echo "- Deploy applications:"
   "$PROJECT_DIR/operator/images/cluster-setup/content/bin/install.sh" \
     ${DEBUG:+"$DEBUG"} \
-    --workspace-dir "$WORK_DIR" | indent 2
+    --workspace-dir "$WORK_DIR"
+    #  | indent 2
+
+  install_minio
 }
 
 main() {
@@ -211,7 +239,8 @@ main() {
   echo
   for APP in "${APP_LIST[@]}"; do
     echo "[$APP]"
-    install_"$(echo "$APP" | tr '-' '_')" | indent 2
+    install_"$(echo "$APP" | tr '-' '_')"
+    #  | indent 2
     echo
   done
 }

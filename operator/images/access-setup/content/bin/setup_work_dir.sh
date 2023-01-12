@@ -98,6 +98,11 @@ init() {
   TEKTON_RESULTS_DATABASE_USER=${TEKTON_RESULTS_DATABASE_USER:="tekton"}
   TEKTON_RESULTS_DATABASE_PASSWORD=${TEKTON_RESULTS_DATABASE_PASSWORD:=$(openssl rand -base64 20)}
 
+  TEKTON_RESULTS_MINIO_USER=${TEKTON_RESULTS_MINIO_USER:="minio"}
+  export TEKTON_RESULTS_MINIO_USER
+  TEKTON_RESULTS_MINIO_PASSWORD=${TEKTON_RESULTS_MINIO_PASSWORD:=$(openssl rand -base64 20)}
+  export TEKTON_RESULTS_MINIO_PASSWORD
+
   detect_container_engine
 }
 
@@ -174,12 +179,20 @@ tekton_results_manifest(){
   results_kustomize="$manifests_dir/compute/tekton-results/kustomization.yaml"
   results_namespace="$manifests_dir/compute/tekton-results/namespace.yaml"
   results_secret="$manifests_dir/compute/tekton-results/tekton-results-secret.yaml"
+  results_minio_secret="$manifests_dir/compute/tekton-results/tekton-results-minio-secret.yaml"
   if [ ! -e "$results_kustomize" ]; then
     results_dir="$(dirname "$results_kustomize")"
     mkdir -p "$results_dir"
     if [[ -z $TEKTON_RESULTS_DATABASE_USER || -z $TEKTON_RESULTS_DATABASE_PASSWORD ]]; then
       printf "[ERROR] Tekton results database variable is not set, either set the variables using \n \
       the config.yaml under tekton_results_db \n \
+      Or create '%s' \n" "$results_minio_secret" >&2
+      exit 1
+    fi
+
+    if [[ -z $TEKTON_RESULTS_MINIO_USER || -z $TEKTON_RESULTS_MINIO_PASSWORD ]]; then
+      printf "[ERROR] Tekton results log variable is not set, either set the variables using \n \
+      the config.yaml under tekton_results_log \n \
       Or create '%s' \n" "$results_secret" >&2
       exit 1
     fi
@@ -187,7 +200,21 @@ tekton_results_manifest(){
     kubectl create namespace tekton-results --dry-run=client -o yaml > "$results_namespace"
     kubectl create secret generic -n tekton-results tekton-results-database --from-literal=DATABASE_USER="$TEKTON_RESULTS_DATABASE_USER" --from-literal=DATABASE_PASSWORD="$TEKTON_RESULTS_DATABASE_PASSWORD" --dry-run=client -o yaml > "$results_secret"
 
-    yq e -n '.resources += ["namespace.yaml", "tekton-results-secret.yaml"]' > "$results_kustomize"
+    echo "---
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: minio-storage-configuration
+      namespace: tekton-results
+    type: Opaque
+    stringData:
+      config.env: |-
+        export MINIO_ROOT_USER=\"$TEKTON_RESULTS_MINIO_USER\"
+        export MINIO_ROOT_PASSWORD=\"$TEKTON_RESULTS_MINIO_PASSWORD\"
+        export MINIO_STORAGE_CLASS_STANDARD=\"EC:2\"
+        export MINIO_BROWSER=\"on\"" >> "$results_minio_secret"
+
+    yq e -n '.resources += ["namespace.yaml", "tekton-results-secret.yaml", "tekton-results-minio-secret.yaml"]' > "$results_kustomize"
     if [ "$(yq ".data" < "$results_secret" | grep -cE "DATABASE_USER|DATABASE_PASSWORD")" != "2" ]; then
       printf "[ERROR] Invalid manifest: '%s'" "$results_secret" >&2
       exit 1

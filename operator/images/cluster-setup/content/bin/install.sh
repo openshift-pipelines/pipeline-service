@@ -149,6 +149,7 @@ install_shared_manifests() {
 install_applications() {
   CONFIG_DIR=$(find "${WORKSPACE_DIR}/environment/compute" -type d -name "${clusters[$i]}")
   kubectl apply -k "$CONFIG_DIR"
+  
 }
 
 main() {
