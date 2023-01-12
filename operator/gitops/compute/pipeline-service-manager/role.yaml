@@ -100,6 +100,14 @@ rules:
       - "create"
       - "update"
   - apiGroups:
+      - minio.min.io
+    resources:
+      - tenants
+    verbs:
+      - "get"
+      - "create"
+      - "update"
+  - apiGroups:
       - pipelinesascode.tekton.dev
     resources:
       - repositories
