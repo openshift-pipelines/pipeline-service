@@ -45,3 +45,4 @@
 | podman             | 4.0.0                                                | For local development only                                                  | Only one of docker or podman is required. No requirement to use a particular version; users can install the latest version available at the time |
 | openssl            | 3.0.2                                                | To manipulate certificate information during cluster regsitration           | |
 | bitwarden          | see [dependencies.sh](shared/config/dependencies.sh) | To store credentials outside the gitops repository                          | |
+| minio              | 4.5.4                                                | S3 compatable storage for tekton-results api server                         | |

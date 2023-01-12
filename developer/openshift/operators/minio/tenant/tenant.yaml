@@ -70,6 +70,4 @@ spec:
       securityContext: {
         runAsNonRoot: true
       }
-      # containerSecurityContext: {
-      # }
   requestAutoCert: true
