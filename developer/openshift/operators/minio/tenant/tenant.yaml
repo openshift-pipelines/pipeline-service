@@ -67,7 +67,8 @@ spec:
             requests:
               storage: 1Gi
         status: { }
-      securityContext: {
+      securityContext:
         runAsNonRoot: true
-      }
+        runAsUser: 1000610001
+        runAsGroup: 100620002
   requestAutoCert: true
