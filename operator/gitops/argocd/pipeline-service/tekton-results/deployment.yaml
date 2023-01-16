@@ -24,6 +24,18 @@ spec:
         app.kubernetes.io/part-of: tekton-results
         app.kubernetes.io/version: v0.4.0
     spec:
+      initContainers:
+        - name: create-tekton-results-database-secret
+          image: quay.io/openshift/origin-cli:4.11
+          command:
+            - /bin/bash
+            - -c
+            - |
+              if oc get secret -n tekton-results tekton-results-database 2>&1 >/dev/null; then exit; fi
+              oc create secret generic tekton-results-database \
+                --namespace="tekton-results" \
+                --from-literal=DATABASE_USER=tekton \
+                --from-literal=DATABASE_PASSWORD=$(dd if=/dev/urandom bs=20 count=1 2>/dev/null | base64)
       containers:
         - env:
             - name: DB_USER
