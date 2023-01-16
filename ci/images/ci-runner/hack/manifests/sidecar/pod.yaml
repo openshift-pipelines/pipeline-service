@@ -2,18 +2,19 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: podman
+  name: ci-runner
 spec:
   containers:
-    - name: podman
+    - name: ci-runner
       image: quay.io/redhat-pipeline-service/ci-runner:main
+      imagePullPolicy: Always
       resources:
         requests:
           ephemeral-storage: "2Gi"
         limits:
           ephemeral-storage: "2Gi"
       command:
-        - /usr/bin/bash
+        - /bin/bash
         - -c
         - sleep 3600
       securityContext:
@@ -22,12 +23,12 @@ spec:
         - name: pull-secret
           mountPath: "/run/user/0/containers/"
           readOnly: true
-        - name: podman-storage
+        - name: ci-runner-storage
           mountPath: "/source"
   volumes:
     - name: pull-secret
       secret:
         secretName: pull-secret
-    - name: podman-storage
+    - name: ci-runner-storage
       persistentVolumeClaim:
-        claimName: podmanpvc
+        claimName: ci-runner-pvc

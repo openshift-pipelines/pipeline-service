@@ -31,6 +31,8 @@ spec:
       - name: shared-workspace
     tasks:
       - name: produce-cluster-name
+        runAfter:
+          - "fetch-repository"
         taskSpec:
           results:
             - name: cluster-name
@@ -48,61 +50,25 @@ spec:
                 echo -n "$CLUSTER_NAME" | tee $(results.cluster-name.path)
       - name: clean-clusters
         runAfter:
-          - "produce-cluster-name"
-        params:
-          - name: namespace
-            value: "$(params.namespace)"
-          - name: cluster-name
-            value: "$(tasks.produce-cluster-name.results.cluster-name)"
+          - "fetch-repository"
         workspaces:
           - name: kubeconfig-dir
             workspace: kubeconfig-dir
+          - name: source
+            workspace: source
         taskSpec:
-          params:
-            - name: namespace
-            - name: cluster-name
           workspaces:
             - name: kubeconfig-dir
+            - name: source
           kind: ClusterTask
           steps:
-            - name: destroy
+            - name: destroy-clusters
               image: quay.io/redhat-pipeline-service/ci-runner:main
-              script: |
-                #!/usr/bin/env bash
-                set -o errexit
-                set -o nounset
-                set -o pipefail
-                set -x
-
-                export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
-
-                MAX_DURATION_MINS=60
-                EXCLUDE_CLUSTER=(local-cluster)
-
-                delete_cluster() {
-                  cluster_name="$1"
-                  status=$(kubectl -n ci-clusters get hd $cluster_name -o json | jq -r '.status.conditions[]? | select(.type == "ManifestWorkConfigured") |.reason')
-                  # If the the cluster is Removing state, it won't delete this cluster
-                  if [ $status = "Removing" ]; then
-                    return
-                  fi
-                  # If the cluster is older than $MAX_DURATION_MINS mins, it will be deleted
-                  creationTime=$(kubectl -n ci-clusters get hd $cluster_name -o json | jq -r '.metadata.creationTimestamp')
-                  durations_mins=$((($(date +%s) - $(date +%s -d "$creationTime"))/60))
-                  if [ $durations_mins -gt $MAX_DURATION_MINS ]; then
-                    echo "Start delete cluster $cluster_name"
-                    kubectl -n ci-clusters delete hd $cluster_name
-                  fi
-                }
-
-                mapfile -t clusters < <(kubectl get managedcluster -o=custom-columns=NAME:.metadata.name --no-headers)
-                for cluster in "${clusters[@]}"
-                do
-                  if [[ "${EXCLUDE_CLUSTER[*]}" =~ "$cluster" ]]; then
-                    continue
-                  fi
-                  delete_cluster $cluster
-                done
+              env:
+                - name: "KUBECONFIG"
+                  value: "$(workspaces.kubeconfig-dir.path)/kubeconfig"
+              command:
+                - $(workspaces.source.path)/ci/images/ci-runner/hack/bin/destroy-clusters.sh
       - name: deploy-cluster
         runAfter:
           - "produce-cluster-name"
@@ -122,6 +88,8 @@ spec:
             workspace: hypershift-cluster-template
           - name: output
             workspace: shared-workspace
+          - name: source
+            workspace: source
         taskSpec:
           params:
             - name: region
@@ -135,6 +103,7 @@ spec:
             - name: kubeconfig-dir
             - name: hypershift-cluster-template
             - name: output
+            - name: source
               description: The kubeconfig of new cluster will be stored onto the volume backing this Workspace
           kind: ClusterTask
           steps:
@@ -152,34 +121,18 @@ spec:
             - name: deploy-cluster
               image: quay.io/redhat-pipeline-service/ci-runner:main
               imagePullPolicy: Always
-              script: |
-                #!/usr/bin/env bash
-                set -o errexit
-                set -o nounset
-                set -o pipefail
-                set -x
-
-                export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
-                kubectl -n $(params.namespace) apply -f $(workspaces.output.path)/hypershift_deployment.yaml
-                echo "Wait until hypershift cluster is ready..."
-                wait_period=0
-                while [[ "$(kubectl -n $(params.namespace) get hypershiftdeployment $(params.cluster-name) -o json | jq -r '.status.conditions[]? | select(.type == "HostedClusterProgress") | .reason')" != "Completed" ]]
-                do
-                  if [ "$wait_period" -gt 1200 ]; then
-                    echo "[ERROR] Failed to create OCP cluster." >&2
-                    kubectl -n $(params.namespace) get hypershiftdeployment $(params.cluster-name) -o yaml
-                    exit 1
-                  fi
-                  sleep 60
-                  wait_period=$((wait_period + 60))
-                  echo "Waited $wait_period seconds..."
-                done
-
-                echo "Hypershift is ready, the following is the cluster kubeconfig"
-                kubectl get secret -n clusters "$(params.cluster-name)-admin-kubeconfig" -o json | jq -r '.data.kubeconfig'  | base64 -d | tee $(workspaces.output.path)/kubeconfig
+              env:
+                - name: KUBECONFIG
+                  value: "$(workspaces.kubeconfig-dir.path)/kubeconfig"
+                - name: CLUSTER_NAME
+                  value: "$(params.cluster-name)"
+                - name: NAMESPACE
+                  value: "$(params.namespace)"
+                - name: WORKSPACE
+                  value: "$(workspaces.output.path)"
+              command:
+                - $(workspaces.source.path)/ci/images/ci-runner/hack/bin/deploy-cluster.sh
       - name: fetch-repository
-        runAfter:
-          - "deploy-cluster"
         taskRef:
           name: git-clone
           kind: ClusterTask
@@ -193,7 +146,7 @@ spec:
             value: $(params.revision)
       - name: setup-ci-runner-container
         runAfter:
-          - "fetch-repository"
+          - "deploy-cluster"
         retries: 1
         workspaces:
           - name: source
@@ -212,71 +165,11 @@ spec:
                 requests:
                   memory: 500Mi
                   cpu: 300m
+              env:
+                - name: KUBECONFIG
+                  value: "$(workspaces.kubeconfig-dir.path)/kubeconfig"
               script: |
-                #!/usr/bin/env bash
-                set -o errexit
-                set -o nounset
-                set -o pipefail
-                set -x
-
-                export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
-
-                kubectl -n openshift-config get secret/pull-secret -o yaml > /tmp/pull-secret.yaml
-                yq -i '.metadata.namespace="default" | del(.type) | del(.metadata.uid) | del(.metadata.resourceVersion) | .data.["auth.json"]=.data.[".dockerconfigjson"] | del(.data.[".dockerconfigjson"])' /tmp/pull-secret.yaml
-                kubectl -n default apply -f /tmp/pull-secret.yaml
-
-                kubectl -n default apply -f - <<EOF
-                apiVersion: v1
-                kind: PersistentVolumeClaim
-                metadata:
-                  name: ci-runner-pvc
-                spec:
-                  accessModes:
-                    - ReadWriteOnce
-                  storageClassName: gp2
-                  resources:
-                    requests:
-                      storage: 5Gi
-                EOF
-
-                kubectl -n default apply -f - <<EOF
-                apiVersion: v1
-                kind: Pod
-                metadata:
-                  name: ci-runner
-                spec:
-                  containers:
-                  - name: ci-runner
-                    image: quay.io/redhat-pipeline-service/ci-runner:main
-                    imagePullPolicy:  Always
-                    resources:
-                      requests:
-                        ephemeral-storage: "2Gi"
-                      limits:
-                        ephemeral-storage: "2Gi"
-                    command:
-                    - /bin/bash
-                    - -c
-                    - sleep 3600
-                    securityContext:
-                      privileged: true
-                    volumeMounts:
-                    - name: pull-secret
-                      mountPath: "/run/user/0/containers/"
-                      readOnly: true
-                    - name: ci-runner-storage
-                      mountPath: "/source"
-                  volumes:
-                  - name: pull-secret
-                    secret:
-                      secretName: pull-secret
-                  - name: ci-runner-storage
-                    persistentVolumeClaim:
-                      claimName: ci-runner-pvc
-                EOF
-
-                kubectl -n default wait pod/ci-runner --for=condition=Ready --timeout=90s
-                kubectl -n default describe pod/ci-runner
+                $(workspaces.source.path)/ci/images/ci-runner/hack/bin/create-ci-runner-container.sh
             - name: copy-plnsvc-code
               image: quay.io/redhat-pipeline-service/ci-runner:main
               resources:
@@ -284,19 +177,11 @@ spec:
                   memory: 500Mi
                   cpu: 300m
               workingDir: "$(workspaces.source.path)"
-              script: |
-                #!/usr/bin/env bash
-                set -o errexit
-                set -o nounset
-                set -o pipefail
-                set -x
-
-                export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
-                echo "Copy source code of pipeline service to the ci-runner container"
-                kubectl cp ./ default/ci-runner:/source
-
-                echo "Copy new cluster's kubeconfig to the ci-runner container"
-                kubectl cp "$KUBECONFIG" default/ci-runner:/kubeconfig
+              env:
+                - name: KUBECONFIG
+                  value: "$(workspaces.kubeconfig-dir.path)/kubeconfig"
+              command:
+                - $(workspaces.source.path)/ci/images/ci-runner/hack/bin/copy-plnsvc-code.sh
       - name: plnsvc-setup
         runAfter:
           - "setup-ci-runner-container"
@@ -327,36 +212,15 @@ spec:
                   memory: 500Mi
                   cpu: 300m
               workingDir: "$(workspaces.source.path)"
-              script: |
-                #!/usr/bin/env bash
-                set -o errexit
-                set -o nounset
-                set -o pipefail
-                set -x
-                echo "Produce a plnsvc_setup.sh with the execution of script dev_setup.sh"
-                cat <<'EOF' > plnsvc_setup.sh
-                #!/usr/bin/env bash
-                set -o errexit
-                set -o nounset
-                set -o pipefail
-
-                export KUBECONFIG="/kubeconfig"
-                OPENSHIFT_DIR=$(find "$PWD" -type f -name dev_setup.sh -exec dirname {} +)
-                CONFIG="$OPENSHIFT_DIR/../config.yaml"
-                echo "Start executing pipeline-service setup ..."
-                yq -i e '.git_url="$(params.repo_url)"' "$CONFIG"
-                yq -i e '.git_ref="$(params.revision)"' "$CONFIG"
-
-                $OPENSHIFT_DIR/dev_setup.sh -d
-                EOF
-
-                chmod +x plnsvc_setup.sh
-                export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
-                echo "Copy plnsvc_setup.sh to the ci-runner pod ..."
-                kubectl cp ./plnsvc_setup.sh default/ci-runner:/source
-
-                echo "Execute dev_setup.sh script to set up pipeline-service ..."
-                kubectl -n default exec pod/ci-runner -- sh -c "/source/plnsvc_setup.sh"
+              env:
+                - name: KUBECONFIG
+                  value: "$(workspaces.kubeconfig-dir.path)/kubeconfig"
+                - name: REPO_URL
+                  value: $(params.repo_url)
+                - name: REPO_REVISION
+                  value: $(params.revision)
+              command:
+                - $(workspaces.source.path)/ci/images/ci-runner/hack/bin/run-plnsvc-setup.sh
       - name: tests
         runAfter:
           - "plnsvc-setup"
@@ -379,37 +243,11 @@ spec:
                   memory: 500Mi
                   cpu: 300m
               workingDir: "$(workspaces.source.path)"
-              script: |
-                #!/usr/bin/env bash
-                set -o errexit
-                set -o nounset
-                set -o pipefail
-                set -x
-
-                export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
-
-                echo "Produce a plnsvc_test.sh with the execution of script test.sh"
-                cat <<'EOF' > plnsvc_test.sh
-                #!/usr/bin/env bash
-                set -o errexit
-                set -o nounset
-                set -o pipefail
-                set -x
-
-                export KUBECONFIG="/kubeconfig"
-
-                echo "Start executing pipeline cases ..."
-                TEST_DIR=$(find "$PWD" -type f -name test.sh -exec dirname {} +)
-                CASES=pipelines,results,chains $TEST_DIR/test.sh
-                EOF
-
-                chmod +x plnsvc_test.sh
-
-                echo "Copy plnsvc_test.sh to the ci-runner pod ..."
-                kubectl cp plnsvc_test.sh default/ci-runner:/source
-
-                echo "Execute test.sh script to verify pipeline-service ..."
-                kubectl -n default exec pod/ci-runner -- sh -c "/source/plnsvc_test.sh"
+              env:
+                - name: KUBECONFIG
+                  value: "$(workspaces.kubeconfig-dir.path)/kubeconfig"
+              command:
+                - $(workspaces.source.path)/ci/images/ci-runner/hack/bin/run-tests.sh
     finally:
       - name: destroy-cluster
         params:
@@ -426,6 +264,8 @@ spec:
         workspaces:
           - name: kubeconfig-dir
             workspace: kubeconfig-dir
+          - name: source
+            workspace: source
         taskSpec:
           params:
             - name: deploy-cluster-status
@@ -435,26 +275,22 @@ spec:
             - name: cluster-name
           workspaces:
             - name: kubeconfig-dir
+            - name: source
           kind: ClusterTask
           steps:
             - name: destroy
               image: quay.io/redhat-pipeline-service/ci-runner:main
-              script: |
-                #!/usr/bin/env bash
-                set -o errexit
-                set -o nounset
-                set -o pipefail
-                set -x
-
-                export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
-
-                if [[ "$(params.deploy-cluster-status)" != "None" ]]; then
-                  echo "Started to destroy cluster [$(params.cluster-name)]..."
-                  kubectl -n $(params.namespace) delete HypershiftDeployment $(params.cluster-name)
-                  echo "Successfully destroyed cluster"
-                else
-                  echo "No OCP cluster need to be destroyed."
-                fi
+              env:
+                - name: KUBECONFIG
+                  value: "$(workspaces.kubeconfig-dir.path)/kubeconfig"
+                - name: CLUSTER_STATUS
+                  value: "$(params.deploy-cluster-status)"
+                - name: CLUSTER_NAME
+                  value: "$(params.cluster-name)"
+                - name: NAMESPACE
+                  value: "$(params.namespace)"
+              command:
+                - $(workspaces.source.path)/ci/images/ci-runner/hack/bin/destroy-cluster.sh
   workspaces:
     - name: kubeconfig-dir
       configMap:
