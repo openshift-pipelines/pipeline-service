@@ -12,7 +12,7 @@ on:
       - main
     types:
       - completed
-
+permissions: read-all
 env:
   AUTH_BEARER_TOKEN: ${{ secrets.AUTH_BEARER_TOKEN }}
   quay_url: "https://quay.io/api/v1/repository/redhat-pipeline-service"
