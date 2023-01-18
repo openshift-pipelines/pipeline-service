@@ -33,4 +33,5 @@ COPY --from=grpc_cli /usr/local/bin/grpc_cli /usr/local/bin/
 COPY shared /tmp/image-build/shared
 RUN /tmp/image-build/shared/hack/install.sh --debug --bin argocd,bitwarden,checkov,hadolint,jq,kind,kubectl,oc,shellcheck,tkn,yamllint,yq \
     && rm -rf /tmp/image-build
+USER 65532:65532
 WORKDIR "/workspace"
