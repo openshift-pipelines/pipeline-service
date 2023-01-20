@@ -31,5 +31,4 @@ COPY --from=grpc_cli /usr/local/bin/grpc_cli /usr/local/bin/
 COPY shared /tmp/image-build/shared
 RUN /tmp/image-build/shared/hack/install.sh --debug --bin argocd,go,jq,kubectl,tkn,yq \
     && rm -rf /tmp/image-build
-USER 65532:65532
 WORKDIR "/source"
