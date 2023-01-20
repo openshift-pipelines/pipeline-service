@@ -52,16 +52,16 @@ update_binary() {
 }
 
 get_argocd_version() {
-    get_github_release "https://github.com/argoproj/argo-cd/releases/latest"
+    get_github_release "https://github.com/argoproj/argo-cd"
 }
 
 get_bitwarden_version() {
-    get_github_release "https://github.com/bitwarden/clients/releases/latest"
+    get_github_release "https://github.com/bitwarden/clients" "cli-"
     VERSION=$(echo "$VERSION" | sed "s:^cli-::")
 }
 
 get_checkov_version() {
-    get_github_release "https://github.com/bridgecrewio/checkov/releases/latest"
+    get_github_release "https://github.com/bridgecrewio/checkov"
 }
 
 get_go_version() {
@@ -73,39 +73,23 @@ get_go_version() {
 }
 
 get_grpc_cli_version() {
-    URL="https://github.com/grpc/grpc.git"
-    VERSION=$(
-        git ls-remote --tags "$URL" \
-            | grep -vE -- "-alpha|-beta|-pre|-rc|\^\{\}" \
-            | sed "s:^.*refs/tags/::" \
-            | sort -V \
-            | tail -1
-    )
+    get_github_release "https://github.com/grpc/grpc.git"
 }
 
 get_hadolint_version() {
-    get_github_release "https://github.com/hadolint/hadolint/releases/latest"
+    get_github_release "https://github.com/hadolint/hadolint"
 }
 
 get_jq_version() {
-    get_github_release "https://github.com/stedolan/jq/releases/latest"
-    VERSION=$(echo "$VERSION" | sed "s:^jq-::")
+    get_github_release "https://github.com/stedolan/jq" "jq-"
 }
 
 get_kind_version() {
-    get_github_release "https://github.com/kubernetes-sigs/kind/releases/latest"
+    get_github_release "https://github.com/kubernetes-sigs/kind"
 }
 
 get_kubectl_version() {
-    URL="https://github.com/kubernetes/kubectl.git"
-    VERSION=$(
-        git ls-remote --tags "$URL" \
-            | grep "tags/kubernetes-" \
-            | grep -vE -- "-alpha|-beta|-pre|-rc|\^\{\}" \
-            | sed "s:^.*refs/tags/kubernetes-::" \
-            | sort -V \
-            | tail -1
-    )
+    get_github_release "https://github.com/kubernetes/kubectl.git" "kubernetes-"
     VERSION="v$VERSION"
 }
 
@@ -119,37 +103,35 @@ get_oc_version() {
 }
 
 get_shellcheck_version() {
-    get_github_release "https://github.com/koalaman/shellcheck/releases/latest"
+    get_github_release "https://github.com/koalaman/shellcheck"
 }
 
 get_tektoncd_cli_version() {
-    get_github_release "https://github.com/tektoncd/cli/releases/latest"
+    get_github_release "https://github.com/tektoncd/cli"
 }
 
 get_yamllint_version() {
-    URL="https://github.com/adrienverge/yamllint.git"
-    VERSION=$(
-        git ls-remote --tags "$URL" \
-            | grep -vE -- "-alpha|-beta|-pre|-rc|\^\{\}" \
-            | sed "s:^.*refs/tags/::" \
-            | sort -V \
-            | tail -1
-    )
-    VERSION=$(echo "$VERSION" | sed "s:^v::")
+    get_github_release "https://github.com/adrienverge/yamllint.git" "v"
 }
 
 get_yq_version() {
-    get_github_release "https://github.com/mikefarah/yq/releases/latest"
+    get_github_release "https://github.com/mikefarah/yq"
 }
 
 get_github_release() {
     URL="$1"
+    PREFIX="${2:-}"
     VERSION=$(
-        curl --location --output /dev/null --silent --write-out "%{url_effective}" "$URL" \
-            | sed "s:.*/::"
+        git ls-remote --tags "$URL" \
+            | grep -E "$PREFIX" \
+            | grep -E "[0-9]+\.[0-9]+" \
+            | grep -vE "[0-9]-*alpha|[0-9]-*beta|[0-9]-*pre|[0-9]-*rc|\^\{\}" \
+            | sed "s:^.*refs/tags/$PREFIX::" \
+            | sort -V \
+            | tail -1
     )
 }
 
 if [ "${BASH_SOURCE[0]}" == "$0" ]; then
-    run_task "$@"
+    main "$@"
 fi
