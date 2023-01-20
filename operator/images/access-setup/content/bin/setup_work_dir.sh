@@ -148,7 +148,7 @@ tekton_chains_manifest(){
     mkdir -p "$chains_tmp_dir"
     cosign_passwd="$( head -c 12 /dev/urandom | base64 )"
     echo -n "$cosign_passwd" > "$chains_tmp_dir/cosign.password"
-    cosign_image="quay.io/redhat-appstudio/appstudio-utils:eb94f28fe2d7c182f15e659d0fdb66f87b0b3b6b"
+    cosign_image="quay.io/redhat-appstudio/appstudio-utils:d9fb2c3aa0353b1fdf94bba7f0e5c8b87a1f5d88"
     $CONTAINER_ENGINE run \
       --rm \
       --env COSIGN_PASSWORD="$cosign_passwd" \
