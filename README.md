@@ -29,3 +29,4 @@ More info [here](./developer/openshift/README.md).
 ## Running locally
 
 See [the development guide](./developer/docs/DEVELOPMENT.md) for instructions on how to set up a local development environment.
+\n appstudio-utils img test
