@@ -28,7 +28,14 @@ RUN set -x \
         unzip-6.0 \
         which-2.21 \
         xz-5.2.5 \
-    && dnf clean all
+    && dnf clean all \
+#Installing helm as part of a work around for installing the minio operator while we sort out stale operator hub catalogs with hypershift.
+#Once that has been sorted out (check with Adam), the minio requirement for helm will go away.
+#NOTE: while newer versions of fedora allow dnf installation of helm, the ubi9 minimal image we have here does not.
+RUN set -x \
+    && mkdir -p /usr/local/bin \
+    && curl -L https://mirror.openshift.com/pub/openshift-v4/clients/helm/latest/helm-linux-amd64 -o /usr/local/bin/helm \
+    && chmod +x /usr/local/bin/helm
 COPY --from=grpc_cli /usr/local/bin/grpc_cli /usr/local/bin/
 COPY shared /tmp/image-build/shared
 RUN /tmp/image-build/shared/hack/install.sh --debug --bin argocd,bitwarden,checkov,hadolint,jq,kind,kubectl,oc,shellcheck,tkn,yamllint,yq \
