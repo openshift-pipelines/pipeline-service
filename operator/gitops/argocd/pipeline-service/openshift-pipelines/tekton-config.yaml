@@ -17,6 +17,6 @@ spec:
     keep: 10
     resources:
       - pipelinerun
-    schedule: 0/10 * * * *
+    schedule: 0/2 * * * *
   profile: all
   targetNamespace: openshift-pipelines
