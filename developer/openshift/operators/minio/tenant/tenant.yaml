@@ -44,7 +44,7 @@ spec:
   imagePullSecret: { }
   mountPath: /export
   subPath: ""
-  serviceAccountName: ""
+  serviceAccountName: "minio"
   pools:
     - servers: 1
       name: pool-0
@@ -67,8 +67,9 @@ spec:
             requests:
               storage: 1Gi
         status: { }
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000610001
-        runAsGroup: 100620002
+      securityContext: {}
+        # runAsNonRoot: true
+      containerSecurityContext:
+        runAsUser: 1000
+        runAsGroup: 0
   requestAutoCert: true
