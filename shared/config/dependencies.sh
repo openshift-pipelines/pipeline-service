@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 export ARGOCD_VERSION="v2.5.7"
-export BITWARDEN_VERSION="web-v2023.1.1"
+export BITWARDEN_VERSION="v2023.1.0"
 export CHECKOV_VERSION="2.2.281"
 export GO_VERSION="1.19.5"
 export GRPC_CLI_VERSION="v1.51.1"
