@@ -26,6 +26,9 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "3"
 spec:
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
   template:
     spec:
       containers:

@@ -3,6 +3,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: ci-runner-pvc
+  namespace: ci-runner
 spec:
   accessModes:
     - ReadWriteOnce

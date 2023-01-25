@@ -3,13 +3,20 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: ci-runner
+  namespace: ci-runner
 spec:
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  automountServiceAccountToken: false
   containers:
     - name: ci-runner
       image: quay.io/redhat-pipeline-service/ci-runner:main
       imagePullPolicy: Always
       resources:
         requests:
+          cpu: 500m
+          memory: 512Mi
           ephemeral-storage: "2Gi"
         limits:
           ephemeral-storage: "2Gi"

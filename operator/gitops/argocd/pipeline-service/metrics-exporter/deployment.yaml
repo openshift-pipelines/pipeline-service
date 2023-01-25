@@ -9,6 +9,9 @@ spec:
   selector:
     matchLabels:
       app: pipeline-metrics-exporter
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
   template:
     metadata:
       labels:
@@ -27,4 +30,11 @@ spec:
             limits:
               memory: "256Mi"
               cpu: "500m"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - "ALL"
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
       restartPolicy: Always

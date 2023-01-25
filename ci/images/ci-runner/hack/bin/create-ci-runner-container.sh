@@ -6,10 +6,10 @@ set -x
 
 kubectl -n openshift-config get secret/pull-secret -o yaml >/tmp/pull-secret.yaml
 yq -i '.metadata.namespace="default" |
-    del(.type) | 
-    del(.metadata.uid) | 
-    del(.metadata.resourceVersion) | 
-    .data.["auth.json"]=.data.[".dockerconfigjson"] | 
+    del(.type) |
+    del(.metadata.uid) |
+    del(.metadata.resourceVersion) |
+    .data.["auth.json"]=.data.[".dockerconfigjson"] |
     del(.data.[".dockerconfigjson"])' \
     /tmp/pull-secret.yaml
 kubectl -n default apply -f /tmp/pull-secret.yaml

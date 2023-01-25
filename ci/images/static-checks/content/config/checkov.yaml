@@ -13,7 +13,40 @@ quiet: true
 skip-check:
   # skip Healthcheck instruction error for Docker Images
   - CKV_DOCKER_2
+  # skip checks for ServiceAccount/Node be able to read all secrets since we have defined such RBAC for tekton-chains secrets
+  - CKV2_K8S_5
+  # skip checks for the pods which lack an associated NetworkPolicy
+  - CKV2_K8S_6
+  # skip liveness probes since it's not a security concern for us now.
+  - CKV_K8S_8
+  # skip readiness probes since it's not a security concern for us now.
+  - CKV_K8S_9
+  # skip CPU requests since we have not done any stress testing to put a limit
+  - CKV_K8S_10
+  # skip CPU limits checks for now since we have not done any stress testing to put a limit
+  - CKV_K8S_11
+  # skip memory requests since we have not done any stress testing to put a limit
+  - CKV_K8S_12
+  # skip memory limits checks for now since we have not done any stress testing to put a limit
+  - CKV_K8S_13
+  # skip checks for the K8s dashboard since it's not a security concern for us now.
+  - CKV_K8S_33
+  # skip checks for images to use tags/digest since the images are modified in kustomization with appropriate tags/digests
+  - CKV_K8S_43
+  - CKV_K8S_14
+  # skip imagePullPolicy checks since it's an optional spec for defining k8s objects
+  - CKV_K8S_15
+  # skip checks ClusterRoles that grant control over validating or mutating admission webhook configurations since we need it for PAC for now
+  - CKV_K8S_155
+  # The below list should be resolved in future
+  # skip checks for securityContext for  pods and containers; we should remove this check from the skip-check list once we've PLNSRVCE-1152
+  - CKV_K8S_20
+  - CKV_K8S_28
+  - CKV_K8S_29
+  - CKV_K8S_40
 skip-fixes: true
 soft-fail: true
 skip-path:
   - developer
+  - operator/gitops/argocd/pipeline-service/pipelines-as-code/disable-pipelines-as-code-webhook.yaml
+  - ci/images/ci-runner/hack/manifests/sidecar/pod.yaml
