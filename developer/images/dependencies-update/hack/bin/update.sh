@@ -42,6 +42,7 @@ Optional arguments:
     -t, --task TASKNAME
         Only run the selected task. Can be repeated to run multiple tasks.
         TASKNAME must be in [$(echo "${DEFAULT_TASKS[@]}" | sed 's: :, :')].
+        Default: None
     -w, --workspace_dir WORKSPACE_DIR.
         Workspace directory.
         Default: $PROJECT_DIR
@@ -141,7 +142,8 @@ push_changes(){
 
 revert_to_current_branch(){
   echo
-  git checkout "$CURRENT_BRANCH_NAME"
+  git clean --force -x
+  git checkout --force "$CURRENT_BRANCH_NAME"
   if [ -n "$GIT_STASH" ]; then
     git stash pop
   fi
