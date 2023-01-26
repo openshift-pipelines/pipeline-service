@@ -19,15 +19,15 @@ RUN set -x \
     && dnf install -y \
         # gcc is needed when installing checkov's dependencies
         gcc-c++-12.2.1 \
-        git-2.39.0 \
+        git-2.39.1 \
         openssl-3.0.5 \
         procps-ng-3.3.17 \
         # python3-devl is needed when installing checkov's dependencies
-        python3-devel-3.11.0 \
+        python3-devel-3.11.1 \
         python3-pip-22.2.2 \
         unzip-6.0 \
         which-2.21 \
-        xz-5.2.5 \
+        xz-5.4.1 \
     && dnf clean all
 COPY --from=grpc_cli /usr/local/bin/grpc_cli /usr/local/bin/
 COPY shared /tmp/image-build/shared
