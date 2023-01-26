@@ -29,11 +29,8 @@ COPY shared /tmp/image-build/shared
 RUN /tmp/image-build/shared/hack/install.sh --debug --bin jq \
     && rm -rf /tmp/image-build
 
-COPY developer/images/dependencies-update/content /opt/dependencies-update
 RUN chmod 755 /opt/dependencies-update/bin/*.sh
-ENV PATH="/opt/dependencies-update/bin:${PATH}"
 USER 65532:65532
 ENV WORK_DIR /workspace
 VOLUME /workspace
 WORKDIR /workspace
-CMD ["/opt/dependencies-update/bin/update.sh", "--workspace_dir", "/workspace"]

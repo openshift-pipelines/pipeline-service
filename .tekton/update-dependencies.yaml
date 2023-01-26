@@ -44,9 +44,31 @@ spec:
             value: "origin/$(params.source_branch)"
           - name: refspec
             value: "refs/heads/$(params.source_branch)"
-      - name: update-dockerfiles
+      - name: git-setup
         runAfter:
           - git-clone
+        workspaces:
+          - name: source
+            workspace: source
+        params:
+          - name: source_branch
+            value: $(params.source_branch)
+        taskSpec:
+          params:
+            - name: source_branch
+          steps:
+            - name: setup-local-repository
+              image: quay.io/redhat-pipeline-service/dependencies-update:$(params.source_branch)
+              imagePullPolicy: Always
+              workingDir: $(workspaces.source.path)
+              command:
+                - ./developer/images/dependencies-update/hack/bin/setup-local-repository.sh
+                - --debug
+                - --branch
+                - $(params.source_branch)
+      - name: update-dockerfiles
+        runAfter:
+          - git-setup
         workspaces:
           - name: source
             workspace: source
@@ -70,42 +92,18 @@ spec:
               description: Flag that controls whether or not to open a PR
               type: string
           steps:
-            - name: setup-local-repository
-              image: quay.io/redhat-pipeline-service/dependencies-update:$(params.source_branch)
-              imagePullPolicy: Always
-              workingDir: $(workspaces.source.path)
-              script: |
-                #!/usr/bin/env bash
-                set -o errexit
-                set -o pipefail
-                set -x
-
-                # Setup user
-                git config --local user.email "pipeline-service@example.com"
-                git config --local user.name "Pipeline Service CI Robot"
-
-                # Use SSH authentication
-                git config --replace-all remote.origin.url "$(
-                  git config --get remote.origin.url | \
-                    sed -e "s|^https\?://github.com/|git@github.com:|" -e "s|\(\.git\)\?$|.git|"
-                )"
-
-                # Set the branch
-                git checkout -b "$(params.source_branch)"
             - name: update-dockerfiles
               image: quay.io/redhat-pipeline-service/dependencies-update:$(params.source_branch)
               imagePullPolicy: Always
               workingDir: $(workspaces.source.path)
-              script: |
-                #!/usr/bin/env bash
-                set -o errexit
-                set -o pipefail
-                set -x
-
-                /opt/dependencies-update/bin/update.sh \
-                  --commit_to "$(params.target_branch)" \
-                  --task update_dockerfiles_base_images_sha \
-                  --workspace_dir "$PWD"
+              command:
+                - ./developer/images/dependencies-update/hack/bin/update.sh
+                - --commit_to
+                - "$(params.target_branch)"
+                - --task
+                - update_dockerfiles_base_images_sha
+                - --workspace_dir
+                - $(workspaces.source.path)
             - name: is-pr-skipped
               image: quay.io/redhat-pipeline-service/dependencies-update:$(params.source_branch)
               imagePullPolicy: Always
@@ -116,35 +114,17 @@ spec:
                       name: github
                       key: token
               workingDir: $(workspaces.source.path)
-              script: |
-                #!/usr/bin/env bash
-                set -o errexit
-                set -o pipefail
-                set -x
-
-                if git diff --quiet "$(params.target_branch)"; then
-                  # No diff
-                  printf "yes" > "$(results.skip-open-pr.path)"
-                  exit
-                fi
-
-                IS_PR_CREATED=$(
-                  curl \
-                    --data-urlencode "head=$(params.repo_owner):$(params.target_branch)" \
-                    --fail \
-                    --get \
-                    --header "Accept: application/vnd.github+json" \
-                    --header "Authorization: Bearer $GITHUB_TOKEN"\
-                    --silent \
-                    "https://api.github.com/repos/$(params.repo_owner)/$(params.repo_name)/pulls" |
-                    jq ". | length"
-                )
-                if [ "$IS_PR_CREATED" = "0" ]; then
-                  printf "no"
-                else
-                  # PR already opened
-                  printf "yes"
-                fi > "$(results.skip-open-pr.path)"
+              command:
+                - ./developer/images/dependencies-update/hack/bin/is-pr-skipped.sh
+                - --debug
+                - --name
+                - $(params.repo_name)
+                - --owner
+                - $(params.repo_owner)
+                - --target_branch
+                - $(params.target_branch)
+                - --result
+                - $(results.skip-open-pr.path)
           workspaces:
             - name: source
       - name: open-pr
@@ -165,7 +145,7 @@ spec:
           - name: HEAD
             value: robot/$(params.source_branch)/update_dockerfiles
           - name: BODY
-            value: Generated by developer/images/dependencies-update/content/bin/update.sh
+            value: Generated by developer/images/dependencies-update/hack/bin/update.sh
           - name: TITLE
             value: Update Dockerfiles
   workspaces:

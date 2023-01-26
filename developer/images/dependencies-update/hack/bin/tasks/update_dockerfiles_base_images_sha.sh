@@ -22,7 +22,7 @@ SCRIPT_DIR="$(
   cd "$(dirname "$0")" >/dev/null
   pwd
 )"
-# shellcheck source=developer/images/dependencies-update/content/bin/task.sh
+# shellcheck source=developer/images/dependencies-update/hack/bin/task.sh
 source "$SCRIPT_DIR/../task.sh"
 
 run_task() {
