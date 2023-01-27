@@ -186,7 +186,7 @@ tekton_results_manifest(){
     if [[ -z $TEKTON_RESULTS_DATABASE_USER || -z $TEKTON_RESULTS_DATABASE_PASSWORD ]]; then
       printf "[ERROR] Tekton results database variable is not set, either set the variables using \n \
       the config.yaml under tekton_results_db \n \
-      Or create '%s' \n" "$results_minio_secret" >&2
+      Or create '%s' \n" "$results_secret" >&2
       exit 1
     fi
 
