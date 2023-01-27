@@ -20,7 +20,7 @@ tekton_results_db:
   user:
   password:
 
-# Minio S3 compatable storage credentials for tekton results
+# Minio S3 compatible storage credentials for tekton results
 tekton_results_log:
   user:
   password:
