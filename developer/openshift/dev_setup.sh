@@ -203,8 +203,7 @@ install_pipeline_service() {
   echo "- Deploy applications:"
   "$PROJECT_DIR/operator/images/cluster-setup/content/bin/install.sh" \
     ${DEBUG:+"$DEBUG"} \
-    --workspace-dir "$WORK_DIR"
-    #  | indent 2
+    --workspace-dir "$WORK_DIR" | indent 2
 }
 
 main() {
@@ -217,8 +216,7 @@ main() {
   echo
   for APP in "${APP_LIST[@]}"; do
     echo "[$APP]"
-    install_"$(echo "$APP" | tr '-' '_')"
-    #  | indent 2
+    install_"$(echo "$APP" | tr '-' '_')" | indent 2
     echo
   done
 }
