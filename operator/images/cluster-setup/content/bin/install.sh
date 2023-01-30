@@ -181,7 +181,9 @@ install_minio() {
 }
 
 configure_tekton_results_to_connect_to_minio() {
-  kubectl apply -k "$PROJECT_DIR/operator/gitops/argocd/pipeline-service/tekton-results/overlays/dev"
+  echo "- Install Minio patches for tekton-results"
+  kubectl apply -k "$PROJECT_DIR/operator/gitops/argocd/pipeline-service/tekton-results/minio-patches"
+  echo "OK"
 }
 
 install_applications() {

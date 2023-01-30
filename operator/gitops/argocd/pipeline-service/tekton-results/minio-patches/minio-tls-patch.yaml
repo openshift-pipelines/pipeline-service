@@ -1,0 +1,14 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tekton-results-api
+  namespace: tekton-results
+spec:
+  template:
+    spec:
+      containers:
+        - name: api
+          envFrom:
+            - secretRef:
+                name: minio-storage-configuration
