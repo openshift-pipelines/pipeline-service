@@ -4,4 +4,3 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - tenant.yaml
-  - tenant-permissions.yaml
