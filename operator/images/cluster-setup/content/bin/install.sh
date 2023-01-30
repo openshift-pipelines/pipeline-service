@@ -171,7 +171,8 @@ install_minio() {
   kubectl -n openshift-operators get subscriptions minio-operator -o yaml
 
   echo -n "- Minio tenant: "
-  kubectl apply -k "$DEV_DIR/operators/$APP/tenant" >/dev/null
+  # Workaround: use --validate=false flag to use tenant with field "containerSecurityContext" with older minio 4.5.4
+  kubectl apply -k "$DEV_DIR/operators/$APP/tenant" --validate=false >/dev/null
   echo "OK"
 
   check_pod_by_label "tekton-results" "app=minio" | indent 2
