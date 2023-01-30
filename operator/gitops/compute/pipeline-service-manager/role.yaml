@@ -73,6 +73,7 @@ rules:
       - list
       - create
       - bind
+      - patch
   - apiGroups:
       - argoproj.io
     resources:

@@ -23,7 +23,7 @@ SCRIPT_DIR="$(
   pwd
 )"
 
-ROOT_DIR=$(
+PROJECT_DIR=$(
   cd "$SCRIPT_DIR/../../../../.." >/dev/null
   pwd
 )
@@ -134,6 +134,8 @@ install_clusters() {
     printf -- "- Installing applications via Openshift GitOps... \n"
     install_applications | indent 4
 
+    configure_tekton_results_to_connect_to_minio
+
     #checking if the pipelines and triggers pods are up and running
     printf -- "- Checking deployment status\n"
     tektonDeployments=("tekton-pipelines-controller" "tekton-triggers-controller" "tekton-triggers-core-interceptors")
@@ -156,7 +158,7 @@ install_shared_manifests() {
 
 install_minio() {
   local APP="minio"
-  DEV_DIR="$ROOT_DIR/developer/openshift"
+  DEV_DIR="$PROJECT_DIR/developer/openshift"
 
   #############################################################################
   # Install the minio operator
@@ -176,6 +178,10 @@ install_minio() {
   echo "OK"
 
   check_pod_by_label "tekton-results" "app=minio" | indent 2
+}
+
+configure_tekton_results_to_connect_to_minio() {
+  kubectl apply -k "$PROJECT_DIR/operator/gitops/argocd/pipeline-service/tekton-results/overlays/dev"
 }
 
 install_applications() {
