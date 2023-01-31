@@ -1,0 +1,16 @@
+---
+- op: add
+  path: "/spec/template/spec/volumes/-"
+  value:
+    name: ca-s3
+    secret:
+      secretName: storage-tls
+      items:
+        - key: public.crt
+          path: s3-cert.crt
+- op: add
+  path: "/spec/template/spec/containers/0/volumeMounts/0"
+  value:
+    name: ca-s3
+    mountPath: /etc/ssl/certs/s3-cert.crt
+    subPath: s3-cert.crt

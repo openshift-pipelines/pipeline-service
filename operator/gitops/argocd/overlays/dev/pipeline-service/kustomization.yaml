@@ -1,7 +1,34 @@
 ---
-resources:
-  - ../../../base/pipeline-service
-  - ../../../base/pipeline-service/tekton-results/overlays/dev
-
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+
+resources:
+  - ../../../base/pipeline-service
+  # - ../../../base/pipeline-service/tekton-results/overlays/dev
+  # - tekton-results/overlays/dev
+  # - tekton-results
+
+patchesJson6902:
+  - target:
+      version: v1
+      group: apps
+      kind: Deployment
+      name: tekton-results-api
+      namespace: tekton-results
+    path: tekton-results/s3-configuration-patch.yaml
+  - target:
+      version: v1
+      group: apps
+      kind: Deployment
+      name: tekton-results-api
+      namespace: tekton-results
+    path: tekton-results/minio-tls-patch.yaml
+
+patches:
+  - target:
+      version: v1
+      group: apps
+      kind: Deployment
+      name: tekton-results-api
+      namespace: tekton-results
+    path: tekton-results/minio-user-cred-patch.yaml
