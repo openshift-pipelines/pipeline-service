@@ -9,7 +9,7 @@ spec:
     namespace: openshift-gitops
     server: https://kubernetes.default.svc
   source:
-    path: operator/gitops/argocd/pipeline-service
+    path: operator/gitops/argocd/base/pipeline-service
     repoURL: https://github.com/AndrienkoAleksandr/pipeline-service.git
     targetRevision: addMinioOverlay
   project: default
