@@ -1,0 +1,7 @@
+---
+resources:
+  - ../../../base/pipeline-service
+  - ../../../base/pipeline-service/tekton-results/overlays/dev
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
