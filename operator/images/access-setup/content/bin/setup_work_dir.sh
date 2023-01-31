@@ -23,6 +23,11 @@ SCRIPT_DIR="$(
   pwd
 )"
 
+PROJECT_DIR=$(
+  cd "$SCRIPT_DIR/../../../../.." >/dev/null
+  pwd
+)
+
 # shellcheck source=operator/images/access-setup/content/bin/common.sh
 source "$SCRIPT_DIR/common.sh"
 
@@ -200,19 +205,9 @@ tekton_results_manifest(){
     kubectl create namespace tekton-results --dry-run=client -o yaml > "$results_namespace"
     kubectl create secret generic -n tekton-results tekton-results-database --from-literal=DATABASE_USER="$TEKTON_RESULTS_DATABASE_USER" --from-literal=DATABASE_PASSWORD="$TEKTON_RESULTS_DATABASE_PASSWORD" --dry-run=client -o yaml > "$results_secret"
 
-    echo "---
-    apiVersion: v1
-    kind: Secret
-    metadata:
-      name: minio-storage-configuration
-      namespace: tekton-results
-    type: Opaque
-    stringData:
-      config.env: |-
-        export MINIO_ROOT_USER=\"$TEKTON_RESULTS_MINIO_USER\"
-        export MINIO_ROOT_PASSWORD=\"$TEKTON_RESULTS_MINIO_PASSWORD\"
-        export MINIO_STORAGE_CLASS_STANDARD=\"EC:2\"
-        export MINIO_BROWSER=\"on\"" >> "$results_minio_secret"
+    MINIO_SECRET="${PROJECT_DIR}"/operator/docs/sre/examples/single_cluster/credentials/manifests/compute/tekton-results/tekton-results-minio-secret.yaml
+    sed "s/MINIO_ROOT_USER=user/MINIO_ROOT_USER=$TEKTON_RESULTS_MINIO_USER/g" "${MINIO_SECRET}" | \
+    sed "s/MINIO_ROOT_PASSWORD=password/MINIO_ROOT_PASSWORD=$TEKTON_RESULTS_MINIO_PASSWORD/g" >> "$results_minio_secret"
 
     yq e -n '.resources += ["namespace.yaml", "tekton-results-secret.yaml", "tekton-results-minio-secret.yaml"]' > "$results_kustomize"
     if [ "$(yq ".data" < "$results_secret" | grep -cE "DATABASE_USER|DATABASE_PASSWORD")" != "2" ]; then
