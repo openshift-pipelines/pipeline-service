@@ -7,7 +7,7 @@ resources:
   - service-account.yaml
   - configmap.yaml
   - route.yaml
-  - deployments/deployment.yaml
+  - deployment.yaml
   - service.yaml
   - db-service.yaml
   - db-configmap.yaml
