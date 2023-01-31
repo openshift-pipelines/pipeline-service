@@ -49,7 +49,7 @@ Example:
 }
 
 parse_args() {
-  KUSTOMIZATION=${KUSTOMIZATION:-github.com/openshift-pipelines/pipeline-service/operator/gitops/argocd?ref=main}
+  KUSTOMIZATION=${KUSTOMIZATION:-github.com/openshift-pipelines/pipeline-service/operator/gitops/argocd/overlays/dev?ref=main}
 
   while [[ $# -gt 0 ]]; do
     case "$1" in

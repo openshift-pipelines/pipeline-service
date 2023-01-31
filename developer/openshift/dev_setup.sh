@@ -197,7 +197,7 @@ install_pipeline_service() {
   "$PROJECT_DIR/operator/images/access-setup/content/bin/setup_work_dir.sh" \
     ${DEBUG:+"$DEBUG"} \
     --work-dir "$WORK_DIR" \
-    --kustomization "$GIT_URL/operator/gitops/argocd?ref=$GIT_REF" |
+    --kustomization "$GIT_URL/operator/gitops/argocd/overlays/dev?ref=$GIT_REF" |
     indent 2
 
   echo "- Deploy applications:"
