@@ -65,7 +65,6 @@ run() {
 }
 
 main() {
-    init
     parse_args "$@"
     run
 }
