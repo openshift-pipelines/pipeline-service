@@ -66,6 +66,8 @@ spec:
                 - --debug
                 - --branch
                 - $(params.source_branch)
+          workspaces:
+            - name: source
       - name: update-dockerfiles
         runAfter:
           - git-setup
