@@ -11,6 +11,7 @@ resources:
   #
   - https://storage.googleapis.com/tekton-releases/chains/previous/v0.14.0/release.yaml
   - chains-secrets-config.yaml
+  - public-key.yaml
 
 patchesJson6902:
   # allow openshift-gitops to manage tekton-chains

@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
 #quit if exit status of any cmd is a non-zero value
-set -euo pipefail
+set -o errexit
+set -o nounset
+set -o pipefail
 
 # Uncomment the below line to enable debugging
 # set -x
@@ -12,7 +14,7 @@ usage() {
 
     # Parameters
     printf "KUBECONFIG: the path to the kubernetes KUBECONFIG file\n"
-    printf "CASES: comma separated list of test cases. Test cases must be any of 'chains', 'pipelines' or 'triggers'. 'chains' and 'pipelines' are run by default.\n"
+    printf "CASES: comma separated list of test cases. Test cases must be any of 'chains', 'pipelines', 'results' or 'triggers'. 'chains' and 'pipelines' are run by default.\n"
 }
 
 prechecks() {
@@ -93,6 +95,18 @@ test_chains() {
   else
     echo "Failed"
     echo "[ERROR] Unsigned image" >&2
+    exit 1
+  fi
+
+  echo -n "Public key: "
+  pipeline_name=$(kubectl create -f "$SCRIPT_DIR/manifests/test/tekton-chains/public-key.yaml" -n "$ns" | cut -d' ' -f1)
+  kubectl wait --for=condition=succeeded "$pipeline_name" -n "$ns" --timeout 60s >/dev/null
+  if [ "$(kubectl get "$pipeline_name" -n "$ns" \
+    -o 'jsonpath={.status.conditions[0].reason}')" = "Succeeded" ]; then
+    echo "OK"
+  else
+    echo "Failed"
+    echo "[ERROR] Public key is not accessible" >&2
     exit 1
   fi
   echo

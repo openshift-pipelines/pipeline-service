@@ -1,0 +1,23 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: tekton-chains-key-
+spec:
+  pipelineSpec:
+    tasks:
+      - name: tekton-chains-key
+        taskSpec:
+          description: >-
+            Test tekton-chains public key access.
+          steps:
+            - name: cat
+              image: quay.io/openshift/origin-cli:latest
+              script: |
+                set -o errexit
+                set -o nounset
+                set -o pipefail
+                set -x
+                PUBLIC_KEY=$(oc get secret public-key -n tekton-chains -o jsonpath='{.data.cosign\.pub}')
+                echo "$PUBLIC_KEY" | base64 -d
+  serviceAccountName: pipeline
