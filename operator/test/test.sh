@@ -143,6 +143,7 @@ test_triggers() {
   echo "Simulating a Github PR through a curl request which creates a TaskRun (from tektoncd/triggers/examples)"
   kubectl apply -f https://raw.githubusercontent.com/tektoncd/triggers/v0.18.0/examples/v1beta1/github/github-eventlistener-interceptor.yaml
   kubectl apply -f https://raw.githubusercontent.com/tektoncd/triggers/v0.18.0/examples/v1beta1/github/secret.yaml
+  kubectl apply -f https://raw.githubusercontent.com/tektoncd/triggers/v0.18.0/examples/rbac.yaml
   sleep 20
   # Simulate the behaviour of a webhook. GitHub sends some payload and trigger a TaskRun.
   kubectl port-forward service/el-github-listener 8089:8080 &
@@ -156,7 +157,7 @@ test_triggers() {
   http://localhost:8089
   kill "$SVC_FORWARD_PID"
   sleep 20
-  kubectl get pipelineruns
+  kubectl get taskruns
   echo
 }
 
