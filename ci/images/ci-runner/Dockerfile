@@ -23,6 +23,7 @@ RUN set -x \
         podman-2:4.2.0 \
         procps-ng-3.3.17 \
         python3-pip-21.2.3 \
+        rsync-3.2.3 \
         unzip-6.0 \
         tar-2:1.34 \
         xz-5.2.5 \
