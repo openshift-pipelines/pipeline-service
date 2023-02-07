@@ -17,6 +17,7 @@ RUN set -x \
     && mkdir ~/.kube \
     && mkdir -p /tmp/image-build \
     && microdnf install -y \
+        gettext-0.21 \
         git-2.31.1 \
         findutils-1:4.8.0 \
         openssl-3.0.1 \
