@@ -106,6 +106,46 @@ prechecks() {
     export KUBECONFIG="$KUBECONFIG"
 }
 
+uinstall_minio() {
+    printf "\n  Uninstalling Minio:\n"
+    if argocd app get minio >/dev/null 2>&1; then
+      # Remove any finalizers that might inhibit deletion
+      if argocd app get minio >/dev/null 2>&1; then
+          kubectl patch applications.argoproj.io -n openshift-gitops minio --type json --patch='[ { "op": "remove", "path": "/metadata/finalizers" } ]' >/dev/null 2>&1
+      fi
+      argocd app delete minio --yes
+
+      # oc delete subscription minio-operator -n openshift-operators
+      kubectl delete -k "$DEV_DIR/gitops/argocd/minio" --ignore-not-found=true
+
+      # Check if the Argo CD application have been indeed removed
+      if argocd app get minio >/dev/null 2>&1; then
+          printf "\n[ERROR] Couldn't uninstall Minio Argo CD application." >&2
+          exit 1
+      fi
+
+      printf "\n  Uninstalling Minio Operator:\n"
+      minio_gitops_csv=$(kubectl get csv -n openshift-operators | grep -ie "minio-operator" | cut -d " " -f 1)
+      if [[ -n "$minio_gitops_csv" ]]; then
+        kubectl delete csv -n openshift-operators "$minio_gitops_csv"
+      fi
+
+      mapfile -t minio_crds < <(kubectl get crd -n openshift-operators | grep -iE "tenant" | cut -d " " -f 1)
+      if [[ "${#minio_crds[@]}" -gt 0 ]]; then
+        for crd in "${minio_crds[@]}"; do
+          printf "\n    Delete crd %s\n" "$crd"
+          kubectl delete crd "$crd"
+        done
+      fi
+
+      minio_operator=$(kubectl get operator | grep -ie "minio" | cut -d " " -f 1)
+      if [[ -n "$minio_operator" ]]; then
+        printf "\n    Delete operator cr %s\n" "$minio_operator"
+        kubectl delete operator "$minio_operator"
+      fi
+    fi
+}
+
 uninstall_pipeline_service() {
     printf "\n  Uninstalling Pipeline Service:\n"
     # Remove pipeline-service Argo CD application
@@ -151,6 +191,8 @@ uninstall_operators(){
     if [[ -n "$gitops_operator" ]]; then
       kubectl delete operator "$gitops_operator"
     fi
+    # delete instance of the gitops!!! instead of that.
+    oc delete project openshift-gitops 
 
     printf "\n  Uninstalling PAC:\n"
     kubectl delete -k "$GITOPS_DIR/pipelines-as-code" --ignore-not-found=true
@@ -160,14 +202,14 @@ uninstall_operators(){
     fi
 
     printf "\n  Uninstalling tekton-chains:\n"
-    kubectl delete -k "$GITOPS_DIR/tekton-chains/overlays/openshift" --ignore-not-found=true
+    kubectl delete -k "$GITOPS_DIR/tekton-chains" --ignore-not-found=true
     tkn_chains_ns=$(kubectl get ns | grep -ie "tekton-chains" | cut -d " " -f 1)
     if [[ -n "$pac_ns" ]]; then
       kubectl delete ns "$tkn_chains_ns"
     fi
 
     printf "\n  Uninstalling tekton-results:\n"
-    kubectl delete -k "$GITOPS_DIR/tekton-results" --ignore-not-found=true
+    kubectl delete -k "$GITOPS_DIR/tekton-results/base" --ignore-not-found=true
     tkn_results_ns=$(kubectl get ns | grep -ie "tekton-results" | cut -d " " -f 1)
     if [[ -n "$pac_ns" ]]; then
       kubectl delete ns "$tkn_results_ns"
@@ -214,6 +256,7 @@ uninstall_operators(){
 main(){
     parse_args "$@"
     prechecks
+    uinstall_minio
     uninstall_pipeline_service
     if [ "$(echo "$RESET_HARD" | tr "[:upper:]" "[:lower:]")" == "true" ] || [ "$RESET_HARD" == "1" ]; then
       uninstall_operators

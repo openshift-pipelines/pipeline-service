@@ -7,7 +7,7 @@ metadata:
 type: Opaque
 stringData:
   config.env: |-
-    export MINIO_ROOT_USER=user
-    export MINIO_ROOT_PASSWORD=password
+    export MINIO_ROOT_USER="$TEKTON_RESULTS_MINIO_USER"
+    export MINIO_ROOT_PASSWORD="$TEKTON_RESULTS_MINIO_PASSWORD"
     export MINIO_STORAGE_CLASS_STANDARD="EC:2"
     export MINIO_BROWSER="on"

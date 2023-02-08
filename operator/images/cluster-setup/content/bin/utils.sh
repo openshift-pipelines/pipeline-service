@@ -72,7 +72,7 @@ check_pod_by_label() {
   printf "Exists"
 
   #a loop to check if the pod is Available and Ready
-  if kubectl wait --for=condition=ready pod -l "$label" -n "$ns" --timeout=100s >/dev/null; then
+  if kubectl wait --for=condition=ready pod -l "$label" -n "$ns" --timeout=150s >/dev/null; then
     printf ", Ready\n"
   else
     printf "\n[ERROR] Pod %s failed to start\n" "$label" >&2
