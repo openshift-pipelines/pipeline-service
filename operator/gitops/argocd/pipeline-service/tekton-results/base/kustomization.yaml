@@ -1,24 +1,24 @@
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+namespace: tekton-results
 resources:
   - namespace.yaml
-  - permissions.yaml
-  - service-account.yaml
-  - configmap.yaml
   - route.yaml
-  - deployment.yaml
-  - service.yaml
-  - db-service.yaml
-  - db-configmap.yaml
-  - db-statefulset.yaml
+  - https://github.com/openshift-pipelines/tektoncd-results//config/?ref=7e99606c104ed5867271cdf47e0fdf93a70c41e1
 images:
   - name: tekton-results-api
     newName: quay.io/redhat-appstudio/tekton-results-api
-    newTag: 18f7ee98d3f95d58d061a6ccee18fbfffeeae8f7
+    newTag: 7e99606c104ed5867271cdf47e0fdf93a70c41e1
   - name: tekton-results-watcher
     newName: quay.io/redhat-appstudio/tekton-results-watcher
-    newTag: 18f7ee98d3f95d58d061a6ccee18fbfffeeae8f7
+    newTag: 7e99606c104ed5867271cdf47e0fdf93a70c41e1
+
+configMapGenerator:
+  - name: api-config
+    namespace: tekton-results
+    files:
+      - https://raw.githubusercontent.com/openshift-pipelines/tektoncd-results/7e99606c104ed5867271cdf47e0fdf93a70c41e1/config/env/config
 
 patchesJson6902:
   - target:
@@ -29,3 +29,31 @@ patchesJson6902:
         path: "/metadata/labels"
         value:
           argocd.argoproj.io/managed-by: openshift-gitops
+  - target:
+      kind: Service
+      name: tekton-results-api-service
+      namespace: tekton-results
+    patch: |-
+      - op: add
+        path: "/metadata/annotations"
+        value:
+          service.beta.openshift.io/serving-cert-secret-name: tekton-results-tls
+  - target:
+      kind: Deployment
+      name: tekton-results-api
+      namespace: tekton-results
+    patch: |-
+      - op: add
+        path: "/spec/template/spec/initContainers"
+        value:
+        - command:
+          - "/bin/bash"
+          - "-c"
+          - |
+            if oc get secret -n tekton-results tekton-results-database 2>&1 >/dev/null; then exit; fi
+            oc create secret generic tekton-results-database \
+              --namespace="tekton-results" \
+              --from-literal=DATABASE_USER=tekton \
+              --from-literal=DATABASE_PASSWORD=$(dd if=/dev/urandom bs=20 count=1 2>/dev/null | base64)
+          image: quay.io/openshift/origin-cli:4.11
+          name: create-tekton-results-database-secret
