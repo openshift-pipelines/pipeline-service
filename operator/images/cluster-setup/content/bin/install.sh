@@ -23,11 +23,6 @@ SCRIPT_DIR="$(
   pwd
 )"
 
-ROOT_DIR=$(
-  cd "$SCRIPT_DIR/../../../../.." >/dev/null
-  pwd
-)
-
 # shellcheck source=operator/images/cluster-setup/content/bin/utils.sh
 source "$SCRIPT_DIR/utils.sh"
 
@@ -129,8 +124,6 @@ install_clusters() {
     printf -- "- Installing shared manifests... \n"
     install_shared_manifests | indent 4
 
-    install_minio
-
     printf -- "- Installing applications via Openshift GitOps... \n"
     install_applications | indent 4
 
@@ -152,29 +145,6 @@ install_shared_manifests() {
     kubectl apply -k "$CREDENTIALS_DIR/manifests/compute/tekton-chains"
   fi
   kubectl apply -k "$CREDENTIALS_DIR/manifests/compute/tekton-results"
-}
-
-install_minio() {
-  local APP="minio"
-  DEV_DIR="$ROOT_DIR/developer/openshift"
-
-  #############################################################################
-  # Install the minio operator
-  #############################################################################
-  echo -n "- Minio: "
-  kubectl apply -k "$DEV_DIR/operators/$APP" >/dev/null
-  echo "OK"
-
-  check_deployments "openshift-operators" "minio-operator" | indent 2
-
-  echo -n "- Display Minio Subscription information for potential debug: "
-  kubectl -n openshift-operators get subscriptions minio-operator -o yaml
-
-  echo -n "- Minio tenant: "
-  kubectl apply -k "$DEV_DIR/operators/$APP/tenant" >/dev/null
-  echo "OK"
-
-  check_pod_by_label "tekton-results" "app=minio" | indent 2
 }
 
 install_applications() {

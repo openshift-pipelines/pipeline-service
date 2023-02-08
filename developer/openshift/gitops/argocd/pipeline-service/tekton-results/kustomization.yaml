@@ -1,0 +1,10 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - "github.com/openshift-pipelines/pipeline-service/operator/gitops/argocd/pipeline-service/tekton-results/base?ref=main"
+
+patchesStrategicMerge:
+  - minio-tls-patch.yaml
+  - minio-user-cred-patch.yaml
+  - s3-configuration-patch.yaml

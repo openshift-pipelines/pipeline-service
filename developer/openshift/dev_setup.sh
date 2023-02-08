@@ -85,15 +85,8 @@ precheck_binary() {
 }
 
 init() {
-  APP_LIST=(
-            "openshift-gitops"
-           )
   # get the list of APPS to be installed
-  read -ra APPS <<< "$(yq eval '.apps // [] | join(" ")' "$CONFIG")"
-  for app in  "${APPS[@]}"
-  do
-    APP_LIST+=("$app")
-  done
+  read -ra APP_LIST <<< "$(yq eval '.apps // [] | join(" ")' "$CONFIG")"
 
   GIT_URL=$(yq '.git_url // "https://github.com/openshift-pipelines/pipeline-service.git"' "$CONFIG")
   GIT_REF=$(yq '.git_ref // "main"' "$CONFIG")
@@ -104,10 +97,7 @@ init() {
     WORK_DIR=$(mktemp -d)
     echo "Working directory: $WORK_DIR"
   fi
-  if [[ -d "$WORK_DIR" ]]; then
-    rm -rf "$WORK_DIR"
-  fi
-  cp -rf "$GITOPS_DIR/sre" "$WORK_DIR"
+  rsync --archive --delete --exclude .gitignore --exclude README.md "$GITOPS_DIR" "$WORK_DIR"
 
   mkdir -p "$WORK_DIR/credentials/kubeconfig/compute"
   cp "$KUBECONFIG" "$WORK_DIR/credentials/kubeconfig/compute/compute.kubeconfig.base"
@@ -136,6 +126,10 @@ install_openshift_gitops() {
   echo -n "- OpenShift-GitOps: "
   kubectl apply -k "$DEV_DIR/operators/$APP" >/dev/null
   echo "OK"
+
+  # Subscription information for potential debug
+  mkdir -p "$WORK_DIR/logs/$APP"
+  kubectl get subscriptions $APP-operator -n openshift-operators -o yaml >"$WORK_DIR/logs/$APP/subscription.yaml"
 
   #############################################################################
   # Wait for the URL to be available
@@ -172,6 +166,58 @@ install_openshift_gitops() {
 	fi
 }
 
+install_minio() {
+  local APP="minio"
+
+  #############################################################################
+  # Install the minio operator
+  #############################################################################
+
+  echo -n "- Secret: "
+  TEKTON_RESULTS_MINIO_USER="$(yq '.tekton_results_log.user // "minio"' "$CONFIG")"
+  TEKTON_RESULTS_MINIO_PASSWORD="$(yq ".tekton_results_log.password // \"$(openssl rand -base64 20)\"" "$CONFIG")"
+  
+  COMPUTE_DIR="$WORK_DIR"/credentials/manifests/compute/tekton-results
+  mkdir -p "$COMPUTE_DIR"
+
+  minio_configuration_secret="minio-storage-configuration"
+  # secret with minio tenant configuration
+  results_minio_conf_secret_path="$COMPUTE_DIR/${minio_configuration_secret}.yaml"
+
+  minio_credentials_secret="s3-credentials"
+  # secret with minio credentials for tekton-results api server
+  results_minio_cred_secret_path="$COMPUTE_DIR/${minio_credentials_secret}.yaml"
+
+  export TEKTON_RESULTS_MINIO_USER
+  export TEKTON_RESULTS_MINIO_PASSWORD
+  minio_conf_template="$DEV_DIR/gitops/argocd/pipeline-service/tekton-results/templates/${minio_configuration_secret}.yaml"
+  envsubst < "$minio_conf_template" > "$results_minio_conf_secret_path"
+  # unset env variables, but save their values
+  export -n TEKTON_RESULTS_MINIO_USER
+  export -n TEKTON_RESULTS_MINIO_PASSWORD
+
+  kubectl create secret generic "${minio_credentials_secret}" \
+  --from-literal=S3_ACCESS_KEY_ID="$TEKTON_RESULTS_MINIO_USER" \
+  --from-literal=S3_SECRET_ACCESS_KEY="$TEKTON_RESULTS_MINIO_PASSWORD" \
+  -n tekton-results --dry-run=client -o yaml >> "$results_minio_cred_secret_path"
+
+  kubectl apply -f "$PROJECT_DIR/operator/gitops/argocd/pipeline-service/tekton-results/base/namespace.yaml" >/dev/null
+  kubectl apply -f "$results_minio_conf_secret_path" >/dev/null
+  kubectl apply -f "$results_minio_cred_secret_path" >/dev/null
+  echo "OK"
+
+  echo -n "- Installing minio: "
+  kubectl apply -f "$DEV_DIR/gitops/argocd/$APP/application.yaml" >/dev/null
+  echo "OK"
+
+  # Subscription information for potential debug
+  mkdir -p "$WORK_DIR/logs/$APP"
+
+  echo "- Checking deployment status:"
+  check_deployments "openshift-operators" "minio-operator" | indent 2
+  check_pod_by_label "tekton-results" "app=minio" | indent 2 
+}
+
 setup_compute_access(){
   "$PROJECT_DIR/operator/images/access-setup/content/bin/setup_compute.sh" \
     ${DEBUG:+"$DEBUG"} \
@@ -188,16 +234,11 @@ install_pipeline_service() {
   export TEKTON_RESULTS_DATABASE_USER
   export TEKTON_RESULTS_DATABASE_PASSWORD
 
-  TEKTON_RESULTS_MINIO_USER="$(yq '.tekton_results_log.user' "$CONFIG")"
-  TEKTON_RESULTS_MINIO_PASSWORD="$(yq '.tekton_results_log.password' "$CONFIG")"
-  export TEKTON_RESULTS_MINIO_USER
-  export TEKTON_RESULTS_MINIO_PASSWORD
-
   echo "- Setup working directory:"
   "$PROJECT_DIR/operator/images/access-setup/content/bin/setup_work_dir.sh" \
     ${DEBUG:+"$DEBUG"} \
     --work-dir "$WORK_DIR" \
-    --kustomization "$GIT_URL/operator/gitops/argocd?ref=$GIT_REF" |
+    --kustomization "$GIT_URL/developer/openshift/gitops/argocd?ref=$GIT_REF" |
     indent 2
 
   echo "- Deploy applications:"

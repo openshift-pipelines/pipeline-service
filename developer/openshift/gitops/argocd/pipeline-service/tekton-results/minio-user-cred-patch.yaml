@@ -1,0 +1,22 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tekton-results-api
+  namespace: tekton-results
+spec:
+  template:
+    spec:
+      volumes:
+        - name: ca-s3
+          secret:
+            secretName: storage-tls
+            items:
+              - key: public.crt
+                path: s3-cert.crt
+      containers:
+        - name: api
+          volumeMounts:
+            - name: ca-s3
+              mountPath: /etc/ssl/certs/s3-cert.crt
+              subPath: s3-cert.crt

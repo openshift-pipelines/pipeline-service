@@ -22,9 +22,6 @@ rules:
       - secrets
       - serviceaccounts
       - services
-      - pods
-      - pods/log
-      - events
     verbs:
       - "*"
   - apiGroups:
@@ -94,30 +91,6 @@ rules:
       - tasks
     verbs:
       - "*"
-  - apiGroups:
-      - operators.coreos.com
-    resources:
-      - subscriptions
-    verbs:
-      - "get"
-      - "create"
-      - "update"
-  - apiGroups:
-      - minio.min.io
-    resources:
-      - tenants
-    verbs:
-      - "get"
-      - "create"
-      - "update"
-  - apiGroups:
-      - security.openshift.io
-    resourceNames:
-      - nonroot
-    resources:
-      - securitycontextconstraints
-    verbs:
-      - use
   - apiGroups:
       - pipelinesascode.tekton.dev
     resources:
