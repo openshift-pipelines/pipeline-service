@@ -10,6 +10,17 @@ RUN set -x \
 COPY shared /tmp/image-build/shared
 RUN /tmp/image-build/shared/hack/install.sh --debug --bin grpc_cli
 
+#@FROM registry.access.redhat.com/ubi9/ubi-minimal
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:48784852737bbbfb6d33c4ea58458a57076ab5102507192c7e67f9e9cf814a4f AS hypershift
+RUN set -x \
+    && microdnf install -y \
+        cmake-3.20.2 \
+        gcc-c++-11.3.1 \
+        git-2.31.1 \
+        libtool-2.4.6 \
+    && microdnf clean all
+COPY shared /tmp/image-build/shared
+RUN /tmp/image-build/shared/hack/install.sh --debug --bin go,hypershift
 
 #@FROM registry.access.redhat.com/ubi9/ubi-minimal
 FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:48784852737bbbfb6d33c4ea58458a57076ab5102507192c7e67f9e9cf814a4f
@@ -30,7 +41,8 @@ RUN set -x \
         xz-5.2.5 \
     && microdnf clean all
 COPY --from=grpc_cli /usr/local/bin/grpc_cli /usr/local/bin/
+COPY --from=hypershift /usr/local/bin/hypershift /usr/local/bin/
 COPY shared /tmp/image-build/shared
-RUN /tmp/image-build/shared/hack/install.sh --debug --bin argocd,go,jq,kubectl,tkn,yq \
+RUN /tmp/image-build/shared/hack/install.sh --debug --bin argocd,bitwarden,go,jq,kubectl,tkn,yq \
     && rm -rf /tmp/image-build
 WORKDIR "/source"

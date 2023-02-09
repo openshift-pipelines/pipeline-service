@@ -148,6 +148,11 @@ install_checkov() {
 install_go(){
     curl "${CURL_OPTS[@]}" -o "$TMPDIR/go.tgz" https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz
     tar -C /usr/local -xzf "$TMPDIR/go.tgz"
+    PATH="$PATH:/usr/local/go/bin"
+    echo "export PATH=$PATH" > "/etc/profile"
+    # shellcheck disable=SC1091
+    source "/etc/profile"
+    go version
 }
 
 install_grpc_cli() {
@@ -169,6 +174,22 @@ install_grpc_cli() {
     else
         echo "grpc_cli $GRPC_CLI_VERSION installed"
     fi
+}
+
+install_hypershift() {
+    # Build from code
+    git clone https://github.com/openshift/hypershift.git
+    cd hypershift
+    git checkout "${HYPERSHIFT_VERSION}"
+    make build
+    mv "bin/hypershift" "$TMPBIN"
+
+    move_bin
+    if [[ "$(hypershift help 2>&1)" == *"command not found"* ]]; then
+        echo "[ERROR] Could not find hypershift" >&2
+        exit 1
+    fi
+    hypershift -v
 }
 
 install_hadolint() {
