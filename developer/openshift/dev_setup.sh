@@ -29,6 +29,11 @@ Usage:
 Setup Pipeline Service on a single cluster.
 
 Optional arguments:
+    --force
+        No question asked.
+    --use-current-branch
+        Use the current branch to deploy the application. In the case of a detached
+        head, the revision is used instead.
     -w, --work-dir
         Directory in which to create the gitops file structure.
         If the directory already exists, all content will be removed.
@@ -46,11 +51,20 @@ Example:
 parse_args() {
   while [[ $# -gt 0 ]]; do
     case $1 in
+    --force)
+      FORCE=1
+      ;;
+    --use-current-branch)
+      USE_CURRENT_BRANCH="1"
+      ;;
     -w | --work-dir)
       shift
       WORK_DIR="$1"
       mkdir -p "$WORK_DIR"
-      WORK_DIR="$(cd "$1" >/dev/null; pwd)"
+      WORK_DIR="$(
+        cd "$1" >/dev/null
+        pwd
+      )"
       ;;
     -d | --debug)
       set -x
@@ -72,6 +86,20 @@ parse_args() {
     esac
     shift
   done
+
+  if [ -z "${FORCE:-}" ] && [ -n "${USE_CURRENT_BRANCH:-}" ] && [ "$(git status | wc -l)" != "0" ]; then
+    while true; do
+      read -r -p "You have uncommitted changes, do you want to continue? [y/N]: " answer
+      case "$answer" in
+      y | Y)
+        break
+        ;;
+      n | N | "")
+        exit 0
+        ;;
+      esac
+    done
+  fi
 }
 
 # Checks if a binary is present on the local system
@@ -157,13 +185,13 @@ install_openshift_gitops() {
 
   # Register the host cluster as pipeline-cluster
   local cluster_name="plnsvc"
-  if !  argocd cluster get "$cluster_name" >/dev/null 2>&1; then
+  if ! argocd cluster get "$cluster_name" >/dev/null 2>&1; then
     echo "- Register host cluster to ArgoCD as '$cluster_name': "
     argocd cluster add "$(yq e ".current-context" <"$KUBECONFIG")" --name="$cluster_name" --upsert --yes >/dev/null
     echo "  OK"
-	else
+  else
     echo "- Register host cluster to ArgoCD as '$cluster_name': OK"
-	fi
+  fi
 }
 
 install_minio() {
@@ -218,12 +246,17 @@ install_minio() {
   check_pod_by_label "tekton-results" "app=minio" | indent 2 
 }
 
-setup_compute_access(){
+setup_compute_access() {
+  if [ -n "${USE_CURRENT_BRANCH:-}" ]; then
+    kustomization_dir="$PROJECT_DIR/operator/gitops/compute/pipeline-service-manager"
+  else
+    kustomization_dir="$GIT_URL/operator/gitops/compute/pipeline-service-manager?ref=$GIT_REF"
+  fi
   "$PROJECT_DIR/operator/images/access-setup/content/bin/setup_compute.sh" \
     ${DEBUG:+"$DEBUG"} \
     --kubeconfig "$KUBECONFIG" \
     --work-dir "$WORK_DIR" \
-    --kustomization "$GIT_URL/operator/gitops/compute/pipeline-service-manager?ref=$GIT_REF"  |
+    --kustomization "$kustomization_dir" |
     indent 2
 }
 
@@ -238,8 +271,19 @@ install_pipeline_service() {
   "$PROJECT_DIR/operator/images/access-setup/content/bin/setup_work_dir.sh" \
     ${DEBUG:+"$DEBUG"} \
     --work-dir "$WORK_DIR" \
-    --kustomization "$GIT_URL/developer/openshift/gitops/argocd?ref=$GIT_REF" |
+    --kustomization "git::$GIT_URL/developer/openshift/gitops/argocd?ref=$GIT_REF" |
     indent 2
+
+  if [ -n "${USE_CURRENT_BRANCH:-}" ]; then
+    manifest_dir="$(find "$WORK_DIR/environment/compute" -mindepth 1 -maxdepth 1 -type d)"
+    repo_url="$(git remote get-url origin)"
+    branch="$(git branch --show-current)"
+    # In the case of a PR, there's no branch, so use the revision instead
+    branch="${branch:-$(git rev-parse HEAD)}"
+    kubectl create -k "$manifest_dir" --dry-run=client -o yaml >"$manifest_dir/pipeline-service.yaml"
+    yq -i ".spec.source.repoURL=\"$repo_url\" | .spec.source.targetRevision=\"$branch\"" "$manifest_dir/pipeline-service.yaml"
+    yq -i '.resources[0]="pipeline-service.yaml"' "$manifest_dir/kustomization.yaml"
+  fi
 
   echo "- Deploy applications:"
   "$PROJECT_DIR/operator/images/cluster-setup/content/bin/install.sh" \
