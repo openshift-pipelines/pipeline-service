@@ -34,7 +34,8 @@ Setup working directory for Pipeline Service
 
 Optional arguments:
     --kustomization KUSTOMIZATION
-        path to the directory holding the kustomization.yaml to deploy Pipeline Service via ArgoCD.
+        path to the directory or manifest holding the configuration to deploy
+        Pipeline Service via ArgoCD.
         Can be read from \$KUSTOMIZATION.
         Default: %s
     -w, --work-dir WORK_DIR
