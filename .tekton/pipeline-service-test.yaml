@@ -16,6 +16,8 @@ spec:
       value: "{{ revision }}"
     - name: namespace
       value: "ci-clusters"
+    - name: pr_number
+      value: "pull_request_number"
   timeouts:
     pipeline: "1h0m0s"
     finally: "0h20m0s"

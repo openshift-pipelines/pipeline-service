@@ -36,6 +36,12 @@ init() {
   PIPELINES_NS="pipelines-test"
 }
 
+test_ci() {
+  echo "[test_ci]"
+  kubectl get configmap -n tekton-chains ci-test >/dev/null
+  echo "OK"
+}
+
 test_chains() {
   echo "[test_chains]"
 
@@ -220,7 +226,7 @@ main() {
   for case in "${cases[@]}"
   do
     case $case in
-    chains|pipelines|results|triggers)
+    ci|chains|pipelines|results|triggers)
       test_"$case"
       ;;
     *)

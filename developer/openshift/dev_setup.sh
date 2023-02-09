@@ -280,9 +280,18 @@ install_pipeline_service() {
     branch="$(git branch --show-current)"
     # In the case of a PR, there's no branch, so use the revision instead
     branch="${branch:-$(git rev-parse HEAD)}"
+    echo "[Dir content]"
+    ls -lR "$manifest_dir"
+    echo "[File content]"
+    cat "$manifest_dir/"*
     kubectl create -k "$manifest_dir" --dry-run=client -o yaml >"$manifest_dir/pipeline-service.yaml"
     yq -i ".spec.source.repoURL=\"$repo_url\" | .spec.source.targetRevision=\"$branch\"" "$manifest_dir/pipeline-service.yaml"
     yq -i '.resources[0]="pipeline-service.yaml"' "$manifest_dir/kustomization.yaml"
+    echo "[File content]"
+    cat "$manifest_dir/"*
+    echo "[Processed]"
+    kubectl create -k "$manifest_dir" --dry-run=client -o yaml
+    echo "[Done]"
   fi
 
   echo "- Deploy applications:"
