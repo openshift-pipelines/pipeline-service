@@ -53,7 +53,6 @@ process_base_image_cmd() {
   else
     echo "Updated"
     echo "- Update base image SHA for '$base_image_name' to '$base_image_sha'" >>"$COMMIT_MSG"
-    git add .
   fi
 }
 
