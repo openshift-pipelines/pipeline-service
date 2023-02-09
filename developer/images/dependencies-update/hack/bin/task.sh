@@ -35,6 +35,7 @@ task_end() {
 
 commit_changes() {
   if ! git diff --quiet HEAD; then
+    git add .
     git commit --file="$COMMIT_MSG" --quiet --signoff
   fi
 }
