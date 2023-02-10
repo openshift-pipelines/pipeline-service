@@ -4,6 +4,10 @@ kind: ClusterRole
 metadata:
   name: pipeline-service-exporter-reader
 rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "namespaces", "endpoints"]
+    verbs: ["get", "list", "watch"]
+
   - apiGroups: ["tekton.dev"]
     resources: ["pipelineruns", "taskruns"]
     verbs: ["get", "list"]
