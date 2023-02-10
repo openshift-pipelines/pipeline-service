@@ -275,6 +275,9 @@ install_pipeline_service() {
     --kustomization "git::$GIT_URL/developer/openshift/gitops/argocd?ref=$GIT_REF" |
     indent 2
 
+  echo "- Installing local postgres DB for tekton results:"
+  kubectl apply -f developer/local/postgres | indent 4
+
   if [ -n "${USE_CURRENT_BRANCH:-}" ]; then
     manifest_dir="$(find "$WORK_DIR/environment/compute" -mindepth 1 -maxdepth 1 -type d)"
     repo_url="$(git remote get-url origin | sed "s|git@github.com:|https://github.com/|")"

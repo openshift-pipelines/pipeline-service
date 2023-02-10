@@ -9,9 +9,6 @@ resources:
   - route.yaml
   - deployment.yaml
   - service.yaml
-  - db-service.yaml
-  - db-configmap.yaml
-  - db-statefulset.yaml
 images:
   - name: tekton-results-api
     newName: quay.io/redhat-appstudio/tekton-results-api
