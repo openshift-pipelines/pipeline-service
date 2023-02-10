@@ -1,5 +1,5 @@
 #@FROM registry.access.redhat.com/ubi9/ubi-minimal
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:48784852737bbbfb6d33c4ea58458a57076ab5102507192c7e67f9e9cf814a4f AS grpc_cli
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:085c5049f5bd0b3cb33c322306a528373f79dc6f1098ff8f5a5b28f2685c53f8 AS grpc_cli
 RUN set -x \
     && microdnf install -y \
         cmake-3.20.2 \
@@ -11,7 +11,7 @@ COPY shared /tmp/image-build/shared
 RUN /tmp/image-build/shared/hack/install.sh --debug --bin grpc_cli
 
 #@FROM registry.access.redhat.com/ubi9/ubi-minimal
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:48784852737bbbfb6d33c4ea58458a57076ab5102507192c7e67f9e9cf814a4f AS hypershift
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:085c5049f5bd0b3cb33c322306a528373f79dc6f1098ff8f5a5b28f2685c53f8 AS hypershift
 RUN set -x \
     && microdnf install -y \
         cmake-3.20.2 \
@@ -23,7 +23,7 @@ COPY shared /tmp/image-build/shared
 RUN /tmp/image-build/shared/hack/install.sh --debug --bin go,hypershift
 
 #@FROM registry.access.redhat.com/ubi9/ubi-minimal
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:48784852737bbbfb6d33c4ea58458a57076ab5102507192c7e67f9e9cf814a4f
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:085c5049f5bd0b3cb33c322306a528373f79dc6f1098ff8f5a5b28f2685c53f8
 RUN set -x \
     && mkdir ~/.kube \
     && mkdir -p /tmp/image-build \
