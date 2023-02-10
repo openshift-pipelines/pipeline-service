@@ -10,20 +10,20 @@ set -o pipefail
 
 usage() {
 
-    printf "Usage: KUBECONFIG=/cluster.kubeconfig CASES=pipelines ./test.sh\n\n"
+  printf "Usage: KUBECONFIG=/cluster.kubeconfig CASES=pipelines ./test.sh\n\n"
 
-    # Parameters
-    printf "KUBECONFIG: the path to the kubernetes KUBECONFIG file\n"
-    printf "CASES: comma separated list of test cases. Test cases must be any of 'chains', 'pipelines', 'results' or 'triggers'. 'chains' and 'pipelines' are run by default.\n"
+  # Parameters
+  printf "KUBECONFIG: the path to the kubernetes KUBECONFIG file\n"
+  printf "CASES: comma separated list of test cases. Test cases must be any of 'chains', 'pipelines', 'results' or 'triggers'. 'chains' and 'pipelines' are run by default.\n"
 }
 
 prechecks() {
-    KUBECONFIG="${KUBECONFIG:-}"
-    if [[ -z "$KUBECONFIG" ]]; then
-        printf "KUBECONFIG is not set\n\n"
-        usage
-        exit 1
-    fi
+  KUBECONFIG="${KUBECONFIG:-}"
+  if [[ -z "$KUBECONFIG" ]]; then
+    printf "KUBECONFIG is not set\n\n"
+    usage
+    exit 1
+  fi
 }
 
 init() {
@@ -57,10 +57,10 @@ test_chains() {
   image_name="$(basename "$image_src")"
   image_dst="image-registry.openshift-image-registry.svc:5000/$ns/$image_name"
   tkn -n "$ns" pipeline start simple-copy \
-      --param image-src="$image_src" \
-      --param image-dst="$image_dst" \
-      --workspace name=shared,pvc,claimName="tekton-build" \
-      --showlog
+    --param image-src="$image_src" \
+    --param image-dst="$image_dst" \
+    --workspace name=shared,pvc,claimName="tekton-build" \
+    --showlog
   pipeline_name="$(kubectl get -n "$ns" pipelineruns -o json | jq -r ".items[0].metadata.name")"
 
   echo -n "Pipeline signed: "
@@ -70,7 +70,7 @@ test_chains() {
   until [ -n "$signed" ] || [ "$retry_timer" -ge 30 ]; do
     echo -n "."
     sleep $polling_interval
-    retry_timer=$(( retry_timer + polling_interval ))
+    retry_timer=$((retry_timer + polling_interval))
     signed="$(kubectl get pipelineruns -n "$ns" "$pipeline_name" -o jsonpath='{.metadata.annotations.chains\.tekton\.dev/signed}')"
   done
   if [ "$signed" = "true" ]; then
@@ -87,7 +87,7 @@ test_chains() {
   until [ "$signed" = "2" ] || [ "$retry_timer" -ge 30 ]; do
     echo -n "."
     sleep $polling_interval
-    retry_timer=$(( retry_timer + polling_interval ))
+    retry_timer=$((retry_timer + polling_interval))
     signed="$(kubectl get -n "$ns" imagestreamtags | grep -cE ":sha256-[0-9a-f]*\.att|:sha256-[0-9a-f]*\.sig" || true)"
   done
   if [ "$signed" = "2" ]; then
@@ -116,11 +116,11 @@ test_pipelines() {
   echo "[test_pipelines]"
   echo "Running a sample PipelineRun which sets and uses env variables (from tektoncd/pipeline/examples)"
   # create pipelinerun
-  if ! kubectl get namespace $PIPELINES_NS >/dev/null 2>&1; then
-    kubectl create namespace $PIPELINES_NS
+  if ! kubectl get namespace "$PIPELINES_NS" >/dev/null 2>&1; then
+    kubectl create namespace "$PIPELINES_NS"
   fi
-  if ! kubectl get -n $PIPELINES_NS serviceaccount default >/dev/null 2>&1; then
-    kubectl create -n $PIPELINES_NS  serviceaccount default
+  if ! kubectl get -n "$PIPELINES_NS" serviceaccount default >/dev/null 2>&1; then
+    kubectl create -n "$PIPELINES_NS" serviceaccount default
   fi
   BASE_URL="https://raw.githubusercontent.com/tektoncd/pipeline/v0.32.0"
   manifest="pipelineruns/using_context_variables.yaml"
@@ -129,13 +129,13 @@ test_pipelines() {
     curl --fail --silent "$BASE_URL/examples/v1beta1/$manifest" |
       sed 's|ubuntu|registry.access.redhat.com/ubi9/ubi-minimal:latest|' |
       sed '/serviceAccountName/d' |
-      kubectl create -n $PIPELINES_NS -f -
+      kubectl create -n "$PIPELINES_NS" -f -
   )
   echo "$PIPELINE_RUN"
 
-  kubectl wait --for=condition=Succeeded  -n $PIPELINES_NS PipelineRun --all --timeout=60s >/dev/null
+  kubectl wait --for=condition=Succeeded -n "$PIPELINES_NS" PipelineRun --all --timeout=60s >/dev/null
   echo "Print pipelines"
-  kubectl get -n $PIPELINES_NS pipelineruns
+  kubectl get -n "$PIPELINES_NS" pipelineruns
 }
 
 test_triggers() {
@@ -150,11 +150,11 @@ test_triggers() {
   SVC_FORWARD_PID=$!
   sleep 10
   curl -v \
-  -H 'X-GitHub-Event: pull_request' \
-  -H 'X-Hub-Signature: sha1=ba0cdc263b3492a74b601d240c27efe81c4720cb' \
-  -H 'Content-Type: application/json' \
-  -d '{"action": "opened", "pull_request":{"head":{"sha": "28911bbb5a3e2ea034daf1f6be0a822d50e31e73"}},"repository":{"clone_url": "https://github.com/tektoncd/triggers.git"}}' \
-  http://localhost:8089
+    -H 'X-GitHub-Event: pull_request' \
+    -H 'X-Hub-Signature: sha1=ba0cdc263b3492a74b601d240c27efe81c4720cb' \
+    -H 'Content-Type: application/json' \
+    -d '{"action": "opened", "pull_request":{"head":{"sha": "28911bbb5a3e2ea034daf1f6be0a822d50e31e73"}},"repository":{"clone_url": "https://github.com/tektoncd/triggers.git"}}' \
+    http://localhost:8089
   kill "$SVC_FORWARD_PID"
   sleep 20
   kubectl get taskruns
@@ -178,15 +178,15 @@ test_results() {
   fi
 
   # Proxies the remote Service to localhost.
-  kubectl port-forward -n tekton-results service/tekton-results-api-service 50051 >/dev/null & 
+  kubectl port-forward -n tekton-results service/tekton-results-api-service 50051 >/dev/null &
   PORTFORWARD_PID=$!
   echo "$PORTFORWARD_PID"
   # download the API Server certificate locally and configure gRPC.
-  kubectl get secrets tekton-results-tls -n tekton-results --template='{{index .data "tls.crt"}}' | base64 -d > /tmp/results.crt
+  kubectl get secrets tekton-results-tls -n tekton-results --template='{{index .data "tls.crt"}}' | base64 -d >/tmp/results.crt
   export GRPC_DEFAULT_SSL_ROOTS_FILE_PATH=/tmp/results.crt
-  
-  RESULT_UID=$(kubectl get pipelinerun "$PIPELINE_RUN" -n $PIPELINES_NS -o yaml | yq .metadata.uid)
-  
+
+  RESULT_UID=$(kubectl get pipelinerun "$PIPELINE_RUN" -n "$PIPELINES_NS" -o yaml | yq .metadata.uid)
+
   # This is required to pass shellcheck due to the single quotes in the GetResult name parameter.
   QUERY="name: \"$PIPELINES_NS/results/$RESULT_UID\""
   RECORD_CMD=(
@@ -194,13 +194,13 @@ test_results() {
     "call"
     "--channel_creds_type=ssl"
     "--ssl_target=tekton-results-api-service.tekton-results.svc.cluster.local"
-    "--call_creds=access_token=$(kubectl get secrets -n tekton-results -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='tekton-results-debug')].data.token}"| cut -d ' ' -f 2 | base64 --decode)"
+    "--call_creds=access_token=$(kubectl get secrets -n tekton-results -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='tekton-results-debug')].data.token}" | cut -d ' ' -f 2 | base64 --decode)"
     "localhost:50051"
     "tekton.results.v1alpha2.Results.GetResult"
     "$QUERY")
   RECORD_RESULT=$("${RECORD_CMD[@]}")
 
-  # kill backgrounded port forwarding process as it is no longer required. 
+  # kill backgrounded port forwarding process as it is no longer required.
   kill "$PORTFORWARD_PID"
 
   if [[ $RECORD_RESULT == *$RESULT_UID* ]]; then
@@ -216,11 +216,10 @@ test_results() {
 main() {
   prechecks
   init
-  IFS="," read -r -a cases <<< "$CASES"
-  for case in "${cases[@]}"
-  do
+  IFS="," read -r -a cases <<<"$CASES"
+  for case in "${cases[@]}"; do
     case $case in
-    chains|pipelines|results|triggers)
+    chains | pipelines | results | triggers)
       test_"$case"
       ;;
     *)
