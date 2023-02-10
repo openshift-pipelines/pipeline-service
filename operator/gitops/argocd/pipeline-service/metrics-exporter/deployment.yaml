@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: pipeline-metrics-exporter
-  namespace: pipeline-service
+  namespace: openshift-pipelines
 spec:
   replicas: 1
   selector:
