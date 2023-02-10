@@ -1,9 +1,22 @@
 #!/usr/bin/env bash
 
-#quit if exit status of any cmd is a non-zero value
+# Quit if exit status of any cmd is a non-zero value
 set -o errexit
 set -o nounset
 set -o pipefail
+
+SCRIPT_DIR="$(
+  cd "$(dirname "$0")" >/dev/null
+  pwd
+)"
+
+PROJECT_DIR="$(
+  cd "$SCRIPT_DIR/../.." >/dev/null || exit 1
+  pwd
+)"
+
+# shellcheck source=ci/images/ci-runner/hack/bin/utils.sh
+source "$PROJECT_DIR/ci/images/ci-runner/hack/bin/utils.sh"
 
 usage() {
     echo "
@@ -15,16 +28,8 @@ Install HyperShift operator on ROSA cluster
 Mandatory arguments:
     --kubeconfig
         path to HyperShift Compute KUBECONFIG.
-    --secret
-        path to HyperShift pull secret.
-    --url
-        HyperShift base domain url.
-    --id
-        AWS access key id.
-    --key
-        AWS secret access key.
     -r, --region
-        AWS region name.
+        AWS s3 region name.
     -n, --name
         AWS S3 bucket name.
     
@@ -36,7 +41,6 @@ Optional arguments:
 Example:
     ${0##*/} ./hypershift_setup.sh --region us-west-2
 " >&2
-
 }
 
 parse_args() {
@@ -46,25 +50,9 @@ parse_args() {
       shift
       export KUBECONFIG="$1"
       ;;
-    --secret)
-      shift
-      export HYPERSHIFT_PULL_SECRET="$1"
-      ;;
-    --url)
-      shift
-      export HYPERSHIFT_BASE_DOMAIN="$1"
-      ;;
-    --id)
-      shift
-      export AWS_ACCESS_KEY_ID="$1"
-      ;;
-    --key)
-      shift
-      export AWS_SECRET_ACCESS_KEY="$1"
-      ;;
     -r | --region)
       shift
-      export AWS_REGION="$1"
+      export BUCKET_REGION="$1"
       ;;
     -n | --name)
       shift
@@ -93,28 +81,8 @@ prechecks() {
       usage
       exit 1
     fi
-    if [[ -z "$HYPERSHIFT_PULL_SECRET" ]]; then
-      printf "HyperShift pull secret is not set\n\n"
-      usage
-      exit 1
-    fi
-    if [[ -z "$HYPERSHIFT_BASE_DOMAIN" ]]; then
-      printf "HyperShift base domain url is not set\n\n"
-      usage
-      exit 1
-    fi
-    if [[ -z "$AWS_ACCESS_KEY_ID" ]]; then
-      printf "AWS access key id is not set\n\n"
-      usage
-      exit 1
-    fi
-    if [[ -z "$AWS_SECRET_ACCESS_KEY" ]]; then
-      printf "AWS secret access key is not set\n\n"
-      usage
-      exit 1
-    fi
-    if [[ -z "$AWS_REGION" ]]; then
-      printf "AWS region is not set\n\n"
+    if [[ -z "$BUCKET_REGION" ]]; then
+      printf "AWS S3 region is not set\n\n"
       usage
       exit 1
     fi
@@ -125,55 +93,50 @@ prechecks() {
     fi
 }
 
+create_s3_bucket() {
+  # Check if the s3 bucket is there
+  BUCKET_EXISTS=$(aws s3api head-bucket --bucket "${BUCKET_NAME}" 2>&1 || true)
+  if [ -z "$BUCKET_EXISTS" ]; then
+    echo "Bucket $BUCKET_NAME exists"
+  else
+    echo "Bucket $BUCKET_NAME does not exist, start to create it"
+    aws s3api create-bucket --acl public-read \
+      --create-bucket-configuration LocationConstraint="$BUCKET_REGION" \
+      --region "$BUCKET_REGION" \
+      --bucket "$BUCKET_NAME"
+  fi
+}
+
 init() {
-  SCRIPT_DIR=$(
-    cd "$(dirname "$0")" >/dev/null
-    pwd
-  )
+  # Retrieve AWS Credential file from Bitwarden
+  open_bitwarden_session
+  get_aws_credentials
 }
 
 install_hypershift() {
   echo "HyperShift setup on ROSA cluster"
-  # Enable HyperShift and make ROSA cluster a managed cluster, visit documentation https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.6/html-single/multicluster_engine/index#hosted-control-planes-configure 
-  kubectl apply -f "$SCRIPT_DIR/ci/manifests/hypershift/multi_cluster_engine.yaml"
-  kubectl apply -f "$SCRIPT_DIR/ci/manifests/hypershift/manage_cluster.yaml"
+  # Install HyperShift operator
+  hypershift install --oidc-storage-provider-s3-credentials "$AWS_CREDENTIALS" \
+    --oidc-storage-provider-s3-bucket-name "$BUCKET_NAME" \
+    --oidc-storage-provider-s3-region="$BUCKET_REGION"
 
-  # Create an S3 bucket for HyperShift Operator with public-read
-  aws s3api create-bucket --acl public-read --bucket "$BUCKET_NAME" \
-    --create-bucket-configuration LocationConstraint="$AWS_REGION" \
-    --region "$AWS_REGION"
-
-  # Create an OIDC S3 credentials secret
-  oc create secret generic hypershift-operator-oidc-provider-s3-credentials \
-    --from-file=credentials="$HOME/.aws/credentials" \
-    --from-literal=bucket="$BUCKET_NAME" \
-    --from-literal=region="$AWS_REGION" -n local-cluster
-
-  # Install HyperShift operator on the managed cluster
-  kubectl apply -f "$SCRIPT_DIR/ci/manifests/hypershift/hypershift_operator_install.yaml"
-  # Wait for HyperShift operator to be installed
-  while [ "$(kubectl -n local-cluster get ManagedClusterAddOn | grep -cE "hypershift-addon")" != "1" ]; do
-      echo -n "."
-      sleep 2
-  done
-  echo "HyperShift operator successfully installed on the managed cluster"
-
-  # Create AWS credential secret
-  kubectl create ns ci-clusters
-
-  oc create secret generic my-aws-cred -n ci-clusters \
-    --from-literal=baseDomain="$HYPERSHIFT_BASE_DOMAIN" \
-    --from-literal=aws_access_key_id="$AWS_ACCESS_KEY_ID" \
-    --from-literal=aws_secret_access_key="$AWS_SECRET_ACCESS_KEY" \
-    --from-literal=pullSecret="$HYPERSHIFT_PULL_SECRET" \
-    --from-file=ssh-publickey="$HOME/.ssh/id_rsa.pub" \
-    --from-file=ssh-privatekey="$HOME/.ssh/id_rsa"
+  # Loop to check if the deployment is Available and Ready
+  local ns="hypershift"
+  if kubectl wait --for=condition=Available=true "deployment/operator" -n "$ns" --timeout=120s >/dev/null; then
+    printf ", Ready\n"
+  else
+    kubectl -n "$ns" describe "deployment/operator"
+    kubectl -n "$ns" logs "deployment/operator"
+    kubectl -n "$ns" get events | grep Warning
+    exit 1
+  fi
 }
 
 main() {
   init
   parse_args "$@"
   prechecks
+  create_s3_bucket
   install_hypershift
 }
 
