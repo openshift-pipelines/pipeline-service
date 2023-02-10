@@ -1,5 +1,5 @@
 #@FROM registry.access.redhat.com/ubi9/ubi-minimal
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:48784852737bbbfb6d33c4ea58458a57076ab5102507192c7e67f9e9cf814a4f
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:085c5049f5bd0b3cb33c322306a528373f79dc6f1098ff8f5a5b28f2685c53f8
 LABEL build-date= \
       com.redhat.build-host= \
       description="This image provides binaries and a script to install tektoncd components on the workload clusters." \
