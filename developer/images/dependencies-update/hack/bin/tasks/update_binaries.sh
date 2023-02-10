@@ -81,6 +81,8 @@ get_hadolint_version() {
 }
 
 get_hypershift_version() {
+    # shellcheck source=shared/config/dependencies.sh
+    source "$DEPENDENCIES"
     if [ "$HYPERSHIFT_VERSION" != "main" ]; then
         echo "Not implemented"
         exit 1
