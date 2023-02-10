@@ -4,6 +4,8 @@ kind: Service
 metadata:
   name: pipeline-metrics-exporter-service
   namespace: openshift-pipelines
+  labels:
+    app: pipeline-metrics-exporter
 spec:
   selector:
     app: pipeline-metrics-exporter
