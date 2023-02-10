@@ -29,6 +29,7 @@ COPY shared /tmp/image-build/shared
 RUN /tmp/image-build/shared/hack/install.sh --debug --bin jq \
     && rm -rf /tmp/image-build
 
+COPY developer/images/dependencies-update/hack /opt/dependencies-update
 RUN chmod 755 /opt/dependencies-update/bin/*.sh
 USER 65532:65532
 ENV WORK_DIR /workspace
