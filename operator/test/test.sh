@@ -72,15 +72,16 @@ init() {
     pwd
   )
   export KUBECONFIG
-  NAMESPACE="pipeline-service-test"
+  NAMESPACE="plnsvc-tests"
+  RESULTS_SA="tekton-results-tests"
 }
 
 setup_test() {
   echo "[Setup]"
-  echo -n "  - Reset namespace '$NAMESPACE': "
-  kubectl get namespace "$NAMESPACE" >/dev/null 2>&1 && kubectl delete namespace "$NAMESPACE" >/dev/null
-  kubectl create namespace "$NAMESPACE" >/dev/null
-
+  if ! kubectl get namespace $NAMESPACE > /dev/null 2>&1; then
+    echo -n "  - Create namespace '$NAMESPACE': "
+    kubectl create namespace "$NAMESPACE" >/dev/null
+  fi
   # Wait for pipelines to set up all the components
   while [ "$(kubectl get serviceaccounts -n "$NAMESPACE" | grep -cE "^pipeline ")" != "1" ]; do
     echo -n "."
@@ -182,14 +183,14 @@ test_results() {
   test_pipelines
   echo -n "  - Results in database: "
 
-  # Prepare a custom Service Account that will be used for debugging purposes
-  if ! kubectl get serviceaccount tekton-results-debug -n tekton-results >/dev/null 2>&1; then
-    kubectl create serviceaccount tekton-results-debug -n tekton-results
+  # Service Account to test tekton-results
+  if ! kubectl get serviceaccount "$RESULTS_SA" -n "$NAMESPACE" >/dev/null 2>&1; then
+    kubectl create serviceaccount "$RESULTS_SA" -n "$NAMESPACE"
     echo -n "."
   fi
   # Grant required privileges to the Service Account
-  if ! kubectl get clusterrolebinding tekton-results-debug -n tekton-results >/dev/null 2>&1; then
-    kubectl create clusterrolebinding tekton-results-debug --clusterrole=tekton-results-readonly --serviceaccount=tekton-results:tekton-results-debug
+  if ! kubectl get rolebinding tekton-results-tests -n "$NAMESPACE" >/dev/null 2>&1; then
+    kubectl create rolebinding tekton-results-tests -n "$NAMESPACE" --clusterrole=tekton-results-readonly --serviceaccount="$NAMESPACE":"$RESULTS_SA"
     echo -n "."
   fi
 
@@ -210,7 +211,7 @@ test_results() {
     "call"
     "--channel_creds_type=ssl"
     "--ssl_target=tekton-results-api-service.tekton-results.svc.cluster.local"
-    "--call_creds=access_token=$(kubectl get secrets -n tekton-results -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='tekton-results-debug')].data.token}" | cut -d ' ' -f 2 | base64 --decode)"
+    "--call_creds=access_token=$(kubectl get secrets -n "$NAMESPACE" -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']==\"$RESULTS_SA\")].data.token}" | cut -d ' ' -f 2 | base64 --decode)"
     "localhost:50051"
     "tekton.results.v1alpha2.Results.GetResult"
     "$QUERY")
