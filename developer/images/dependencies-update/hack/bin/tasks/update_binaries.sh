@@ -80,6 +80,13 @@ get_hadolint_version() {
     get_github_release "https://github.com/hadolint/hadolint"
 }
 
+get_hypershift_version() {
+    if [ "$HYPERSHIFT_VERSION" != "main" ]; then
+        echo "Not implemented"
+        exit 1
+    fi
+}
+
 get_jq_version() {
     get_github_release "https://github.com/stedolan/jq" "jq-"
 }
