@@ -87,9 +87,10 @@ parse_args() {
     shift
   done
 
-  if [ -z "${FORCE:-}" ] && [ -n "${USE_CURRENT_BRANCH:-}" ] && [ "$(git status | wc -l)" != "0" ]; then
+  git fetch >/dev/null
+  if [ -z "${FORCE:-}" ] && [ -n "${USE_CURRENT_BRANCH:-}" ] && ! git diff --quiet "@{upstream}"; then
     while true; do
-      read -r -p "You have uncommitted changes, do you want to continue? [y/N]: " answer
+      read -r -p "You have uncommitted/unpushed changes, do you want to continue? [y/N]: " answer
       case "$answer" in
       y | Y)
         break
@@ -125,7 +126,7 @@ init() {
     WORK_DIR=$(mktemp -d)
     echo "Working directory: $WORK_DIR"
   fi
-  rsync --archive --delete --exclude .gitignore --exclude README.md "$GITOPS_DIR" "$WORK_DIR"
+  rsync --archive --delete --exclude .gitignore --exclude README.md "$GITOPS_DIR/sre/" "$WORK_DIR"
 
   mkdir -p "$WORK_DIR/credentials/kubeconfig/compute"
   cp "$KUBECONFIG" "$WORK_DIR/credentials/kubeconfig/compute/compute.kubeconfig.base"
@@ -276,7 +277,7 @@ install_pipeline_service() {
 
   if [ -n "${USE_CURRENT_BRANCH:-}" ]; then
     manifest_dir="$(find "$WORK_DIR/environment/compute" -mindepth 1 -maxdepth 1 -type d)"
-    repo_url="$(git remote get-url origin)"
+    repo_url="$(git remote get-url origin | sed "s|git@github.com:|https://github.com/|")"
     branch="$(git branch --show-current)"
     # In the case of a PR, there's no branch, so use the revision instead
     branch="${branch:-$(git rev-parse HEAD)}"
