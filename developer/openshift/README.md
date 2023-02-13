@@ -27,16 +27,17 @@ You can run the `dev_setup.sh` script with or without parameters.
 The [test.sh](../../operator/test/test.sh) script runs certain examples from tektoncd repo for pipelines and triggers. You can run the below script only after `dev_setup.sh` is run and the required resources are up and running.
 
 ```bash
-./test.sh pipelines
-    #Runs PipelineRun which sets and uses some env variables respectively.
-    #https://github.com/tektoncd/pipeline/blob/main/examples/v1beta1/pipelineruns/using_context_variables.yaml
+./test.sh --test pipelines
+    # Runs a minimal PipelineRun
+    # Checks that the pipelinerun is successful.
 
-./test.sh triggers
-    #Simulates a webhook for a Github PR which triggers a TaskRun
-    #https://github.com/tektoncd/triggers/tree/main/examples/v1beta1/github
+./test.sh --test chains
+    # Simulates the creation of an image
+    # Checks that the pipeline and image are signed.
+    # Checks that the key to decode the signed data is available to all users.
 
-./test.sh pipelines triggers
-    #Runs both tests
+./test.sh --test results
+    # Checks that logs are uploaded by tekton-results.
 ```
 
 ### Development - Onboarding a new component
