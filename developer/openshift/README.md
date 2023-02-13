@@ -23,6 +23,7 @@ Before you execute the script, you need:
 5. to install [podman](https://github.com/containers/podman) or [docker](https://www.docker.com/). If you have both you can control which is used by setting the `CONTAINER_ENGINE` environment variable (e.g. `export CONTAINER_ENGINE="podman"`). While we do not recommend it for security reasons, you can prefix the binary with `sudo` to force the execution as the root user (e.g. `export CONTAINER_ENGINE="sudo podman"`).
 
 You can run the `dev_setup.sh` script with or without parameters.
+The `--use-current-branch` parameter should be used when testing manifests changes.
 
 The [test.sh](../../operator/test/test.sh) script runs certain examples from tektoncd repo for pipelines and triggers. You can run the below script only after `dev_setup.sh` is run and the required resources are up and running.
 
