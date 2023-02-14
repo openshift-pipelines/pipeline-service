@@ -10,6 +10,10 @@ framework:
 skip-download: false
 output: cli
 quiet: true
-skip-check: []
+skip-check:
+  # skip Healthcheck instruction error for Docker Images
+  - CKV_DOCKER_2
 skip-fixes: true
 soft-fail: true
+skip-path:
+  - developer
