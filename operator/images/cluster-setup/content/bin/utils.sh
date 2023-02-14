@@ -94,7 +94,7 @@ fetch_bitwarden_secrets() {
   setx_on
 
   if [ ! -e "$BITWARDEN_CRED" ]; then
-    echo "No BW secrets"
+    echo "- No Bitwarden secrets"
     return
   fi
 

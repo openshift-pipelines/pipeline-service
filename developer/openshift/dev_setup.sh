@@ -278,7 +278,10 @@ install_pipeline_service() {
   echo "- Installing local postgres DB for tekton results:"
   kubectl apply -f developer/local/postgres | indent 4
 
+
+  echo "- Deploy applications:"
   if [ -n "${USE_CURRENT_BRANCH:-}" ]; then
+    echo -n "  - Source: "
     manifest_dir="$(find "$WORK_DIR/environment/compute" -mindepth 1 -maxdepth 1 -type d)"
     repo_url="$(git remote get-url origin | sed "s|git@github.com:|https://github.com/|")"
     branch="$(git branch --show-current)"
@@ -287,9 +290,8 @@ install_pipeline_service() {
     kubectl create -k "$manifest_dir" --dry-run=client -o yaml >"$manifest_dir/pipeline-service.yaml"
     yq -i ".spec.source.repoURL=\"$repo_url\" | .spec.source.targetRevision=\"$branch\"" "$manifest_dir/pipeline-service.yaml"
     yq -i '.resources[0]="pipeline-service.yaml"' "$manifest_dir/kustomization.yaml"
+    echo "$(echo "$repo_url" | sed "s:\.git$::")/tree/$branch"
   fi
-
-  echo "- Deploy applications:"
   "$PROJECT_DIR/operator/images/cluster-setup/content/bin/install.sh" \
     ${DEBUG:+"$DEBUG"} \
     --workspace-dir "$WORK_DIR" | indent 2
