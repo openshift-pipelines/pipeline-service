@@ -14,6 +14,7 @@ spec:
       labels:
         app: pipeline-metrics-exporter
     spec:
+      serviceAccountName: prometheus-k8s
       containers:
         - name: pipeline-metrics-exporter
           image: quay.io/redhat-pipeline-service/metrics-exporter:f008a14
