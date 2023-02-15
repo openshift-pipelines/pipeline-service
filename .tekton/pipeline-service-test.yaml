@@ -5,7 +5,7 @@ metadata:
   name: pipeline-service-test
   annotations:
     pipelinesascode.tekton.dev/on-event: "[pull_request, push]"
-    pipelinesascode.tekton.dev/on-target-branch: "main"
+    pipelinesascode.tekton.dev/on-target-branch: "[refs/heads/*]"
     pipelinesascode.tekton.dev/task: "[git-clone]"
     pipelinesascode.tekton.dev/max-keep-runs: "5"
 spec:
@@ -14,6 +14,8 @@ spec:
       value: "{{ repo_url }}"
     - name: revision
       value: "{{ revision }}"
+    - name: target_branch
+      value: "{{ target_branch }}"
   timeouts:
     pipeline: "1h0m0s"
     finally: "0h20m0s"
@@ -21,6 +23,7 @@ spec:
     params:
       - name: repo_url
       - name: revision
+      - name: target_branch
     workspaces:
       - name: source
       - name: kubeconfig-dir
@@ -47,19 +50,24 @@ spec:
       - name: clean-clusters
         runAfter:
           - "fetch-repository"
+        params:
+          - name: target_branch
+            value: $(params.target_branch)
         workspaces:
           - name: kubeconfig-dir
             workspace: kubeconfig-dir
           - name: source
             workspace: source
         taskSpec:
+          params:
+            - name: target_branch
           workspaces:
             - name: kubeconfig-dir
             - name: source
           kind: ClusterTask
           steps:
             - name: destroy-clusters
-              image: quay.io/redhat-pipeline-service/ci-runner:main
+              image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
               env:
                 - name: "KUBECONFIG"
                   value: "$(workspaces.kubeconfig-dir.path)/kubeconfig"
@@ -90,6 +98,8 @@ spec:
             value: "us-east-1"
           - name: cluster-name
             value: "$(tasks.produce-cluster-name.results.cluster-name)"
+          - name: target_branch
+            value: $(params.target_branch)
         workspaces:
           - name: kubeconfig-dir
             workspace: kubeconfig-dir
@@ -102,6 +112,7 @@ spec:
             - name: region
             - name: cluster-name
             - name: image
+            - name: target_branch
           results:
             - name: kubeconfig
               description: the kubeconfig content of the new OCP cluster
@@ -113,7 +124,7 @@ spec:
           kind: ClusterTask
           steps:
             - name: deploy-cluster
-              image: quay.io/redhat-pipeline-service/ci-runner:main
+              image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
               imagePullPolicy: Always
               env:
                 - name: KUBECONFIG
@@ -159,19 +170,24 @@ spec:
         runAfter:
           - "deploy-cluster"
         retries: 1
+        params:
+          - name: target_branch
+            value: $(params.target_branch)
         workspaces:
           - name: source
             workspace: source
           - name: kubeconfig-dir
             workspace: shared-workspace
         taskSpec:
+          params:
+            - name: target_branch
           workspaces:
             - name: source
             - name: kubeconfig-dir
           kind: ClusterTask
           steps:
             - name: create-ci-runner-container
-              image: quay.io/redhat-pipeline-service/ci-runner:main
+              image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
               resources:
                 requests:
                   memory: 500Mi
@@ -182,7 +198,7 @@ spec:
               script: |
                 $(workspaces.source.path)/ci/images/ci-runner/hack/bin/create-ci-runner-container.sh
             - name: copy-plnsvc-code
-              image: quay.io/redhat-pipeline-service/ci-runner:main
+              image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
               resources:
                 requests:
                   memory: 500Mi
@@ -207,6 +223,8 @@ spec:
             value: $(params.repo_url)
           - name: revision
             value: $(params.revision)
+          - name: target_branch
+            value: $(params.target_branch)
         taskSpec:
           workspaces:
             - name: kubeconfig-dir
@@ -214,10 +232,11 @@ spec:
           params:
             - name: repo_url
             - name: revision
+            - name: target_branch
           kind: ClusterTask
           steps:
             - name: run-plnsvc-setup
-              image: quay.io/redhat-pipeline-service/ci-runner:main
+              image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
               resources:
                 requests:
                   memory: 500Mi
@@ -236,19 +255,24 @@ spec:
         runAfter:
           - "plnsvc-setup"
         retries: 1
+        params:
+          - name: target_branch
+            value: $(params.target_branch)
         workspaces:
           - name: kubeconfig-dir
             workspace: shared-workspace
           - name: source
             workspace: source
         taskSpec:
+          params:
+            - name: target_branch
           workspaces:
             - name: kubeconfig-dir
             - name: source
           kind: ClusterTask
           steps:
             - name: run-tests
-              image: quay.io/redhat-pipeline-service/ci-runner:main
+              image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
               resources:
                 requests:
                   memory: 500Mi
@@ -268,6 +292,8 @@ spec:
         params:
           - name: cluster-name
             value: "$(tasks.produce-cluster-name.results.cluster-name)"
+          - name: target_branch
+            value: $(params.target_branch)
         workspaces:
           - name: kubeconfig-dir
             workspace: kubeconfig-dir
@@ -276,13 +302,14 @@ spec:
         taskSpec:
           params:
             - name: cluster-name
+            - name: target_branch
           workspaces:
             - name: kubeconfig-dir
             - name: source
           kind: ClusterTask
           steps:
             - name: destroy
-              image: quay.io/redhat-pipeline-service/ci-runner:main
+              image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
               env:
                 - name: KUBECONFIG
                   value: "$(workspaces.kubeconfig-dir.path)/kubeconfig"
