@@ -2,7 +2,7 @@
 
 # turns off tracing even with set -x mode enabled across the script to prevent secrets leaking
 setx_off() {
-  set +x
+    set +x
 }
 
 # turns on tracing
@@ -11,7 +11,7 @@ setx_on() {
 }
 
 indent () {
-  sed "s/^/$(printf "%$1s")/"
+    sed "s/^/$(printf "%$1s")/"
 }
 
 open_bitwarden_session() {
@@ -54,11 +54,11 @@ get_password() {
     setx_off
     local itemid="$1"
     password=$(bw get password "$itemid" --session "$session")
-    echo "$password"
+    export password
     setx_on
 }
 
-get_attachmet(){
+get_attachment() {
     setx_off
     local itemid="$1"
     local output="$2"
@@ -71,14 +71,18 @@ export PULL_SECRET=$HOME/pull-secret
 export AWS_CREDENTIALS=$HOME/.aws/credentials
 
 get_aws_credentials() {
-  get_attachmet "7025d81b-2788-4416-9fe1-afa300dcf0b4" "$AWS_CREDENTIALS"
+    get_attachment "7025d81b-2788-4416-9fe1-afa300dcf0b4" "$AWS_CREDENTIALS"
 }
 
 get_base_domain() {
-  BASE_DOMAIN=$(get_password "7ea65e94-1865-410b-ab8e-af90006682d7")
-  export BASE_DOMAIN
+    get_password "7ea65e94-1865-410b-ab8e-af90006682d7"
+    setx_off
+    BASE_DOMAIN="${password}"
+    export BASE_DOMAIN
+    setx_on
 }
 
 get_pull_secret() {
-  get_password "97960272-52cd-43bd-a1df-af8d003b4efb" | base64 -d > "$PULL_SECRET"
+    get_password "97960272-52cd-43bd-a1df-af8d003b4efb" 
+    cat <<< "${password}" | base64 -d > "$PULL_SECRET"
 }
