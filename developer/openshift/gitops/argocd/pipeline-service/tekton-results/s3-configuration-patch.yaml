@@ -28,3 +28,39 @@ spec:
             # Set up S3 region
             - name: S3_REGION
               value: us-east-1
+      initContainers:
+        - name: mc
+          image: >-
+            docker.io/minio/mc:RELEASE.2023-01-28T20-29-38Z
+          command:
+            - /bin/bash
+          args:
+            - '-c'
+            - |
+              mc --config-dir /tmp config host add minio "$S3_ENDPOINT" "$S3_ACCESS_KEY_ID" "$S3_SECRET_ACCESS_KEY";
+              if [ -z "$(mc --config-dir /tmp ls minio | grep tekton-results)" ]; then
+                mc --config-dir /tmp mb --with-lock --region "$S3_REGION" minio/"$S3_BUCKET_NAME";
+                echo "Minio bucket $S3_BUCKET_NAME successfully created.";
+              fi
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: ca-s3
+              mountPath: /etc/ssl/certs/s3-cert.crt
+              subPath: s3-cert.crt
+          env:
+            - name: S3_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  key: S3_ACCESS_KEY_ID
+                  name: s3-credentials
+            - name: S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: S3_SECRET_ACCESS_KEY
+                  name: s3-credentials
+            - name: S3_BUCKET_NAME
+              value: tekton-results
+            - name: S3_ENDPOINT
+              value: https://minio.tekton-results.svc.cluster.local
+            - name: S3_REGION
+              value: us-east-1
