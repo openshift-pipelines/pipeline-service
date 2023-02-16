@@ -15,8 +15,8 @@ spec:
       value: "{{ revision }}"
     - name: infra-deployment-update-script
       value: |
-        sed -i -E 's/[0-9a-f]{40}/$(params.revision)/g' components/pipeline-service/development/kustomization.yaml
-        sed -i -E 's/[0-9a-f]{40}/$(params.revision)/g' components/pipeline-service/staging/base/kustomization.yaml
+        sed -i -E 's/[0-9a-f]{40}/{{ revision }}/g' components/pipeline-service/development/kustomization.yaml
+        sed -i -E 's/[0-9a-f]{40}/{{ revision }}/g' components/pipeline-service/staging/base/kustomization.yaml
   pipelineSpec:
     params:
       - description: 'Source Repository URL'
