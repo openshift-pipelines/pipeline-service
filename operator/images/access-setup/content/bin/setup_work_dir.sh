@@ -186,7 +186,7 @@ tekton_results_manifest(){
     fi
 
     kubectl create namespace tekton-results --dry-run=client -o yaml > "$results_namespace"
-    kubectl create secret generic -n tekton-results tekton-results-database \
+    kubectl create secret generic -n tekton-results tekton-results-postgres \
       --from-literal=db.user="$TEKTON_RESULTS_DATABASE_USER" \
       --from-literal=db.password="$TEKTON_RESULTS_DATABASE_PASSWORD" \
       --from-literal=db.host="tekton-results-postgres-service.tekton-results.svc.cluster.local" \
