@@ -38,11 +38,14 @@ patchesJson6902:
         path: "/metadata/annotations"
         value:
           service.beta.openshift.io/serving-cert-secret-name: tekton-results-tls
-  # - target:
-  #     kind: Deployment
-  #     name: tekton-results-api
-  #     namespace: tekton-results
-  #   patch: |-
+  - target:
+      kind: Deployment
+      name: tekton-results-api
+      namespace: tekton-results
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/env/2/value
+        value: tekton-results-postgres-service.tekton-results.svc.cluster.local
   #     - op: remove
   #       path: /spec/template/spec/containers/0/env/3/value
   #     - op: add
