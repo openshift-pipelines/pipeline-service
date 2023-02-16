@@ -65,6 +65,6 @@ patchesJson6902:
       name: tekton-results-watcher
       namespace: tekton-results
     patch: |-
-      - op: replace,
+      - op: replace
         path: /spec/template/spec/containers/0/args/1,
         value: tekton-results-api-service.tekton-results.svc.cluster.local:50051
