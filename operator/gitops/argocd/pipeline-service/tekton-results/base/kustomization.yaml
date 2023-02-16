@@ -1,21 +1,24 @@
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+namespace: tekton-results
 resources:
   - namespace.yaml
-  - permissions.yaml
-  - service-account.yaml
-  - configmap.yaml
   - route.yaml
-  - deployment.yaml
-  - service.yaml
+  - https://github.com/tektoncd/results//config/?ref=76159a71b785cdb8c1db8613ec0a5e569b7118a2
 images:
-  - name: tekton-results-api
-    newName: quay.io/redhat-appstudio/tekton-results-api
-    newTag: 18f7ee98d3f95d58d061a6ccee18fbfffeeae8f7
-  - name: tekton-results-watcher
-    newName: quay.io/redhat-appstudio/tekton-results-watcher
-    newTag: 18f7ee98d3f95d58d061a6ccee18fbfffeeae8f7
+  - name: ko://github.com/tektoncd/results/cmd/api
+    newName: quay.io/redhat-appstudio/pull-request-builds
+    newTag: tekton-results-api-9aa097f142c4b8821af778cf17e70d12ec484f66
+  - name: ko://github.com/tektoncd/results/cmd/watcher
+    newName: quay.io/redhat-appstudio/pull-request-builds
+    newTag: tekton-results-watcher-9aa097f142c4b8821af778cf17e70d12ec484f66
+
+# configMapGenerator:
+#   - name: api-config
+#     namespace: tekton-results
+#     files:
+#       - https://raw.githubusercontent.com/tektoncd/results/76159a71b785cdb8c1db8613ec0a5e569b7118a2/config/env/config
 
 patchesJson6902:
   - target:
@@ -26,3 +29,37 @@ patchesJson6902:
         path: "/metadata/labels"
         value:
           argocd.argoproj.io/managed-by: openshift-gitops
+  - target:
+      kind: Service
+      name: tekton-results-api-service
+      namespace: tekton-results
+    patch: |-
+      - op: add
+        path: "/metadata/annotations"
+        value:
+          service.beta.openshift.io/serving-cert-secret-name: tekton-results-tls
+  - target:
+      kind: Deployment
+      name: tekton-results-api
+      namespace: tekton-results
+    patch: |-
+      - op: remove
+        path: /spec/template/spec/containers/0/env/3/value
+      - op: add
+        path: /spec/template/spec/containers/0/env/3/valueFrom
+        value:
+          secretKeyRef:
+            key: db.name
+            name: tekton-results-postgres
+      - op: add
+        path: /spec/template/spec/containers/0/env/2/valueFrom
+        value:
+          secretKeyRef:
+            key: db.host
+            name: tekton-results-postgres
+      - op: replace
+        path: /spec/template/spec/containers/0/env/1/valueFrom/secretKeyRef/key
+        value: db.password
+      - op: replace
+        path: /spec/template/spec/containers/0/env/0/valueFrom/secretKeyRef/key
+        value: db.user
