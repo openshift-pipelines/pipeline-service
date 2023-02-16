@@ -60,4 +60,11 @@ patchesJson6902:
   #         secretKeyRef:
   #           key: db.host
   #           name: tekton-results-postgres
-
+  - target:
+      kind: Deployment
+      name: tekton-results-watcher
+      namespace: tekton-results
+    patch: |-
+      - op: replace,
+        path: /spec/template/spec/containers/0/args/1,
+        value: tekton-results-api-service.tekton-results.svc.cluster.local:50051
