@@ -66,5 +66,5 @@ patchesJson6902:
       namespace: tekton-results
     patch: |-
       - op: replace
-        path: /spec/template/spec/containers/0/args/1,
+        path: /spec/template/spec/containers/0/args/1
         value: tekton-results-api-service.tekton-results.svc.cluster.local:50051
