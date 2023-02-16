@@ -187,14 +187,12 @@ tekton_results_manifest(){
 
     kubectl create namespace tekton-results --dry-run=client -o yaml > "$results_namespace"
     kubectl create secret generic -n tekton-results tekton-results-postgres \
-      --from-literal=db.user="$TEKTON_RESULTS_DATABASE_USER" \
-      --from-literal=db.password="$TEKTON_RESULTS_DATABASE_PASSWORD" \
-      --from-literal=db.host="tekton-results-postgres-service.tekton-results.svc.cluster.local" \
-      --from-literal=db.name="tekton_results" \
+      --from-literal=POSTGRES_USER="$TEKTON_RESULTS_DATABASE_USER" \
+      --from-literal=POSTGRES_PASSWORD="$TEKTON_RESULTS_DATABASE_PASSWORD" \
       --dry-run=client -o yaml > "$results_secret"
 
     yq e -n '.resources += ["namespace.yaml", "tekton-results-secret.yaml"]' > "$results_kustomize"
-    if [ "$(yq ".data" < "$results_secret" | grep -cE "db.host|db.name|db.user|db.password")" != "4" ]; then
+    if [ "$(yq ".data" < "$results_secret" | grep -cE "POSTGRES_USER|POSTGRES_PASSWORD")" != "2" ]; then
       printf "[ERROR] Invalid manifest: '%s'" "$results_secret" >&2
       exit 1
     fi

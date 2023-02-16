@@ -38,28 +38,23 @@ patchesJson6902:
         path: "/metadata/annotations"
         value:
           service.beta.openshift.io/serving-cert-secret-name: tekton-results-tls
-  - target:
-      kind: Deployment
-      name: tekton-results-api
-      namespace: tekton-results
-    patch: |-
-      - op: remove
-        path: /spec/template/spec/containers/0/env/3/value
-      - op: add
-        path: /spec/template/spec/containers/0/env/3/valueFrom
-        value:
-          secretKeyRef:
-            key: db.name
-            name: tekton-results-postgres
-      - op: add
-        path: /spec/template/spec/containers/0/env/2/valueFrom
-        value:
-          secretKeyRef:
-            key: db.host
-            name: tekton-results-postgres
-      - op: replace
-        path: /spec/template/spec/containers/0/env/1/valueFrom/secretKeyRef/key
-        value: db.password
-      - op: replace
-        path: /spec/template/spec/containers/0/env/0/valueFrom/secretKeyRef/key
-        value: db.user
+  # - target:
+  #     kind: Deployment
+  #     name: tekton-results-api
+  #     namespace: tekton-results
+  #   patch: |-
+  #     - op: remove
+  #       path: /spec/template/spec/containers/0/env/3/value
+  #     - op: add
+  #       path: /spec/template/spec/containers/0/env/3/valueFrom
+  #       value:
+  #         secretKeyRef:
+  #           key: db.name
+  #           name: tekton-results-postgres
+  #     - op: add
+  #       path: /spec/template/spec/containers/0/env/2/valueFrom
+  #       value:
+  #         secretKeyRef:
+  #           key: db.host
+  #           name: tekton-results-postgres
+
