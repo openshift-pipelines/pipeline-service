@@ -62,7 +62,7 @@ parse_args() {
   done
   DEBUG="${DEBUG:-}"
   if [ "${#TEST_LIST[@]}" = "0" ]; then
-    TEST_LIST=( "chains" "pipelines" "results" )
+    TEST_LIST=("chains" "pipelines" "results")
   fi
 }
 
@@ -78,8 +78,9 @@ init() {
 
 setup_test() {
   echo "[Setup]"
-  if ! kubectl get namespace $NAMESPACE > /dev/null 2>&1; then
-    echo -n "  - Create namespace '$NAMESPACE': "
+  echo -n "  - Namespace configuration: "
+  if ! kubectl get namespace $NAMESPACE >/dev/null 2>&1; then
+    echo -n "."
     kubectl create namespace "$NAMESPACE" >/dev/null
   fi
   # Wait for pipelines to set up all the components
@@ -88,6 +89,7 @@ setup_test() {
     sleep 2
   done
   echo "OK"
+  echo
 }
 
 wait_for_pipeline() {
@@ -203,19 +205,27 @@ test_results() {
   # This is required to pass shellcheck due to the single quotes in the GetResult name parameter.
   QUERY="name: \"$NAMESPACE/results/$RESULT_UID\""
 
-  # Proxies the remote Service to localhost.
+  # Proxy the remote service to localhost.
   timeout 10 kubectl port-forward -n tekton-results service/tekton-results-api-service 50051 >/dev/null &
+  sleep 5
 
+  token=$(
+    kubectl get secrets -n "$NAMESPACE" \
+      -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']==\"$RESULTS_SA\")].data.token}" |
+      cut -d ' ' -f 2 |
+      base64 --decode
+  )
   RECORD_CMD=(
     "grpc_cli"
     "call"
     "--channel_creds_type=ssl"
     "--ssl_target=tekton-results-api-service.tekton-results.svc.cluster.local"
-    "--call_creds=access_token=$(kubectl get secrets -n "$NAMESPACE" -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']==\"$RESULTS_SA\")].data.token}" | cut -d ' ' -f 2 | base64 --decode)"
+    "--call_creds=access_token=$token"
     "localhost:50051"
     "tekton.results.v1alpha2.Results.GetResult"
     "$QUERY")
-  RECORD_RESULT=$("${RECORD_CMD[@]}")
+  RECORD_RESULT=$("${RECORD_CMD[@]}" 2>/dev/null)
+  wait
 
   if [[ $RECORD_RESULT == *$RESULT_UID* ]]; then
     echo "OK"

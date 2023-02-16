@@ -6,4 +6,4 @@ set -x
 
 echo "Start executing pipeline cases ..."
 TEST_DIR=$(find "$PWD" -type f -name test.sh -exec dirname {} +)
-"$TEST_DIR/test.sh" --kubeconfig /kubeconfig --test pipelines --test chains
+"$TEST_DIR/test.sh" --kubeconfig /kubeconfig
