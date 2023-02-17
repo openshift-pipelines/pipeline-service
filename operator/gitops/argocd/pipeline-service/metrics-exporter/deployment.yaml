@@ -17,14 +17,14 @@ spec:
       serviceAccountName: pipeline-service-exporter
       containers:
         - name: pipeline-metrics-exporter
-          image: quay.io/redhat-pipeline-service/metrics-exporter:f008a14
+          image: quay.io/redhat-pipeline-service/metrics-exporter:45db641
           ports:
             - containerPort: 9117
           resources:
             requests:
-              memory: "64Mi"
-              cpu: "100m"
-            limits:
               memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "256Mi"
               cpu: "500m"
       restartPolicy: Always
