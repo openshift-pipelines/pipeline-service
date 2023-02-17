@@ -209,12 +209,9 @@ test_results() {
   timeout 10 kubectl port-forward -n tekton-results service/tekton-results-api-service 50051 >/dev/null &
   sleep 5
 
-  token=$(
-    kubectl get secrets -n "$NAMESPACE" \
-      -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']==\"$RESULTS_SA\")].data.token}" |
-      cut -d ' ' -f 2 |
-      base64 --decode
-  )
+  # create a token associated with a service account
+  token=$(kubectl create token "$RESULTS_SA" -n "$NAMESPACE")
+
   RECORD_CMD=(
     "grpc_cli"
     "call"

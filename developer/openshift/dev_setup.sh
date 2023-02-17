@@ -276,8 +276,7 @@ install_pipeline_service() {
     indent 2
 
   echo "- Installing local postgres DB for tekton results:"
-  kubectl apply -f developer/local/postgres | indent 4
-
+  kubectl apply -f "$PROJECT_DIR/developer/local/postgres" | indent 4
 
   echo "- Deploy applications:"
   if [ -n "${USE_CURRENT_BRANCH:-}" ]; then
