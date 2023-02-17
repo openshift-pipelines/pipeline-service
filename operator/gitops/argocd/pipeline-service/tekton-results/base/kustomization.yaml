@@ -12,10 +12,10 @@ resources:
 images:
   - name: tekton-results-api
     newName: quay.io/redhat-appstudio/tekton-results-api
-    newTag: fb5c88884c7793935338869b508dc8d5c766823c
+    newTag: 9a1f0cb73f3f3013a7f3770c78f715f5c337772c
   - name: tekton-results-watcher
     newName: quay.io/redhat-appstudio/tekton-results-watcher
-    newTag: fb5c88884c7793935338869b508dc8d5c766823c
+    newTag: 9a1f0cb73f3f3013a7f3770c78f715f5c337772c
 
 patchesJson6902:
   - target:
