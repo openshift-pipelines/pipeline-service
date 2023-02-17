@@ -1,21 +1,19 @@
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+namespace: tekton-results
 resources:
   - namespace.yaml
-  - permissions.yaml
-  - service-account.yaml
-  - configmap.yaml
   - route.yaml
-  - deployment.yaml
-  - service.yaml
+  - https://github.com/openshift-pipelines/tektoncd-results//config/?ref=9a1f0cb73f3f3013a7f3770c78f715f5c337772c
+
 images:
-  - name: tekton-results-api
+  - name: ko://github.com/tektoncd/results/cmd/api
     newName: quay.io/redhat-appstudio/tekton-results-api
-    newTag: fb5c88884c7793935338869b508dc8d5c766823c
-  - name: tekton-results-watcher
+    newTag: 9a1f0cb73f3f3013a7f3770c78f715f5c337772c
+  - name: ko://github.com/tektoncd/results/cmd/watcher
     newName: quay.io/redhat-appstudio/tekton-results-watcher
-    newTag: fb5c88884c7793935338869b508dc8d5c766823c
+    newTag: 9a1f0cb73f3f3013a7f3770c78f715f5c337772c
 
 patchesJson6902:
   - target:
@@ -26,3 +24,80 @@ patchesJson6902:
         path: "/metadata/labels"
         value:
           argocd.argoproj.io/managed-by: openshift-gitops
+  - target:
+      kind: Service
+      name: tekton-results-api-service
+      namespace: tekton-results
+    patch: |-
+      - op: add
+        path: "/metadata/annotations"
+        value:
+          service.beta.openshift.io/serving-cert-secret-name: tekton-results-tls
+  # the secret provided by stonesoup has data fields in the the form of db.*, patch the env passed to the api to match the fields
+  # remove default values for database env since all the values are provided by the secret.
+  - target:
+      kind: Deployment
+      name: tekton-results-api
+      namespace: tekton-results
+    patch: |-
+      - op: remove
+        path: /spec/template/spec/containers/0/env/3/value
+      - op: add
+        path: /spec/template/spec/containers/0/env/3/valueFrom
+        value:
+          secretKeyRef:
+            key: db.name
+            name: tekton-results-database
+      - op: remove
+        path: /spec/template/spec/containers/0/env/2/value
+      - op: add
+        path: /spec/template/spec/containers/0/env/2/valueFrom
+        value:
+          secretKeyRef:
+            key: db.host
+            name: tekton-results-database
+      - op: replace
+        path: /spec/template/spec/containers/0/env/1/valueFrom/secretKeyRef/key
+        value: db.password
+      - op: replace
+        path: /spec/template/spec/containers/0/env/1/valueFrom/secretKeyRef/name
+        value: tekton-results-database
+      - op: replace
+        path: /spec/template/spec/containers/0/env/0/valueFrom/secretKeyRef/key
+        value: db.user
+      - op: replace
+        path: /spec/template/spec/containers/0/env/0/valueFrom/secretKeyRef/name
+        value: tekton-results-database
+  # we are using the tekton-results namespace, so patch the arguments to watcher
+  - target:
+      kind: Deployment
+      name: tekton-results-watcher
+      namespace: tekton-results
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/args/1
+        value: tekton-results-api-service.tekton-results.svc.cluster.local:50051
+
+patchesStrategicMerge:
+  # Remove the local database deployment for staging, for local testing manifests are in developer/local/postgres
+  - |-
+    apiVersion: apps/v1
+    kind: StatefulSet
+    metadata:
+      name: postgres
+      namespace: tekton-pipelines
+    $patch: delete
+  - |-
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: postgres-service
+      namespace: tekton-pipelines
+    $patch: delete
+  - |-
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: postgres
+      namespace: tekton-pipelines
+    $patch: delete
