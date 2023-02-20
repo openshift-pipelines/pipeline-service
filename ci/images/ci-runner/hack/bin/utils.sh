@@ -86,3 +86,67 @@ get_pull_secret() {
     get_password "97960272-52cd-43bd-a1df-af8d003b4efb" 
     cat <<< "${password}" | base64 -d > "$PULL_SECRET"
 }
+
+get_github_user() {
+    get_password "49988640-d47c-4cac-861e-afaa00721e18"
+    setx_off
+    GITHUB_USER="${password}"
+    export GITHUB_USER
+    setx_on
+}
+
+get_github_token() {
+    get_password "5c9597fb-083c-4321-9452-afaa00760c99"
+    setx_off
+    GITHUB_TOKEN="${password}"
+    export GITHUB_TOKEN
+    setx_on
+}
+
+get_quay_token() {
+    get_password "50c61ee9-82ad-4316-95fd-afaa0076a17d"
+    setx_off
+    QUAY_TOKEN="${password}"
+    export QUAY_TOKEN
+    setx_on
+}
+
+get_quay_oauth_user() {
+    get_password "fee70791-4bdc-4ddf-bd78-afaa0076fb6a"
+    setx_off
+    QUAY_OAUTH_USER="${password}"
+    export QUAY_OAUTH_USER
+    setx_on
+}
+
+get_quay_oauth_token() {
+    get_password "7c494bb5-75ec-4b80-8085-afaa00774d83"
+    setx_off
+    QUAY_OAUTH_TOKEN="${password}"
+    export QUAY_OAUTH_TOKEN
+    setx_on
+}
+
+get_quay_oauth_token_release_source() {
+    get_password "28b147c0-2988-4d7d-b359-afaa0077e626"
+    setx_off
+    QUAY_OAUTH_TOKEN_RELEASE_SOURCE="${password}"
+    export QUAY_OAUTH_TOKEN_RELEASE_SOURCE
+    setx_on
+}
+
+get_quay_oauth_token_release_destination() {
+    get_password "0e8b59e3-6ac2-47d6-98a4-afaa00782b9c"
+    setx_off
+    QUAY_OAUTH_TOKEN_RELEASE_DESTINATION="${password}"
+    export QUAY_OAUTH_TOKEN_RELEASE_DESTINATION
+    setx_on
+}
+
+get_github_accounts() {
+    get_password "bb32321b-601c-4c92-8605-afc40050d9e4"
+    setx_off
+    IFS=',' read -r -a GITHUB_ACCOUNTS_ARRAY <<< "${password}" 
+    export GITHUB_ACCOUNTS_ARRAY
+    setx_on
+}

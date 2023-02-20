@@ -148,10 +148,7 @@ install_checkov() {
 install_go() {
     curl "${CURL_OPTS[@]}" -o "$TMPDIR/go.tgz" "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz"
     tar -C /usr/local -xzf "$TMPDIR/go.tgz"
-    PATH="$PATH:/usr/local/go/bin"
-    echo "export PATH=$PATH" >"/etc/profile"
-    # shellcheck disable=SC1091
-    source "/etc/profile"
+    ln -s /usr/local/go/bin/go /usr/bin/go
     go version
 }
 
