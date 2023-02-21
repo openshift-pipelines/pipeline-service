@@ -183,7 +183,7 @@ test_pipelines() {
 
 test_results() {
   test_pipelines
-  echo -n "  - Results in database: "
+  echo -n "  - Results in database:"
 
   # Service Account to test tekton-results
   if ! kubectl get serviceaccount "$RESULTS_SA" -n "$NAMESPACE" >/dev/null 2>&1; then
@@ -196,41 +196,43 @@ test_results() {
     echo -n "."
   fi
 
-  # download the API Server certificate locally and configure gRPC.
-  kubectl get secrets tekton-results-tls -n tekton-results --template='{{index .data "tls.crt"}}' | base64 -d >/tmp/results.crt
-  export GRPC_DEFAULT_SSL_ROOTS_FILE_PATH=/tmp/results.crt
-
   RESULT_UID=$(kubectl get "$pipeline_name" -n "$NAMESPACE" -o yaml | yq .metadata.uid)
-
-  # This is required to pass shellcheck due to the single quotes in the GetResult name parameter.
-  QUERY="name: \"$NAMESPACE/results/$RESULT_UID\""
-
-  # Proxy the remote service to localhost.
-  timeout 10 kubectl port-forward -n tekton-results service/tekton-results-api-service 50051 >/dev/null &
-  sleep 5
 
   # create a token associated with a service account
   token=$(kubectl create token "$RESULTS_SA" -n "$NAMESPACE")
 
-  RECORD_CMD=(
-    "grpc_cli"
-    "call"
-    "--channel_creds_type=ssl"
-    "--ssl_target=tekton-results-api-service.tekton-results.svc.cluster.local"
-    "--call_creds=access_token=$token"
-    "localhost:50051"
-    "tekton.results.v1alpha2.Results.GetResult"
-    "$QUERY")
-  RECORD_RESULT=$("${RECORD_CMD[@]}" 2>/dev/null)
-  wait
+  fetch_results_using_rest() {
+    echo -n "    - Test $1: "
+    # use exposed route for querying results API
+    RESULT_ROUTE=$(kubectl get route tekton-results -n tekton-results --template='{{.spec.host}}')
+    QUERY_URL="https://$RESULT_ROUTE/apis/results.tekton.dev/v1alpha2/parents/$NAMESPACE/results/$RESULT_UID/$1"
 
-  if [[ $RECORD_RESULT == *$RESULT_UID* ]]; then
-    echo "OK"
-  else
-    echo "Failed"
-    echo "[ERROR] Unable to retrieve record $RESULT_UID from pipeline run $pipeline_name" >&2
-    exit 1
-  fi
+    QUERY_CMD=(
+      "curl"
+      "--insecure"
+      "-H"
+      "Authorization: Bearer $token"
+      "-H"
+      "Accept: application/json"
+      "$QUERY_URL"
+    )
+    QUERY_RESULT=$("${QUERY_CMD[@]}" 2>/dev/null)
+    wait
+
+    # we are not interested in the content of the logs or records so just checking if the query result contains certain string (uid/type) 
+    if [[ $QUERY_RESULT == *"$RESULT_UID/$1"* ]]; then
+      echo "OK"
+    else
+      echo "Failed"
+      echo "[ERROR] Unable to retrieve $1 for $RESULT_UID from pipeline run $pipeline_name" >&2
+      exit 1
+    fi
+  }
+
+  echo
+  # test both "records" and "logs" endpoints 
+  fetch_results_using_rest "records"
+  fetch_results_using_rest "logs"
   echo
 }
 

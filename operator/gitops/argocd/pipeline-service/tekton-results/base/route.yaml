@@ -14,7 +14,8 @@ spec:
     name: tekton-results-api-service
     weight: 100
   port:
-    targetPort: grpc
+    # only use REST endpoints for external access
+    targetPort: rest
   tls:
     termination: reencrypt
     insecureEdgeTerminationPolicy: Redirect

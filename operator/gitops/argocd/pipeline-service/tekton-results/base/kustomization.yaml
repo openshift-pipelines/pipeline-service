@@ -15,6 +15,16 @@ images:
     newName: quay.io/redhat-appstudio/tekton-results-watcher
     newTag: 9a1f0cb73f3f3013a7f3770c78f715f5c337772c
 
+# generate a new configmap with updated values (logs api, db ssl mode) and replace the default one
+configMapGenerator:
+  - name: api-config
+    namespace: tekton-pipelines
+    files:
+      - env/config
+    options:
+      disableNameSuffixHash: true
+    behavior: replace
+
 patchesJson6902:
   - target:
       kind: Namespace
@@ -77,6 +87,8 @@ patchesJson6902:
       - op: replace
         path: /spec/template/spec/containers/0/args/1
         value: tekton-results-api-service.tekton-results.svc.cluster.local:50051
+      - op: remove
+        path: /spec/template/spec/containers/0/securityContext/capabilities/add
 
 patchesStrategicMerge:
   # Remove the local database deployment for staging, for local testing manifests are in developer/local/postgres
