@@ -155,27 +155,6 @@ install_go() {
     go version
 }
 
-install_grpc_cli() {
-    # Build from code
-    git clone https://github.com/grpc/grpc.git
-    cd grpc
-    git checkout "${GRPC_CLI_VERSION}"
-    git submodule update --init
-    mkdir -p cmake/build
-    cd cmake/build
-    cmake -DgRPC_BUILD_TESTS=ON ../..
-    make -s grpc_cli
-    mv "grpc_cli" "$TMPBIN"
-
-    move_bin
-    if [[ "$(grpc_cli help 2>&1)" == *"command not found"* ]]; then
-        echo "[ERROR] Could not find grpc_cli" >&2
-        exit 1
-    else
-        echo "grpc_cli $GRPC_CLI_VERSION installed"
-    fi
-}
-
 install_hypershift() {
     # Build from code
     git clone https://github.com/openshift/hypershift.git

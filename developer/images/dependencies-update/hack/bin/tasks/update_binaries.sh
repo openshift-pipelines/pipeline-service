@@ -72,10 +72,6 @@ get_go_version() {
     )
 }
 
-get_grpc_cli_version() {
-    get_github_release "https://github.com/grpc/grpc.git"
-}
-
 get_hadolint_version() {
     get_github_release "https://github.com/hadolint/hadolint"
 }
