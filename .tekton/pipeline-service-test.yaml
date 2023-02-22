@@ -245,10 +245,10 @@ spec:
               env:
                 - name: KUBECONFIG
                   value: "$(workspaces.kubeconfig-dir.path)/kubeconfig"
-                - name: REPO_URL
-                  value: $(params.repo_url)
-                - name: REPO_REVISION
-                  value: $(params.revision)
+                # - name: REPO_URL
+                #   value: $(params.repo_url)
+                # - name: REPO_REVISION
+                #   value: $(params.revision)
               command:
                 - $(workspaces.source.path)/ci/images/ci-runner/hack/bin/run-plnsvc-setup.sh
       - name: tests

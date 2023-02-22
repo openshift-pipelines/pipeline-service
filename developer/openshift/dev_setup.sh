@@ -236,6 +236,15 @@ install_minio() {
   echo "OK"
 
   echo -n "- Installing minio: "
+  if [ -n "${USE_CURRENT_BRANCH:-}" ]; then
+    echo -n "  - Source: "
+    repo_url="$(git remote get-url origin | sed "s|git@github.com:|https://github.com/|")"
+    branch="$(git branch --show-current)"
+    # In the case of a PR, there's no branch, so use the revision instead
+    branch="${branch:-$(git rev-parse HEAD)}"
+    yq -i ".spec.source.repoURL=\"$repo_url\" | .spec.source.targetRevision=\"$branch\"" "$DEV_DIR/gitops/argocd/$APP/application.yaml"
+    echo "$(echo "$repo_url" | sed "s:\.git$::")/tree/$branch"
+  fi
   kubectl apply -f "$DEV_DIR/gitops/argocd/$APP/application.yaml" >/dev/null
   echo "OK"
 
