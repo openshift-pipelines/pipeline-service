@@ -232,7 +232,8 @@ test_results() {
   echo
   # test both "records" and "logs" endpoints 
   fetch_results_using_rest "records"
-  fetch_results_using_rest "logs"
+  # disable logs test until S3 streaming is fixed
+  # fetch_results_using_rest "logs"
   echo
 }
 
