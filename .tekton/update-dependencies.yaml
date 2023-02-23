@@ -21,12 +21,15 @@ spec:
       value: "{{ repo_url }}"
     - name: source_branch
       value: "{{ source_branch }}"
+    - name: target_branch
+      value: "{{ target_branch }}"
   pipelineSpec:
     params:
       - name: repo_name
       - name: repo_owner
       - name: repo_url
       - name: source_branch
+      - name: target_branch
     workspaces:
       - name: source
     tasks:
@@ -53,12 +56,15 @@ spec:
         params:
           - name: source_branch
             value: $(params.source_branch)
+          - name: target_branch
+            value: $(params.target_branch)
         taskSpec:
           params:
             - name: source_branch
+            - name: target_branch
           steps:
             - name: setup-local-repository
-              image: quay.io/redhat-pipeline-service/dependencies-update:$(params.source_branch)
+              image: quay.io/redhat-pipeline-service/dependencies-update:$(params.target_branch)
               imagePullPolicy: Always
               workingDir: $(workspaces.source.path)
               command:
@@ -75,6 +81,8 @@ spec:
           - name: source
             workspace: source
         params:
+          - name: commit_branch
+            value: "robot/$(params.source_branch)/update_dockerfiles"
           - name: repo_name
             value: $(params.repo_name)
           - name: repo_owner
@@ -82,9 +90,10 @@ spec:
           - name: source_branch
             value: $(params.source_branch)
           - name: target_branch
-            value: "robot/$(params.source_branch)/update_dockerfiles"
+            value: $(params.target_branch)
         taskSpec:
           params:
+            - name: commit_branch
             - name: repo_name
             - name: repo_owner
             - name: source_branch
@@ -95,19 +104,19 @@ spec:
               type: string
           steps:
             - name: update-dockerfiles
-              image: quay.io/redhat-pipeline-service/dependencies-update:$(params.source_branch)
+              image: quay.io/redhat-pipeline-service/dependencies-update:$(params.target_branch)
               imagePullPolicy: Always
               workingDir: $(workspaces.source.path)
               command:
                 - ./developer/images/dependencies-update/hack/bin/update.sh
                 - --commit_to
-                - "$(params.target_branch)"
+                - "$(params.commit_branch)"
                 - --task
                 - update_dockerfiles_base_images_sha
                 - --workspace_dir
                 - $(workspaces.source.path)
             - name: is-pr-skipped
-              image: quay.io/redhat-pipeline-service/dependencies-update:$(params.source_branch)
+              image: quay.io/redhat-pipeline-service/dependencies-update:$(params.target_branch)
               imagePullPolicy: Always
               env:
                 - name: GITHUB_TOKEN
@@ -157,6 +166,8 @@ spec:
           - name: source
             workspace: source
         params:
+          - name: commit_branch
+            value: "robot/$(params.source_branch)/update_binaries"
           - name: repo_name
             value: $(params.repo_name)
           - name: repo_owner
@@ -164,7 +175,7 @@ spec:
           - name: source_branch
             value: $(params.source_branch)
           - name: target_branch
-            value: "robot/$(params.source_branch)/update_binaries"
+            value: $(params.target_branch)
         taskSpec:
           params:
             - name: repo_name
@@ -177,19 +188,19 @@ spec:
               type: string
           steps:
             - name: update-binaries
-              image: quay.io/redhat-pipeline-service/dependencies-update:$(params.source_branch)
+              image: quay.io/redhat-pipeline-service/dependencies-update:$(params.target_branch)
               imagePullPolicy: Always
               workingDir: $(workspaces.source.path)
               command:
                 - ./developer/images/dependencies-update/hack/bin/update.sh
                 - --commit_to
-                - "$(params.target_branch)"
+                - "$(params.commit_branch)"
                 - --task
                 - update_binaries
                 - --workspace_dir
                 - $(workspaces.source.path)
             - name: is-pr-skipped
-              image: quay.io/redhat-pipeline-service/dependencies-update:$(params.source_branch)
+              image: quay.io/redhat-pipeline-service/dependencies-update:$(params.target_branch)
               imagePullPolicy: Always
               env:
                 - name: GITHUB_TOKEN
