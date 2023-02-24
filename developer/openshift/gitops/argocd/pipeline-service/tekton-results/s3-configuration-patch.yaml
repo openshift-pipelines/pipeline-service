@@ -14,7 +14,7 @@ spec:
             - name: LOGS_API
               value: "true"
             # Set up log type "S3"
-            - name: LOG_TYPE
+            - name: LOGS_TYPE
               value: S3
             # Set up S3 bucket name, where will be stored logs
             - name: S3_BUCKET_NAME
