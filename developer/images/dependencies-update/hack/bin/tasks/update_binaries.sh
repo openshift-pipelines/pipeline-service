@@ -29,7 +29,7 @@ run_task() {
     DEPENDENCIES="$WORKSPACE_DIR/shared/config/dependencies.sh"
     echo "Update binaries" >"$COMMIT_MSG"
     mapfile -t BINARIES < <(
-        grep --extended-regexp "[A-Z]*_VERSION=" "$DEPENDENCIES" \
+        grep --extended-regexp "^ *[^#]* *[A-Z]*_VERSION=" "$DEPENDENCIES" \
             | sed "s:export *\(.*\)_VERSION=.*:\1:" \
             | tr "[:upper:]" "[:lower:]" \
             | sort
@@ -45,7 +45,12 @@ run_task() {
 }
 
 update_binary() {
+    if grep --ignore-case --quiet " ${BINARY}_VERSION=.*# *Freeze" "$DEPENDENCIES"; then
+        # Ignore frozen dependencies
+        return
+    fi
     echo "$BINARY"
+    unset VERSION
     "get_${BINARY}_version"
     BINARY=$(echo "$BINARY" | tr "[:lower:]" "[:upper:]")
     sed -i -e "s:\( ${BINARY}_VERSION\)=.*:\1=\"$VERSION\":" "$DEPENDENCIES"
@@ -77,12 +82,8 @@ get_hadolint_version() {
 }
 
 get_hypershift_version() {
-    # shellcheck source=shared/config/dependencies.sh
-    source "$DEPENDENCIES"
-    if [ "$HYPERSHIFT_VERSION" != "main" ]; then
-        echo "Not implemented"
-        exit 1
-    fi
+    echo "[ERROR] Not implemented: get_hypershift_version"
+    exit 1
 }
 
 get_jq_version() {
