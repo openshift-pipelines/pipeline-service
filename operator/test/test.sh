@@ -231,6 +231,7 @@ test_results() {
 
   echo
   # test both "records" and "logs" endpoints 
+  sleep 10
   fetch_results_using_rest "records"
   fetch_results_using_rest "logs"
   echo
