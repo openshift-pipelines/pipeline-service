@@ -21,7 +21,7 @@ fetch_bitwarden_secrets() {
 
 deploy_cluster() {
     setx_off
-    hypershift create cluster aws --pull-secret "$PULL_SECRET" --aws-creds "$AWS_CREDENTIALS"  --name "$CLUSTER_NAME"  --node-pool-replicas=2  --base-domain "$BASE_DOMAIN"  --region="$REGION" --release-image="$IMAGE" --root-volume-type=gp3 --root-volume-size=60 --instance-type=m5.xlarge
+    hypershift create cluster aws --pull-secret "$PULL_SECRET" --aws-creds "$AWS_CREDENTIALS"  --name "$CLUSTER_NAME"  --node-pool-replicas=2  --base-domain "$BASE_DOMAIN"  --region="$REGION" --release-image="$IMAGE" --root-volume-type=gp3 --root-volume-size=60 --instance-type=m5.2xlarge
     setx_on
 
     echo "Wait until hypershift hosted cluster is ready..."
