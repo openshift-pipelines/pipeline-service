@@ -1,5 +1,5 @@
 #@FROM registry.access.redhat.com/ubi9/ubi-minimal
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:085c5049f5bd0b3cb33c322306a528373f79dc6f1098ff8f5a5b28f2685c53f8 AS hypershift
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:61925d31338b7b41bfd5b6b8cf45eaf80753d415b0269fc03613c5c5049b879e AS hypershift
 RUN set -x \
     && microdnf install -y \
         cmake-3.20.2 \
@@ -11,7 +11,7 @@ COPY shared /tmp/image-build/shared
 RUN /tmp/image-build/shared/hack/install.sh --debug --bin go,hypershift
 
 #@FROM registry.access.redhat.com/ubi9/ubi-minimal
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:085c5049f5bd0b3cb33c322306a528373f79dc6f1098ff8f5a5b28f2685c53f8
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:61925d31338b7b41bfd5b6b8cf45eaf80753d415b0269fc03613c5c5049b879e
 RUN set -x \
     && mkdir ~/.kube \
     && mkdir -p /tmp/image-build \
