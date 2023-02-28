@@ -5,7 +5,7 @@
 #       export FOOBAR_VERSION="1.2.3"  # Freeze
 export ARGOCD_VERSION="v2.6.3"
 export BITWARDEN_VERSION="v2023.2.0"
-export CHECKOV_VERSION="2.3.49"
+export CHECKOV_VERSION="2.3.50"
 export GO_VERSION="1.20.1"
 export HADOLINT_VERSION="v2.12.0"
 export HYPERSHIFT_VERSION="main"  # Freeze
