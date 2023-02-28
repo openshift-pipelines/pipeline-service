@@ -140,7 +140,7 @@ build_image() {
     context="$PROJECT_DIR"
     ;;
   esac
-  $CONTAINER_ENGINE build --file "$image_dir/Dockerfile" --tag "$image_name:$TAG" "$context"
+  $CONTAINER_ENGINE build --file "$image_dir/Dockerfile" --pull --tag "$image_name:$TAG" "$context"
   echo
 }
 
