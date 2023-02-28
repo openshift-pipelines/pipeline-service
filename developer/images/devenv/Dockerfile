@@ -9,7 +9,7 @@ RUN set -x \
         openssl-3.0.5 \
         procps-ng-3.3.17 \
         # python3-devl is needed when installing checkov's dependencies
-        python3-devel-3.11.1 \
+        python3-devel-3.11.2 \
         python3-pip-22.2.2 \
         unzip-6.0 \
         which-2.21 \
