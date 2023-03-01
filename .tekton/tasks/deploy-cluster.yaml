@@ -1,0 +1,50 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: deploy-cluster
+spec:
+  params:
+    - name: image
+      description: choose the ocp image as per your ocp cluster version requirement
+    - name: region
+      description: aws region for cluster deployment
+    - name: cluster-name
+    - name: target_branch
+  workspaces:
+    - name: kubeconfig-dir
+    - name: source
+      description: The kubeconfig of new cluster will be stored onto the volume backing this Workspace
+    - name: output
+  steps:
+    - name: install-cluster
+      image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
+      imagePullPolicy: Always
+      env:
+        - name: KUBECONFIG
+          value: "$(workspaces.kubeconfig-dir.path)/kubeconfig"
+        - name: CLUSTER_NAME
+          value: "$(params.cluster-name)"
+        - name: WORKSPACE
+          value: "$(workspaces.output.path)"
+        - name: REGION
+          value: "$(params.region)"
+        - name: IMAGE
+          value: "$(params.image)"
+        - name: BW_CLIENTID
+          valueFrom:
+            secretKeyRef:
+              name: hypershift-bitwarden
+              key: "BW_CLIENTID"
+        - name: BW_CLIENTSECRET
+          valueFrom:
+            secretKeyRef:
+              name: hypershift-bitwarden
+              key: "BW_CLIENTSECRET"
+        - name: BW_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: hypershift-bitwarden
+              key: "BW_PASSWORD"
+      command:
+        - $(workspaces.source.path)/ci/images/ci-runner/hack/bin/deploy-cluster.sh

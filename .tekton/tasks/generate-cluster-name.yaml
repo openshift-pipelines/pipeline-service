@@ -1,0 +1,20 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: generate-cluster-name
+spec:
+  results:
+    - name: cluster-name
+      description: Openshift cluster name
+  steps:
+    - name: cluster-name
+      image: registry.access.redhat.com/ubi9/openssl:9.1-2
+      script: |
+        #!/usr/bin/env bash
+        set -o errexit
+        set -o nounset
+        set -o pipefail
+        set -x
+        CLUSTER_NAME="ci-$( openssl rand -hex 5 )"
+        echo -n "$CLUSTER_NAME" | tee $(results.cluster-name.path)
