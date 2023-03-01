@@ -268,11 +268,17 @@ install_pipeline_service() {
   export TEKTON_RESULTS_DATABASE_USER
   export TEKTON_RESULTS_DATABASE_PASSWORD
 
+  if [ -n "${USE_CURRENT_BRANCH:-}" ]; then
+    kustomization_dir="$PROJECT_DIR/developer/gitops/argocd"
+  else
+    kustomization_dir="$GIT_URL/developer/gitops/argocd?ref=$GIT_REF"
+  fi
+
   echo "- Setup working directory:"
   "$PROJECT_DIR/operator/images/access-setup/content/bin/setup_work_dir.sh" \
     ${DEBUG:+"$DEBUG"} \
     --work-dir "$WORK_DIR" \
-    --kustomization "git::$GIT_URL/developer/gitops/argocd?ref=$GIT_REF" |
+    --kustomization "$kustomization_dir" |
     indent 2
 
   echo "- Installing local postgres DB for tekton results:"
