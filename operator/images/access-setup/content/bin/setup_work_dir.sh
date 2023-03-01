@@ -174,28 +174,45 @@ tekton_chains_manifest(){
 tekton_results_manifest(){
   results_kustomize="$manifests_dir/compute/tekton-results/kustomization.yaml"
   results_namespace="$manifests_dir/compute/tekton-results/namespace.yaml"
-  results_secret="$manifests_dir/compute/tekton-results/tekton-results-secret.yaml"
+  results_db_secret="$manifests_dir/compute/tekton-results/tekton-results-db-secret.yaml"
+  results_s3_secret="$manifests_dir/compute/tekton-results/tekton-results-s3-secret.yaml"
   if [ ! -e "$results_kustomize" ]; then
     results_dir="$(dirname "$results_kustomize")"
     mkdir -p "$results_dir"
     if [[ -z $TEKTON_RESULTS_DATABASE_USER || -z $TEKTON_RESULTS_DATABASE_PASSWORD ]]; then
-      printf "[ERROR] Tekton results database variable is not set, either set the variables using \n \
+      printf "[ERROR] Tekton results database credentials are not set, either set the env variables using \n \
       the config.yaml under tekton_results_db \n \
-      Or create '%s' \n" "$results_secret" >&2
+      Or create '%s' \n" "$results_db_secret" >&2
+      exit 1
+    fi
+    if [[ -z $TEKTON_RESULTS_S3_USER || -z $TEKTON_RESULTS_S3_PASSWORD ]]; then
+      printf "[ERROR] Tekton results s3 credentials are not set, either set the variables using \n \
+      the config.yaml under tekton_results_s3 \n \
+      Or create '%s' \n" "$results_s3_secret" >&2
       exit 1
     fi
 
     kubectl create namespace tekton-results --dry-run=client -o yaml > "$results_namespace"
+
     kubectl create secret generic -n tekton-results tekton-results-database \
       --from-literal=db.user="$TEKTON_RESULTS_DATABASE_USER" \
       --from-literal=db.password="$TEKTON_RESULTS_DATABASE_PASSWORD" \
       --from-literal=db.host="tekton-results-database-service.tekton-results.svc.cluster.local" \
       --from-literal=db.name="tekton_results" \
-      --dry-run=client -o yaml > "$results_secret"
+      --dry-run=client -o yaml > "$results_db_secret"
 
-    yq e -n '.resources += ["namespace.yaml", "tekton-results-secret.yaml"]' > "$results_kustomize"
-    if [ "$(yq ".data" < "$results_secret" | grep -cE "db.host|db.name|db.user|db.password")" != "4" ]; then
-      printf "[ERROR] Invalid manifest: '%s'" "$results_secret" >&2
+    kubectl create secret generic -n tekton-results tekton-results-s3 \
+    --from-literal=S3_ACCESS_KEY_ID="$TEKTON_RESULTS_S3_USER" \
+    --from-literal=S3_SECRET_ACCESS_KEY="$TEKTON_RESULTS_S3_PASSWORD" \
+    -n tekton-results --dry-run=client -o yaml > "$results_s3_secret"
+
+    yq e -n '.resources += ["namespace.yaml", "tekton-results-secret.yaml", "tekton_results_s3.yaml"]' > "$results_kustomize"
+    if [ "$(yq ".data" < "$results_db_secret" | grep -cE "db.host|db.name|db.user|db.password")" != "4" ]; then
+      printf "[ERROR] Invalid manifest: '%s'" "$results_db_secret" >&2
+      exit 1
+    fi
+    if [ "$(yq ".data" < "$results_s3_secret" | grep -cE "S3_ACCESS_KEY_ID|S3_SECRET_ACCESS_KEY")" != "2" ]; then
+      printf "[ERROR] Invalid manifest: '%s'" "$results_s3_secret" >&2
       exit 1
     fi
   fi
