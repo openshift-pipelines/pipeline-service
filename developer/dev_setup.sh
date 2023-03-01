@@ -8,7 +8,7 @@ DEV_DIR="$(
   pwd
 )"
 PROJECT_DIR="$(
-  cd "$DEV_DIR/../.." >/dev/null || exit 1
+  cd "$DEV_DIR/.." >/dev/null || exit 1
   pwd
 )"
 
@@ -16,7 +16,7 @@ PROJECT_DIR="$(
 source "$PROJECT_DIR/operator/images/cluster-setup/content/bin/utils.sh"
 
 GITOPS_DIR="$PROJECT_DIR/operator/gitops"
-CONFIG="$DEV_DIR/../config.yaml"
+CONFIG="$DEV_DIR/config.yaml"
 
 KUBECONFIG=${KUBECONFIG:-$HOME/.kube/config}
 
@@ -272,11 +272,11 @@ install_pipeline_service() {
   "$PROJECT_DIR/operator/images/access-setup/content/bin/setup_work_dir.sh" \
     ${DEBUG:+"$DEBUG"} \
     --work-dir "$WORK_DIR" \
-    --kustomization "git::$GIT_URL/developer/openshift/gitops/argocd?ref=$GIT_REF" |
+    --kustomization "git::$GIT_URL/developer/gitops/argocd?ref=$GIT_REF" |
     indent 2
 
   echo "- Installing local postgres DB for tekton results:"
-  kubectl apply -f "$PROJECT_DIR/developer/local/postgres" | indent 4
+  kubectl apply -f "$DEV_DIR/gitops/argocd/postgres" | indent 4
 
   echo "- Deploy applications:"
   if [ -n "${USE_CURRENT_BRANCH:-}" ]; then
