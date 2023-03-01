@@ -2,14 +2,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: pipeline-service
+  name: minio
   namespace: openshift-gitops
 spec:
   destination:
     namespace: openshift-gitops
     server: https://kubernetes.default.svc
   source:
-    path: developer/gitops/argocd/pipeline-service
+    path: developer/openshift/gitops/argocd/minio
     repoURL: https://github.com/openshift-pipelines/pipeline-service.git
     targetRevision: main
   project: default
@@ -22,6 +22,8 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      # workaround to make working both minio: newer and old 4.5.4
+      - Validate=false
     retry:
       limit: -1 # number of failed sync attempt retries; unlimited number of attempts if less than 0
       backoff:

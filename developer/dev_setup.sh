@@ -195,12 +195,14 @@ install_openshift_gitops() {
   fi
 }
 
-install_minio() {
-  local APP="minio"
+install_pipeline_service_storage() {
+  local APP="pipeline-service-storage"
 
-  #############################################################################
-  # Install the minio operator
-  #############################################################################
+  TEKTON_RESULTS_DATABASE_USER="$(yq '.tekton_results_db.user' "$CONFIG")"
+  TEKTON_RESULTS_DATABASE_PASSWORD="$(yq '.tekton_results_db.password' "$CONFIG")"
+  export TEKTON_RESULTS_DATABASE_USER
+  export TEKTON_RESULTS_DATABASE_PASSWORD
+
 
   echo -n "- Secret: "
   TEKTON_RESULTS_MINIO_USER="$(yq '.tekton_results_log.user // "minio"' "$CONFIG")"
@@ -235,7 +237,7 @@ install_minio() {
   kubectl apply -f "$results_minio_cred_secret_path" >/dev/null
   echo "OK"
 
-  echo -n "- Installing minio: "
+  echo -n "- Installing $APP: "
   kubectl apply -f "$DEV_DIR/gitops/argocd/$APP/application.yaml" >/dev/null
   echo "OK"
 
@@ -263,16 +265,11 @@ setup_compute_access() {
 
 install_pipeline_service() {
 
-  TEKTON_RESULTS_DATABASE_USER="$(yq '.tekton_results_db.user' "$CONFIG")"
-  TEKTON_RESULTS_DATABASE_PASSWORD="$(yq '.tekton_results_db.password' "$CONFIG")"
-  export TEKTON_RESULTS_DATABASE_USER
-  export TEKTON_RESULTS_DATABASE_PASSWORD
-
   echo "- Setup working directory:"
   "$PROJECT_DIR/operator/images/access-setup/content/bin/setup_work_dir.sh" \
     ${DEBUG:+"$DEBUG"} \
     --work-dir "$WORK_DIR" \
-    --kustomization "git::$GIT_URL/developer/gitops/argocd?ref=$GIT_REF" |
+    --kustomization "git::$GIT_URL/developer/gitops/argocd/pipeline-service?ref=$GIT_REF" |
     indent 2
 
   echo "- Installing local postgres DB for tekton results:"
