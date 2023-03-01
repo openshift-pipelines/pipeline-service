@@ -14,7 +14,6 @@ git_ref: main
 # Applications to be deployed on the cluster
 apps:
   - openshift-gitops # openshift-gitops is a pre-requisite for Pipeline Service
-  - minio # for development purposes, install minio as the storage backend for tekton-results
   - pipeline_service # pipeline_service sets up Pipeline Service on the cluster.
 
 # Tekton results database credentials
@@ -23,6 +22,6 @@ tekton_results_db:
   password:
 
 # Minio S3 compatible storage credentials for tekton results
-tekton_results_log:
+tekton_results_s3:
   user:
   password:
