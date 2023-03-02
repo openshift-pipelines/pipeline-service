@@ -176,6 +176,7 @@ tekton_results_manifest(){
   results_namespace="$manifests_dir/compute/tekton-results/namespace.yaml"
   results_db_secret="$manifests_dir/compute/tekton-results/tekton-results-db-secret.yaml"
   results_s3_secret="$manifests_dir/compute/tekton-results/tekton-results-s3-secret.yaml"
+  results_minio_config="$manifests_dir/compute/tekton-results/tekton-results-minio-config.yaml"
   if [ ! -e "$results_kustomize" ]; then
     results_dir="$(dirname "$results_kustomize")"
     mkdir -p "$results_dir"
@@ -206,7 +207,22 @@ tekton_results_manifest(){
     --from-literal=S3_SECRET_ACCESS_KEY="$TEKTON_RESULTS_S3_PASSWORD" \
     -n tekton-results --dry-run=client -o yaml > "$results_s3_secret"
 
-    yq e -n '.resources += ["namespace.yaml", "tekton-results-secret.yaml", "tekton_results_s3.yaml"]' > "$results_kustomize"
+    cat <<EOF | kubectl apply -f - --dry-run=client -o yaml > "$results_minio_config"
+apiVersion: v1
+kind: Secret
+metadata:
+  name: minio-storage-configuration
+  namespace: tekton-results
+type: Opaque
+stringData:
+  config.env: |-
+    export MINIO_ROOT_USER="$TEKTON_RESULTS_S3_USER"
+    export MINIO_ROOT_PASSWORD="$TEKTON_RESULTS_S3_PASSWORD"
+    export MINIO_STORAGE_CLASS_STANDARD="EC:2"
+    export MINIO_BROWSER="on"
+EOF
+
+    yq e -n '.resources += ["namespace.yaml", "tekton-results-db-secret.yaml", "tekton-results-s3-secret.yaml", "tekton-results-minio-config.yaml"]' > "$results_kustomize"
     if [ "$(yq ".data" < "$results_db_secret" | grep -cE "db.host|db.name|db.user|db.password")" != "4" ]; then
       printf "[ERROR] Invalid manifest: '%s'" "$results_db_secret" >&2
       exit 1
