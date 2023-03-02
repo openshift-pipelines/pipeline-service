@@ -15,6 +15,7 @@ spec:
   pipeline:
     default-service-account: pipeline
     enable-tekton-oci-bundles: true
+    embedded-status: minimal
   pruner:
     keep: 10
     resources:
