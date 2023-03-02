@@ -52,12 +52,12 @@ spec:
               valueFrom:
                 secretKeyRef:
                   key: S3_ACCESS_KEY_ID
-                  name: s3-credentials
+                  name: tekton-results-s3
             - name: S3_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
                   key: S3_SECRET_ACCESS_KEY
-                  name: s3-credentials
+                  name: tekton-results-s3
             - name: S3_BUCKET_NAME
               value: tekton-results
             - name: S3_ENDPOINT
