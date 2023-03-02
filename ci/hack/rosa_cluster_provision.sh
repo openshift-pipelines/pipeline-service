@@ -111,10 +111,10 @@ init() {
 provision_rosa_cluster() {
   # This repo has the ROSA provision and destroy cluster scripts
   git clone --branch main git@github.com:stolostron/bootstrap-ks.git
-  cd bootstrap-ks
+  cd bootstrap-ks/rosa
   git checkout 1200f8b7
-
-  ./rosa/provision.sh
+  ./install.sh
+  ./provision.sh
 }
 
 main() {
