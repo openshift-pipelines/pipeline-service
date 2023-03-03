@@ -14,6 +14,10 @@ spec:
         enable: false
   pipeline:
     default-service-account: pipeline
+    enable-bundles-resolver: true
+    enable-cluster-resolver: true
+    enable-git-resolver: true
+    enable-hub-resolver: true
     enable-tekton-oci-bundles: true
     embedded-status: minimal
   pruner:
