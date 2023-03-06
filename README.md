@@ -7,8 +7,6 @@ Pipeline Service provides a SaaS for pipelines. It leverages:
 - OpenShift GitOps / Argo CD, Pipelines as Code for managing the infrastructure
 
 
-## TODO
-
 Tekton and Kubernetes provide a great infrastructure for building pipelines. They come however with some limitations.
 
 - Multi-tenancy: Kubernetes provides a level of multi-tenancy. However, this does not extend to cluster scoped resources. CustomResourceDefinitions (CRD) are extensively used for extending the Kubernetes API, following [the operator pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/).  CRDs are cluster scoped. This induces a coupling between the operator version provided by the platform and what you can use as a tenant. The control plane is also shared between tenants.
