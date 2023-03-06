@@ -5,15 +5,15 @@ namespace: tekton-results
 resources:
   - namespace.yaml
   - route.yaml
-  - https://github.com/openshift-pipelines/tektoncd-results//config/?ref=9a1f0cb73f3f3013a7f3770c78f715f5c337772c
+  - https://github.com/openshift-pipelines/tektoncd-results//config/?ref=c0e11ce68cacae1da6756713d0cb5f8b5a394b04
 
 images:
   - name: ko://github.com/tektoncd/results/cmd/api
     newName: quay.io/redhat-appstudio/tekton-results-api
-    newTag: 9a1f0cb73f3f3013a7f3770c78f715f5c337772c
+    newTag: c0e11ce68cacae1da6756713d0cb5f8b5a394b04
   - name: ko://github.com/tektoncd/results/cmd/watcher
     newName: quay.io/redhat-appstudio/tekton-results-watcher
-    newTag: 9a1f0cb73f3f3013a7f3770c78f715f5c337772c
+    newTag: c0e11ce68cacae1da6756713d0cb5f8b5a394b04
 
 # generate a new configmap with updated values (logs api, db ssl mode) and replace the default one
 configMapGenerator:
