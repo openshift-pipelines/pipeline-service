@@ -131,10 +131,10 @@ install_clusters() {
     printf -- "- Checking deployment status\n"
     tektonDeployments=("tekton-pipelines-controller" "tekton-triggers-controller" "tekton-triggers-core-interceptors")
     check_deployments "openshift-pipelines" "${tektonDeployments[@]}" | indent 4
-    chainsDeployments=("tekton-chains-controller")
-    check_deployments "tekton-chains" "${chainsDeployments[@]}" | indent 4
     resultsDeployments=("tekton-results-api" "tekton-results-watcher")
     check_deployments "tekton-results" "${resultsDeployments[@]}" | indent 4
+    chainsDeployments=("tekton-chains-controller")
+    check_deployments "tekton-chains" "${chainsDeployments[@]}" | indent 4
   done
 }
 
