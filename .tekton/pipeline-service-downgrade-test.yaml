@@ -32,7 +32,6 @@ spec:
       - name: fetch-repository
         taskRef:
           name: git-clone
-          kind: ClusterTask
         workspaces:
           - name: output
             workspace: source
@@ -92,7 +91,6 @@ spec:
             - name: output
             - name: source
               description: The kubeconfig of new cluster will be stored onto the volume backing this Workspace
-          kind: ClusterTask
           steps:
             - name: deploy-cluster
               image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
@@ -142,7 +140,6 @@ spec:
           workspaces:
             - name: source
             - name: kubeconfig-dir
-          kind: ClusterTask
           steps:
             - name: create-ci-runner-container
               image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
@@ -190,7 +187,6 @@ spec:
             - name: repo_url
             - name: revision
             - name: target_branch
-          kind: ClusterTask
           steps:
             - name: run-plnsvc-setup
               image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
@@ -225,7 +221,6 @@ spec:
           workspaces:
             - name: kubeconfig-dir
             - name: source
-          kind: ClusterTask
           steps:
             - name: run-tests
               image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
@@ -244,7 +239,6 @@ spec:
           - "tests-before-downgrade"
         taskRef:
           name: git-clone
-          kind: ClusterTask
         workspaces:
           - name: output
             workspace: source
@@ -276,7 +270,6 @@ spec:
             - name: repo_url
             - name: revision
             - name: target_branch
-          kind: ClusterTask
           steps:
             - name: copy-plnsvc-code
               image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
@@ -323,7 +316,6 @@ spec:
           workspaces:
             - name: kubeconfig-dir
             - name: source
-          kind: ClusterTask
           steps:
             - name: run-tests
               image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
@@ -360,7 +352,6 @@ spec:
           workspaces:
             - name: kubeconfig-dir
             - name: source
-          kind: ClusterTask
           steps:
             - name: destroy
               image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
