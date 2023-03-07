@@ -25,6 +25,13 @@ check_deployments() {
   shift
   local deployments=("$@")
 
+  if ! timeout 300s bash -c "while ! kubectl get namespace $ns >/dev/null 2>/dev/null; do printf '.'; sleep 10; done"; then
+    printf "%s namespace not found (timeout)\n" "$ns"
+    kubectl get namespace "$ns"
+    exit 1
+  else
+    printf "%s namespace exists" "$ns"
+  fi
   for deploy in "${deployments[@]}"; do
     printf -- "- %s: " "$deploy"
 
