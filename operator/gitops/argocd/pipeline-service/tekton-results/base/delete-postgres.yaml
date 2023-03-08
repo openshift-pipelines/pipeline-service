@@ -1,0 +1,22 @@
+# Remove the local database deployment, we don't want it to be deployed in staging/prod since we use other storage backends (like RDS). For dev purposes, storage is provided via pipeline-service-storage app.
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: tekton-pipelines
+$patch: delete
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: tekton-pipelines
+$patch: delete
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres
+  namespace: tekton-pipelines
+$patch: delete

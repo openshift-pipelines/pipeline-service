@@ -203,8 +203,11 @@ tekton_results_manifest(){
       --dry-run=client -o yaml > "$results_db_secret"
 
     kubectl create secret generic -n tekton-results tekton-results-s3 \
-    --from-literal=S3_ACCESS_KEY_ID="$TEKTON_RESULTS_S3_USER" \
-    --from-literal=S3_SECRET_ACCESS_KEY="$TEKTON_RESULTS_S3_PASSWORD" \
+    --from-literal=aws_access_key_id="$TEKTON_RESULTS_S3_USER" \
+    --from-literal=aws_secret_access_key="$TEKTON_RESULTS_S3_PASSWORD" \
+    --from-literal=aws_region='not-applicable' \
+    --from-literal=bucket=tekton-results \
+    --from-literal=endpoint='https://minio.tekton-results.svc.cluster.local' \
     -n tekton-results --dry-run=client -o yaml > "$results_s3_secret"
 
     cat <<EOF | kubectl apply -f - --dry-run=client -o yaml > "$results_minio_config"
@@ -223,14 +226,6 @@ stringData:
 EOF
 
     yq e -n '.resources += ["namespace.yaml", "tekton-results-db-secret.yaml", "tekton-results-s3-secret.yaml", "tekton-results-minio-config.yaml"]' > "$results_kustomize"
-    if [ "$(yq ".data" < "$results_db_secret" | grep -cE "db.host|db.name|db.user|db.password")" != "4" ]; then
-      printf "[ERROR] Invalid manifest: '%s'" "$results_db_secret" >&2
-      exit 1
-    fi
-    if [ "$(yq ".data" < "$results_s3_secret" | grep -cE "S3_ACCESS_KEY_ID|S3_SECRET_ACCESS_KEY")" != "2" ]; then
-      printf "[ERROR] Invalid manifest: '%s'" "$results_s3_secret" >&2
-      exit 1
-    fi
   fi
   printf "OK\n"
 }

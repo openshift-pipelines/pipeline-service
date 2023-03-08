@@ -1,0 +1,43 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tekton-results-api
+  namespace: tekton-pipelines
+spec:
+  template:
+    spec:
+      containers:
+        - name: api
+          env:
+            - name: LOGS_API
+              value: "true"
+            - name: LOGS_TYPE
+              value: S3
+            - name: S3_HOSTNAME_IMMUTABLE
+              value: "true"
+            - name: S3_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  key: aws_access_key_id
+                  name: tekton-results-s3
+            - name: S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: aws_secret_access_key
+                  name: tekton-results-s3
+            - name: S3_REGION
+              valueFrom:
+                secretKeyRef:
+                  key: aws_region
+                  name: tekton-results-s3
+            - name: S3_BUCKET_NAME
+              valueFrom:
+                secretKeyRef:
+                  key: bucket
+                  name: tekton-results-s3
+            - name: S3_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  key: endpoint
+                  name: tekton-results-s3
