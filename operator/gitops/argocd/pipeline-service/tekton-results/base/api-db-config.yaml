@@ -1,0 +1,34 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tekton-results-api
+  namespace: tekton-pipelines
+spec:
+  template:
+    spec:
+      containers:
+        - name: api
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: tekton-results-database
+                  key: db.user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: tekton-results-database
+                  key: db.password
+            - name: DB_HOST
+              value:
+              valueFrom:
+                secretKeyRef:
+                  name: tekton-results-database
+                  key: db.host
+            - name: DB_NAME
+              value:
+              valueFrom:
+                secretKeyRef:
+                  name: tekton-results-database
+                  key: db.name
