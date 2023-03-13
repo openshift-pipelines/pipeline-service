@@ -43,7 +43,12 @@ deploy_cluster() {
         echo "Waited $wait_period seconds..."
     done
 
-    echo "Hypershift is ready, the following is the cluster kubeconfig"
+    echo "Hypershift is ready, The following is Cluster credentials"
+    local pass
+    pass="$(kubectl get secret -n clusters "${CLUSTER_NAME}"-kubeadmin-password -o json | jq -r .data.password | base64 -d)"
+    echo "kubeadmin:${pass}"
+    echo "The following is the cluster kubeconfig"
+
     hypershift create kubeconfig --name "$CLUSTER_NAME" | tee "$WORKSPACE/kubeconfig"
 }
 
