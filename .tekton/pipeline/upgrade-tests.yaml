@@ -94,7 +94,7 @@ spec:
           workspace: upgrade-shared-workspace
         - name: source
           workspace: source
-    - name: clone-pipeline-service-git-post-setup
+    - name: clone-pipeline-service-git-for-upgrade
       runAfter:
         - "tests-before-upgrade"
       taskRef:
@@ -111,7 +111,7 @@ spec:
       taskRef:
         name: pipeline-service-upgrade-setup
       runAfter:
-        - "clone-pipeline-service-git-post-setup"
+        - "clone-pipeline-service-git-for-upgrade"
       workspaces:
         - name: kubeconfig-dir
           workspace: upgrade-shared-workspace
@@ -129,6 +129,49 @@ spec:
         name: pipeline-service-tests
       runAfter:
         - "plnsvc-upgrade-setup"
+      params:
+        - name: target_branch
+          value: $(params.target_branch)
+      workspaces:
+        - name: kubeconfig-dir
+          workspace: upgrade-shared-workspace
+        - name: source
+          workspace: source
+    - name: clone-pipeline-service-git-post-upgrade
+      runAfter:
+        - "tests-post-upgrade"
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: source
+      params:
+        - name: url
+          value: $(params.repo_url)
+        - name: revision
+          value: $(params.target_branch)
+    - name: plnsvc-downgrade-setup
+      taskRef:
+        name: pipeline-service-upgrade-setup
+      runAfter:
+        - "clone-pipeline-service-git-post-upgrade"
+      workspaces:
+        - name: kubeconfig-dir
+          workspace: upgrade-shared-workspace
+        - name: source
+          workspace: source
+      params:
+        - name: repo_url
+          value: $(params.repo_url)
+        - name: revision
+          value: $(params.revision)
+        - name: target_branch
+          value: $(params.target_branch)
+    - name: tests-post-downgrade
+      taskRef:
+        name: pipeline-service-tests
+      runAfter:
+        - "plnsvc-downgrade-setup"
       params:
         - name: target_branch
           value: $(params.target_branch)
