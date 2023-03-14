@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: bitnami/postgresql@sha256:23b9a21460fefdd83accd0f864e734c88bebc67c86ee752a97b77dd4843907f0 # 13.3.0
+          image: bitnami/postgresql@sha256:78ef3a36dd814e5f6dfbd8bb7c2e16086f7ea3cc68108714883671523168d4d5 # 13.10.0
           env:
             - name: POSTGRES_USER
               valueFrom:
