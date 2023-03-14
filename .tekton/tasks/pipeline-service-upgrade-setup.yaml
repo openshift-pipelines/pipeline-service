@@ -1,0 +1,43 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: pipeline-service-upgrade-setup
+spec:
+  params:
+    - name: repo_url
+    - name: revision
+    - name: target_branch
+  workspaces:
+    - name: kubeconfig-dir
+    - name: source
+      description: The kubeconfig of new cluster will be stored onto the volume backing this Workspace
+  steps:
+    - name: copy-plnsvc-code
+      image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
+      resources:
+        requests:
+          memory: 500Mi
+          cpu: 300m
+      workingDir: "$(workspaces.source.path)"
+      env:
+        - name: KUBECONFIG
+          value: "$(workspaces.kubeconfig-dir.path)/kubeconfig"
+      command:
+        - $(workspaces.source.path)/ci/images/ci-runner/hack/bin/copy-plnsvc-code.sh
+    - name: run-plnsvc-setup
+      image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
+      resources:
+        requests:
+          memory: 500Mi
+          cpu: 300m
+      workingDir: "$(workspaces.source.path)"
+      env:
+        - name: KUBECONFIG
+          value: "$(workspaces.kubeconfig-dir.path)/kubeconfig"
+        - name: REPO_URL
+          value: $(params.repo_url)
+        - name: REPO_REVISION
+          value: $(params.revision)
+      command:
+        - $(workspaces.source.path)/ci/images/ci-runner/hack/bin/run-plnsvc-setup.sh

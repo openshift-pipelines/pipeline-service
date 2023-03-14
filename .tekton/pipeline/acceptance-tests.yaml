@@ -1,0 +1,127 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: acceptance-tests
+spec:
+  params:
+    - name: repo_url
+    - name: revision
+    - name: target_branch
+  timeouts:
+    finally: "0h20m0s"
+  workspaces:
+    - name: source
+    - name: kubeconfig-dir
+    - name: shared-workspace
+  tasks:
+    - name: generate-cluster-name
+      taskRef:
+        name: generate-cluster-name
+    - name: destroy-existing-cluster
+      taskRef:
+        name: destroy-existing-cluster
+      runAfter:
+        - "clone-pipeline-service-git"
+      params:
+        - name: target_branch
+          value: $(params.target_branch)
+      workspaces:
+        - name: kubeconfig-dir
+          workspace: kubeconfig-dir
+        - name: source
+          workspace: source
+    - name: deploy-cluster
+      taskRef:
+        name: deploy-cluster
+      runAfter:
+        - "generate-cluster-name"
+        - "clone-pipeline-service-git"
+      params:
+        - name: image
+          value: "quay.io/openshift-release-dev/ocp-release:4.12.2-x86_64"
+        - name: region
+          value: "us-east-1"
+        - name: cluster-name
+          value: "$(tasks.generate-cluster-name.results.cluster-name)"
+        - name: target_branch
+          value: $(params.target_branch)
+      workspaces:
+        - name: kubeconfig-dir
+          workspace: kubeconfig-dir
+        - name: output
+          workspace: shared-workspace
+        - name: source
+          workspace: source
+    - name: clone-pipeline-service-git
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: source
+      params:
+        - name: url
+          value: $(params.repo_url)
+        - name: revision
+          value: $(params.revision)
+    - name: setup-ci-runner
+      taskRef:
+        name: setup-ci-runner-container
+      runAfter:
+        - "deploy-cluster"
+      params:
+        - name: target_branch
+          value: $(params.target_branch)
+      workspaces:
+        - name: source
+          workspace: source
+        - name: kubeconfig-dir
+          workspace: shared-workspace
+    - name: plnsvc-setup
+      taskRef:
+        name: pipeline-service-setup
+      runAfter:
+        - "setup-ci-runner"
+      workspaces:
+        - name: kubeconfig-dir
+          workspace: shared-workspace
+        - name: source
+          workspace: source
+      params:
+        - name: repo_url
+          value: $(params.repo_url)
+        - name: revision
+          value: $(params.revision)
+        - name: target_branch
+          value: $(params.target_branch)
+    - name: pipeline-service-tests
+      taskRef:
+        name: pipeline-service-tests
+      runAfter:
+        - "plnsvc-setup"
+      params:
+        - name: target_branch
+          value: $(params.target_branch)
+      workspaces:
+        - name: kubeconfig-dir
+          workspace: shared-workspace
+        - name: source
+          workspace: source
+  finally:
+    - name: destroy-cluster
+      taskRef:
+        name: destroy-cluster
+      when:
+        - input: "$(tasks.deploy-cluster.status)"
+          operator: notin
+          values: ["None"]
+      params:
+        - name: cluster-name
+          value: "$(tasks.generate-cluster-name.results.cluster-name)"
+        - name: target_branch
+          value: $(params.target_branch)
+      workspaces:
+        - name: kubeconfig-dir
+          workspace: kubeconfig-dir
+        - name: source
+          workspace: source

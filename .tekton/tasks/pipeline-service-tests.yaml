@@ -1,0 +1,24 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: pipeline-service-tests
+spec:
+  params:
+    - name: target_branch
+  workspaces:
+    - name: kubeconfig-dir
+    - name: source
+  steps:
+    - name: run-tests
+      image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
+      resources:
+        requests:
+          memory: 500Mi
+          cpu: 300m
+      workingDir: "$(workspaces.source.path)"
+      env:
+        - name: KUBECONFIG
+          value: "$(workspaces.kubeconfig-dir.path)/kubeconfig"
+      command:
+        - $(workspaces.source.path)/ci/images/ci-runner/hack/bin/run-tests.sh
