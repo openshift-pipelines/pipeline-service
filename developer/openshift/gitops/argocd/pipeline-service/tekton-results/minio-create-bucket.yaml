@@ -12,7 +12,7 @@ spec:
       initContainers:
         - name: mc
           image: >-
-            docker.io/minio/mc:RELEASE.2023-01-28T20-29-38Z
+            quay.io/minio/mc:RELEASE.2023-01-28T20-29-38Z
           command:
             - /bin/bash
           args:
