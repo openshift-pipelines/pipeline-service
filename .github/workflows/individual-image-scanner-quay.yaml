@@ -26,6 +26,7 @@ jobs:
       ci-runner-output: ${{ steps.ci-runner-scan.outputs.VULNERABILITIES_EXIST }}
       cluster-setup-output: ${{ steps.cluster-setup-scan.outputs.VULNERABILITIES_EXIST }}
       dependencies-update-output: ${{ steps.dependencies-update-scan.outputs.VULNERABILITIES_EXIST }}
+      e2e-test-runner-output: ${{ steps.e2e-test-runner-scan.outputs.VULNERABILITIES_EXIST }}
       devenv-output: ${{ steps.devenv-scan.outputs.VULNERABILITIES_EXIST }}
       quay-upload-output: ${{ steps.quay-upload-scan.outputs.VULNERABILITIES_EXIST }}
       static-checks-output: ${{ steps.static-checks-scan.outputs.VULNERABILITIES_EXIST }}
@@ -53,6 +54,9 @@ jobs:
               - 'shared/**'
             devenv:
               - 'developer/images/devenv/**'
+              - 'shared/**'
+            e2e-test-runner:
+              - 'ci/images/e2e-test-runner/**'
               - 'shared/**'
             quay-upload:
               - 'ci/quay-upload/**'
@@ -152,6 +156,16 @@ jobs:
           echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
         env:
           IMAGE_NAME: vulnerability-scan
+
+      - name: e2e-test-runner scan
+        continue-on-error: true
+        id: e2e-test-runner-scan
+        if: steps.filter.outputs.e2e-test-runner == 'true'
+        run: |
+          ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
+          echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
+        env:
+          IMAGE_NAME: e2e-test-runner
 
   check-results:
     runs-on: ubuntu-latest
@@ -270,6 +284,19 @@ jobs:
           res=${res:=0}
           if [[ $res != 0 ]]; then
             echo "Vulnerabilities found with vulnerability-scan image. Please check scans job for more details."
+            exit 1
+          else
+            echo "No vulnerabilities found"
+          fi
+
+      - name: Check e2e-test-runner results
+        id: check-e2e-test-runner-results
+        if: always()
+        run: |
+          res=${{ needs.scans.outputs.e2e-test-runner-output }}
+          res=${res:=0}
+          if [[ $res != 0 ]]; then
+            echo "Vulnerabilities found with e2e-test-runner image. Please check scans job for more details."
             exit 1
           else
             echo "No vulnerabilities found"

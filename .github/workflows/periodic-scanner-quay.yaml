@@ -28,6 +28,7 @@ jobs:
             "cluster-setup"
             "dependencies-update"
             "devenv"
+            "e2e-test-runner"
             "quay-upload"
             "static-checks"
             "update-pipeline-service"
