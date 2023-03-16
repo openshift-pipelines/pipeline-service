@@ -32,3 +32,10 @@ patchesStrategicMerge:
   - api-service-tls.yaml
   - watcher-config.yaml
   - delete-postgres.yaml
+
+patches:
+  - target:
+      group: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: tekton-results-watcher
+    path: watcher-rbac.yaml
