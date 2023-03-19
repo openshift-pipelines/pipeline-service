@@ -79,7 +79,10 @@ init() {
 setup_test() {
   echo "[Setup]"
   echo -n "  - Namespace configuration: "
-  if ! kubectl get namespace $NAMESPACE >/dev/null 2>&1; then
+  if kubectl get namespace $NAMESPACE >/dev/null 2>&1; then
+    # Delete old pipelines resources
+    kubectl delete -n "$NAMESPACE" pipelineruns,pipelines,tasks --all
+  else
     echo -n "."
     kubectl create namespace "$NAMESPACE" >/dev/null
   fi
@@ -168,21 +171,25 @@ test_pipelines() {
   if ! kubectl get -n "$NAMESPACE" serviceaccount default >/dev/null 2>&1; then
     kubectl create -n "$NAMESPACE" serviceaccount default
   fi
-  BASE_URL="https://raw.githubusercontent.com/tektoncd/pipeline/v0.32.0"
-  manifest="pipelineruns/using_context_variables.yaml"
+  # URL from https://github.com/tektoncd/pipeline/blob/v0.41.0/examples/v1beta1/pipelineruns/pipelinerun-with-params.yaml
+  BASE_URL="https://raw.githubusercontent.com/tektoncd/pipeline/v0.41.0"
+  PIPELINERUN="pipelineruns/pipelinerun-with-params.yaml"
+  MANIFEST_URL="$BASE_URL/examples/v1beta1/$PIPELINERUN"
+
   # change ubuntu image to ubi to avoid dockerhub registry pull limit
   pipeline_name=$(
-    curl --fail --silent "$BASE_URL/examples/v1beta1/$manifest" |
-      sed 's|ubuntu|registry.access.redhat.com/ubi9/ubi-minimal:latest|' |
-      sed '/serviceAccountName/d' |
-      kubectl create -n "$NAMESPACE" -f - | cut -d" " -f1
+    curl --fail --silent "$MANIFEST_URL" |
+      sed 's|bash:latest|registry.access.redhat.com/ubi9/ubi-minimal:latest|' |
+      kubectl create -n "$NAMESPACE" -f - | grep pipelinerun | cut -d" " -f1
   )
   wait_for_pipeline "$pipeline_name" "$NAMESPACE"
   echo "OK"
 }
 
 test_results() {
-  test_pipelines
+  if ! kubectl get "$pipeline_name" -n "$NAMESPACE" > /dev/null; then
+    test_pipelines
+  fi
   echo -n "  - Results in database:"
 
   # Service Account to test tekton-results
@@ -190,6 +197,7 @@ test_results() {
     kubectl create serviceaccount "$RESULTS_SA" -n "$NAMESPACE"
     echo -n "."
   fi
+
   # Grant required privileges to the Service Account
   if ! kubectl get rolebinding tekton-results-tests -n "$NAMESPACE" >/dev/null 2>&1; then
     kubectl create rolebinding tekton-results-tests -n "$NAMESPACE" --clusterrole=tekton-results-readonly --serviceaccount="$NAMESPACE":"$RESULTS_SA"
@@ -209,6 +217,7 @@ test_results() {
 
     QUERY_CMD=(
       "curl"
+      "--silent"
       "--insecure"
       "-H"
       "Authorization: Bearer $token"
@@ -216,15 +225,14 @@ test_results() {
       "Accept: application/json"
       "$QUERY_URL"
     )
-    QUERY_RESULT=$("${QUERY_CMD[@]}" 2>/dev/null)
+    NBR_RECORDS=$("${QUERY_CMD[@]}" | jq  '.records[].data.value' | wc -l)
     wait
 
-    # we are not interested in the content of the logs or records so just checking if the query result contains certain string (uid/type) 
-    if [[ $QUERY_RESULT == *"$RESULT_UID/$1"* ]]; then
+    if [[ $NBR_RECORDS == 6 ]]; then
       echo "OK"
     else
       echo "Failed"
-      echo "[ERROR] Unable to retrieve $1 for $RESULT_UID from pipeline run $pipeline_name" >&2
+      echo "[ERROR] Unexpected number of $1 for $RESULT_UID from pipeline run $pipeline_name" >&2
       exit 1
     fi
 
@@ -246,7 +254,6 @@ test_results() {
   }
 
   echo
-  # test both "records" and "logs" endpoints 
   sleep 10
   fetch_results_using_rest "records"
   fetch_results_using_rest "logs"
