@@ -102,6 +102,8 @@ jobs:
         run: |
           ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
           echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
+        env:
+          IMAGE_NAME: dependencies-update
 
       - name: devenv scan
         continue-on-error: true
