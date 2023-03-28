@@ -6,3 +6,4 @@ resources:
 
 patchesStrategicMerge:
   - minio-create-bucket.yaml
+  - minio-tls.yaml
