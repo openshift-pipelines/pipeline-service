@@ -227,6 +227,22 @@ test_results() {
       echo "[ERROR] Unable to retrieve $1 for $RESULT_UID from pipeline run $pipeline_name" >&2
       exit 1
     fi
+
+    # Let's make request to get log output and check it.
+    if [ "${1}" == "logs" ]; then
+      LOG_PATH=$(echo "${QUERY_RESULT}" | jq -r ".records[0] | .name")
+
+      QUERY_URL="https://$RESULT_ROUTE/apis/results.tekton.dev/v1alpha2/parents/${LOG_PATH}"
+      QUERY_CMD[6]="${QUERY_URL}"
+      LOGS_RESULT=$("${QUERY_CMD[@]}" 2>/dev/null)
+      LOGS_OUTPUT=$(echo "$LOGS_RESULT" | jq -r ".result.data | @base64d")
+
+      if ! echo "$LOGS_OUTPUT" | grep -qF "PipelineRun name from params:" ; then
+          echo "[ERROR] Unable to retrieve logs output."
+          printf "[ERROR] Log record: %s \n" "${LOGS_RESULT}"
+          exit 1
+      fi
+    fi
   }
 
   echo
