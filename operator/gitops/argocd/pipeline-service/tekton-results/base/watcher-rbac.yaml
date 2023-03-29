@@ -1,7 +1,0 @@
----
-- op: add
-  path: /rules/0
-  value:
-    apiGroups: ["tekton.dev"]
-    resources: ["pipelines"]
-    verbs: ["get"]
