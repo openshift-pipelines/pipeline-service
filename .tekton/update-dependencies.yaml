@@ -3,7 +3,7 @@ apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
   annotations:
-    pipelinesascode.tekton.dev/on-event: "[push]"
+    pipelinesascode.tekton.dev/on-event: "[pull_request, push]"
     pipelinesascode.tekton.dev/on-target-branch: "[refs/heads/*]"
     pipelinesascode.tekton.dev/task: "[git-clone, github-open-pr]"
     pipelinesascode.tekton.dev/max-keep-runs: "5"
@@ -58,7 +58,7 @@ spec:
             - name: source_branch
           steps:
             - name: setup-local-repository
-              image: quay.io/redhat-pipeline-service/dependencies-update:$(params.source_branch)
+              image: quay.io/redhat-pipeline-service/dependencies-update:main
               imagePullPolicy: Always
               workingDir: $(workspaces.source.path)
               command:
@@ -95,7 +95,7 @@ spec:
               type: string
           steps:
             - name: update-dockerfiles
-              image: quay.io/redhat-pipeline-service/dependencies-update:$(params.source_branch)
+              image: quay.io/redhat-pipeline-service/dependencies-update:main
               imagePullPolicy: Always
               workingDir: $(workspaces.source.path)
               command:
@@ -107,7 +107,7 @@ spec:
                 - --workspace_dir
                 - $(workspaces.source.path)
             - name: is-pr-skipped
-              image: quay.io/redhat-pipeline-service/dependencies-update:$(params.source_branch)
+              image: quay.io/redhat-pipeline-service/dependencies-update:main
               imagePullPolicy: Always
               env:
                 - name: GITHUB_TOKEN
@@ -177,7 +177,7 @@ spec:
               type: string
           steps:
             - name: update-binaries
-              image: quay.io/redhat-pipeline-service/dependencies-update:$(params.source_branch)
+              image: quay.io/redhat-pipeline-service/dependencies-update:main
               imagePullPolicy: Always
               workingDir: $(workspaces.source.path)
               command:
@@ -189,7 +189,7 @@ spec:
                 - --workspace_dir
                 - $(workspaces.source.path)
             - name: is-pr-skipped
-              image: quay.io/redhat-pipeline-service/dependencies-update:$(params.source_branch)
+              image: quay.io/redhat-pipeline-service/dependencies-update:main
               imagePullPolicy: Always
               env:
                 - name: GITHUB_TOKEN
