@@ -85,22 +85,26 @@ generate_ssh_key() {
 setup_ssh_secret_directory() {
     mv "$TMPDIR/secret/ssh-privatekey.pub" "$TMPDIR/secret/ssh-publickey"
     cat <<EOF >"$TMPDIR/secret/known_hosts"
-github.com ssh-rsa AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
+github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
 EOF
 }
 
 create_ssh_secret() {
     kubectl create secret generic ssh-key --namespace pipeline-service-ci \
         --from-file="$TMPDIR/secret" \
-        --type kubernetes.io/ssh-auth
+        --type kubernetes.io/ssh-auth \
+        --dry-run=client \
+         -o yaml \
+    | kubectl apply -f -
     kubectl annotate secret ssh-key --namespace pipeline-service-ci \
+        --overwrite \
         "tekton.dev/git-0=github.com" # Flag the secret to be used to connect to GitHub
 }
 
 register_ssh_key() {
-    echo "Register the public key and enable 'Allow write access':"
-    echo "    URL: https://github.com/openshift-pipelines/pipeline-service/settings/keys"
-    echo "    Public key: $(cat "$TMPDIR/secret/ssh-publickey")"
+    echo "Register the public key: https://github.com/openshift-pipelines/pipeline-service/settings/keys"
+    echo "    Key: $(cat "$TMPDIR/secret/ssh-publickey")"
+    echo "    Allow write access: True"
     read -rs -p "Press Enter to continue... "
 }
 
@@ -123,7 +127,11 @@ generate_token() {
 }
 
 create_token_secret() {
-    kubectl create secret generic github --namespace pipeline-service-ci --from-file="$TMPDIR/secret"
+    kubectl create secret generic github --namespace pipeline-service-ci \
+        --from-file="$TMPDIR/secret" \
+        --dry-run=client \
+         -o yaml \
+    | kubectl apply -f -
     rm -rf "$TMPDIR/secret"
 }
 
