@@ -150,3 +150,11 @@ get_github_accounts() {
     export GITHUB_ACCOUNTS_ARRAY
     setx_on
 }
+
+get_default_quay_org_token() {
+    get_password "8376d3eb-9b89-4420-b49d-afd9009db07b"
+    setx_off
+    DEFAULT_QUAY_ORG_TOKEN="${password}"
+    export DEFAULT_QUAY_ORG_TOKEN
+    setx_on
+}
