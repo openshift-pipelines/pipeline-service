@@ -12,7 +12,7 @@ SCRIPT_DIR="$(
 # shellcheck source=ci/images/ci-runner/hack/bin/utils.sh
 source "$SCRIPT_DIR/utils.sh"
 
-MAX_DURATION_MINS=60
+MAX_DURATION_MINS=120
 EXCLUDE_CLUSTER=(local-cluster)
 
 delete_cluster() {

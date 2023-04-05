@@ -115,6 +115,12 @@ spec:
         - input: "$(tasks.deploy-cluster.status)"
           operator: notin
           values: ["None"]
+        - input: "$(tasks.plnsvc-setup.status)"
+          operator: notin
+          values: ["Failed"]
+        - input: "$(tasks.pipeline-service-tests.status)"
+          operator: notin
+          values: ["Failed"]
       params:
         - name: cluster-name
           value: "$(tasks.generate-cluster-name.results.cluster-name)"
