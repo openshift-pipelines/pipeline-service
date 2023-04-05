@@ -5,14 +5,14 @@
 #       export FOOBAR_VERSION="1.2.3"  # Freeze
 export ARGOCD_VERSION="v2.6.7"
 export BITWARDEN_VERSION="v2023.3.0"
-export CHECKOV_VERSION="2.3.141"
-export GO_VERSION="1.20.2"
+export CHECKOV_VERSION="2.3.152"
+export GO_VERSION="1.20.3"
 export HADOLINT_VERSION="v2.12.0"
 export HYPERSHIFT_VERSION="main"  # Freeze
 export JQ_VERSION="1.6"
 export KIND_VERSION="v0.18.0"
 export KUBECTL_VERSION="v1.26.3"
-export OC_VERSION="4.12.9"
+export OC_VERSION="4.12.10"
 export SHELLCHECK_VERSION="v0.9.0"
 export TEKTONCD_CLI_VERSION="v0.30.0"
 export YAMLLINT_VERSION="1.30.0"
