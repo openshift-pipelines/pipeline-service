@@ -1,6 +1,8 @@
 ---
-resources:
-  - pipeline-service-storage.yaml
-  - pipeline-service.yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+
+resources:
+  - pipeline-service.yaml
+  - postgres.yaml
+  - minio.yaml
