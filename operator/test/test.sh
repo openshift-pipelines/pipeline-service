@@ -19,7 +19,7 @@ Optional arguments:
         Default value: \$KUBECONFIG
     -t, --test TEST
         Name of the test to be executed. Can be repeated to run multiple tests.
-        Must be one of: chains, pipelines, results.
+        Must be one of: chains, pipelines, results, security.
         Default: Run all tests.
     -d, --debug
         Activate tracing/debug mode.
@@ -62,7 +62,7 @@ parse_args() {
   done
   DEBUG="${DEBUG:-}"
   if [ "${#TEST_LIST[@]}" = "0" ]; then
-    TEST_LIST=("chains" "pipelines" "results")
+    TEST_LIST=("chains" "pipelines" "results" "security")
   fi
 }
 
@@ -94,6 +94,60 @@ setup_test() {
 
 wait_for_pipeline() {
   kubectl wait --for=condition=succeeded "$1" -n "$2" --timeout 60s >/dev/null
+}
+
+check_pod_security() {
+  sccs="$(kubectl get pod -o name -n "$1" | xargs -l -r kubectl get -o jsonpath='{.metadata.annotations.openshift\.io/scc}' -n "$1")"
+  if [[ "$sccs" =~ "restricted-v2" ]]; then
+     prune="$(echo "$sccs" | sed 's/restricted-v2//g')"
+     # if anything besides restricted-v2 is in there, we want to investigate
+     if [ -z "$prune" ]; then
+       echo "   - OK pod security for $1"
+     else
+       echo "Failed, scc's are "
+       echo "$sccs"
+       echo "[ERROR] Unexpected $1 pod security context constraints" >&2
+       exit 1
+     fi
+  else
+     # if none of the pods are restricted-v2, we want to investigate
+     echo "Failed, scc's are "
+     echo "$sccs"
+     echo "[ERROR] Unexpected $1 pod security context constraints" >&2
+     exit 1
+  fi
+
+}
+
+check_host_network() {
+  # got to '|| true' or the script exits with the rc 1 that grep returns if nothing found
+  hostipc="$(kubectl get pods -o yaml -n "$1" | grep "hostIPC" || true )"
+  if [ -z "$hostipc" ]; then
+    echo "   - OK hostIPC settings for $1"
+  else
+       echo "Failed, hostIPC's are "
+       echo "$hostipc"
+       echo "[ERROR] Unexpected $1 hostIPC settings" >&2
+       exit 1
+  fi
+  hostpid="$(kubectl get pods -o yaml -n "$1" | grep "hostPID" || true )"
+  if [ -z "$hostpid" ]; then
+    echo "   - OK hostPID settings for $1"
+  else
+       echo "Failed, hostPID's are "
+       echo "$hostipc"
+       echo "[ERROR] Unexpected $1 hostPID settings" >&2
+       exit 1
+  fi
+  hostnetwork="$(kubectl get pods -o yaml -n "$1" | grep "hostNetwork" || true )"
+  if [ -z "$hostnetwork" ]; then
+    echo "   - OK hostNetwork settings for $1"
+  else
+       echo "Failed, hostNetwork's are "
+       echo "$hostnetwork"
+       echo "[ERROR] Unexpected $1 hostNetwork settings" >&2
+       exit 1
+  fi
 }
 
 test_chains() {
@@ -160,6 +214,7 @@ test_chains() {
     echo "[ERROR] Public key is not accessible" >&2
     exit 1
   fi
+
   echo
 }
 
@@ -178,7 +233,30 @@ test_pipelines() {
       kubectl create -n "$NAMESPACE" -f - | cut -d" " -f1
   )
   wait_for_pipeline "$pipeline_name" "$NAMESPACE"
+
   echo "OK"
+}
+
+test_security() {
+  echo " - Check security: "
+  echo "  - Check Pod Security openshift-pipelines: "
+  check_pod_security "openshift-pipelines"
+  echo "  - Check Pod Host Network openshift-pipelines: "
+  check_host_network "openshift-pipelines"
+
+  echo "  - Check Pod Security pipelines-as-code: "
+  check_pod_security "pipelines-as-code"
+  echo "  - Check Pod Host Network pipelines-as-code: "
+  check_host_network "pipelines-as-code"
+
+  echo "  - Check Pod Security tekton-results: "
+  check_pod_security "tekton-results"
+  echo "  - Check Pod Host Network tekton-results: "
+  check_host_network "tekton-results"
+  echo "  - Check Pod Security tekton-chains: "
+  check_pod_security "tekton-chains"
+  echo "  - Check Pod Host Network tekton-chains: "
+  check_host_network "tekton-chains"
 }
 
 test_results() {
@@ -250,6 +328,7 @@ test_results() {
   sleep 10
   fetch_results_using_rest "records"
   fetch_results_using_rest "logs"
+
   echo
 }
 
@@ -259,7 +338,7 @@ main() {
   setup_test
   for case in "${TEST_LIST[@]}"; do
     case $case in
-    chains | pipelines | results)
+    chains | pipelines | results | security)
       echo "[$case]"
       test_"$case"
       echo
