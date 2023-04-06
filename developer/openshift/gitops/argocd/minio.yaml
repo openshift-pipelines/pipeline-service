@@ -2,14 +2,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: pipeline-service-storage
+  name: minio
   namespace: openshift-gitops
 spec:
   destination:
     namespace: openshift-gitops
     server: https://kubernetes.default.svc
   source:
-    path: developer/openshift/gitops/argocd/pipeline-service-storage
+    path: developer/openshift/gitops/argocd/minio
     repoURL: https://github.com/openshift-pipelines/pipeline-service.git
     targetRevision: main
   project: default
