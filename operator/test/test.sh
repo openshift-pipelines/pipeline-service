@@ -183,6 +183,9 @@ test_pipelines() {
 
 test_results() {
   test_pipelines
+  echo -n "GGM start image check"
+  kubectl get pods -o yaml -n tekton-results
+  echo -n "GGM end image check"
   echo -n "  - Results in database:"
 
   # Service Account to test tekton-results
