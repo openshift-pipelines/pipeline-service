@@ -27,6 +27,8 @@ spec:
       value: "{{ revision }}"
     - name: target_branch
       value: "{{ target_branch }}"
+    - name: start_revision
+      value: 8f3ebf86101a4cf21fe7e86335e85a3fb6e3671f
   timeouts:
     pipeline: "1h0m0s"
   workspaces:

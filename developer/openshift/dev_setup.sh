@@ -120,6 +120,8 @@ init() {
   GIT_URL=$(yq '.git_url // "https://github.com/openshift-pipelines/pipeline-service.git"' "$CONFIG")
   GIT_REF=$(yq '.git_ref // "main"' "$CONFIG")
 
+  echo "Deploying Pipeline Service from $GIT_URL ref:$GIT_REF"
+
   # Create SRE repository folder
   WORK_DIR="${WORK_DIR:-}"
   if [[ -z "$WORK_DIR" ]]; then
