@@ -20,6 +20,42 @@ exit_error() {
   exit 1
 }
 
+check_applications() {
+  local ns="$1"
+  shift
+  local applications=("$@")
+
+  for app in "${applications[@]}"; do
+    printf -- "- %s: " "$app"
+
+    #a loop to check if the ArgoCD application exists
+    if ! timeout 300s bash -c "while ! kubectl get application/$app -n $ns >/dev/null 2>/dev/null; do printf '.'; sleep 10; done"; then
+      printf "%s not found (timeout)\n" "$app"
+      kubectl get application/"$app" -n "$ns"
+      kubectl -n "$ns" get events | grep Warning
+      exit 1
+    else
+      printf "Exists"
+    fi
+
+     #a loop to check if the ArgoCD application is synced
+    if kubectl wait --for=jsonpath="{.status.sync.status}"="Synced" "application/$app" -n "$ns" --timeout=600s >/dev/null; then
+      printf ", Synced"
+      if kubectl wait --for=jsonpath="{.status.health.status}"="Healthy" "application/$app" -n "$ns" --timeout=600s >/dev/null; then
+        printf ", Healthy\n"
+      else
+        printf ", Unhealthy\n"
+        kubectl -n "$ns" describe "application/$app"
+        exit 1
+      fi
+    else
+      printf ", OutOfSync\n"
+      kubectl -n "$ns" describe "application/$app"
+      exit 1
+    fi
+  done
+}
+
 check_deployments() {
   local ns="$1"
   shift
