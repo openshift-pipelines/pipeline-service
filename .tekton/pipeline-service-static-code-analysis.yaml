@@ -118,7 +118,7 @@ spec:
               image: quay.io/redhat-pipeline-service/static-checks:$(params.target_branch)
               script: |
                 #!/usr/bin/env bash
-                /opt/static-checks/bin/checkov.sh --workspace_dir $(workspaces.source.path)
+                $(workspaces.source.path)/ci/images/static-checks/content/bin/checkov.sh --workspace_dir $(workspaces.source.path) --config-file $(workspaces.source.path)/ci/images/static-checks/content/config/checkov.yaml
           workspaces:
             - name: source
   workspaces:
