@@ -32,7 +32,6 @@ check_applications() {
     if ! timeout 300s bash -c "while ! kubectl get application/$app -n $ns >/dev/null 2>/dev/null; do printf '.'; sleep 10; done"; then
       printf "%s not found (timeout)\n" "$app"
       kubectl get application/"$app" -n "$ns"
-      kubectl -n "$ns" get events | grep Warning
       exit 1
     else
       printf "Exists"
@@ -46,12 +45,37 @@ check_applications() {
       else
         printf ", Unhealthy\n"
         kubectl -n "$ns" describe "application/$app"
-        exit 1
       fi
     else
       printf ", OutOfSync\n"
       kubectl -n "$ns" describe "application/$app"
+    fi
+  done
+}
+
+check_subscriptions() {
+  local ns="$1"
+  shift
+  local subscriptions=("$@")
+
+  for sub in "${subscriptions[@]}"; do
+    printf -- "- %s: " "$sub"
+
+    #a loop to check if the OLM Subscription exists
+    if ! timeout 300s bash -c "while ! kubectl get subscription/$sub -n $ns >/dev/null 2>/dev/null; do printf '.'; sleep 10; done"; then
+      printf "%s not found (timeout)\n" "$sub"
+      kubectl get subscription/"$sub" -n "$ns"
       exit 1
+    else
+      printf "Exists"
+    fi
+
+     #a loop to check if the OLM Subscription is at the latest known version
+    if kubectl wait --for=jsonpath="{.status.state}"="AtLatestKnown" "subscription/$sub" -n "$ns" --timeout=600s >/dev/null; then
+      printf ", AtLatestKnown\n"
+    else
+      printf ", NotUpdated\n"
+      kubectl -n "$ns" describe "subscription/$sub"
     fi
   done
 }

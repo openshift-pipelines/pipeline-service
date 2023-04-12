@@ -130,6 +130,9 @@ install_clusters() {
     printf -- "- Checking application status\n"
     check_applications "openshift-gitops" "pipeline-service" | indent 4
 
+    printf -- "- Checking subscription status\n"
+    check_subscriptions "openshift-operators" "openshift-pipelines-operator" | indent 4
+
     #checking if the pipelines and triggers pods are up and running
     printf -- "- Checking deployment status\n"
     tektonDeployments=("tekton-pipelines-controller" "tekton-triggers-controller" "tekton-triggers-core-interceptors")
