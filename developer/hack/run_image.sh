@@ -167,6 +167,10 @@ run_image() {
 
   if [ -n "$WORKSPACE_DIR" ]; then
     CONTAINER_OPTIONS+=( "--volume" "$WORKSPACE_DIR:/workspace:Z" )
+
+    # These settings are required to run dev_setup.sh successfully
+    CONTAINER_OPTIONS+=( "--privileged" "--volume" "/var/run/podman:/var/run/podman" )  # Enable podman in podman
+    CONTAINER_OPTIONS+=( "--volume" "$HOME/.kube:/root/.kube:Z" "--volume" "$HOME/.ssh:/root/.ssh:Z" )  # Access user's config
   fi
 
   echo "[Run $image_name]" >"$STDOUT"

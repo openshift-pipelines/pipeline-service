@@ -11,10 +11,13 @@ RUN set -x \
         # python3-devl is needed when installing checkov's dependencies
         python3-devel-3.11.2 \
         python3-pip-22.2.2 \
+        rsync-3.2.7 \
         unzip-6.0 \
         which-2.21 \
         xz-5.4.1 \
-    && dnf clean all
+    && dnf clean all \
+    && sed -i -e "s:podman:root:" /etc/subuid /etc/subgid \
+    && podman system migrate
 COPY shared /tmp/image-build/shared
 RUN /tmp/image-build/shared/hack/install.sh --debug --bin argocd,bitwarden,checkov,hadolint,jq,kind,kubectl,oc,shellcheck,tkn,yamllint,yq \
     && rm -rf /tmp/image-build
