@@ -19,6 +19,22 @@ fetch_bitwarden_secrets() {
     get_aws_credentials
 }
 
+print_debug_info() {
+    printf "Print debug info......\n" | indent 2
+
+    printf "HostedCluster CR Status: " | indent 4
+    kubectl -n clusters get hostedcluster "$CLUSTER_NAME" -o yaml
+
+    printf "Control Plane pods of HostedCluster: " | indent 4
+    kubectl -n "clusters-${CLUSTER_NAME}" get pods
+
+    # Export kubeconfig of hosted cluster
+    hypershift create kubeconfig --name "$CLUSTER_NAME" > "${CLUSTER_NAME}.kubeconfig"
+
+    printf "Cluster Operators on Hosted Cluster: " | indent 4
+    kubectl --kubeconfig="${CLUSTER_NAME}.kubeconfig" get co -o yaml
+}
+
 deploy_cluster() {
     setx_off
     hypershift create cluster aws --pull-secret "$PULL_SECRET" --aws-creds "$AWS_CREDENTIALS"  --name "$CLUSTER_NAME"  --node-pool-replicas=2  --base-domain "$BASE_DOMAIN"  --region="$REGION" --release-image="$IMAGE" --root-volume-type=gp3 --root-volume-size=120 --instance-type=m5.2xlarge
@@ -35,7 +51,7 @@ deploy_cluster() {
         ]; do
         if [ "$wait_period" -gt 1800 ]; then
             echo "[ERROR] Failed to create OCP cluster." >&2
-            kubectl -n clusters get hostedcluster "$CLUSTER_NAME" -o yaml
+            print_debug_info
             exit 1
         fi
         sleep 60
