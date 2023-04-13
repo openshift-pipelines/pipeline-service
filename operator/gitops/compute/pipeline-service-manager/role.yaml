@@ -7,6 +7,15 @@ rules:
   - apiGroups:
       - ""
     resources:
+      - pods
+      - pods/logs
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
       - namespaces
     verbs:
       - get
