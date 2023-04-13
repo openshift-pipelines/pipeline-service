@@ -117,3 +117,11 @@ rules:
       - patch
       - delete
       - deletecollection
+  - apiGroups:
+      - "operators.coreos.com"
+    resources:
+      - subscriptions
+    verbs:
+      - get
+      - list
+      - watch
