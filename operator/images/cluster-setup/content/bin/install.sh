@@ -156,6 +156,15 @@ install_shared_manifests() {
 install_applications() {
   CONFIG_DIR=$(find "${WORKSPACE_DIR}/environment/compute" -type d -name "${clusters[$i]}")
   kubectl apply -k "$CONFIG_DIR"
+  # Update ArgoCD app in case we want to test a config from a different source.
+  if [ -n "${GIT_URL:-}" ] || [ -n "${GIT_REF:-}" ];then
+    echo  "Updating argocd apps to use $GIT_URL/tree/$GIT_REF"
+    for app in $(argocd app list | grep pipeline-service| cut -d ' ' -f 1)
+    do
+      argocd app set "$app" --repo "$GIT_URL" --revision "$GIT_REF"
+    done
+  fi
+
 }
 
 main() {
