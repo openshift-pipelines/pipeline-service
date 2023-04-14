@@ -33,12 +33,15 @@ usage() {
 Usage:
     ${0##*/} [options]
 
-Run yamllint in the content of the workspace directory
+Run hadolint in the content of the workspace directory
 
 Optional arguments:
     -w, --workspace_dir WORKSPACE_DIR.
         Workspace directory.
         Default: $PROJECT_DIR
+    -c, --config-file CONFIG_FILE
+        Configuration file.
+        Default: the path '../config/hadolint.yaml' from this script
     -d, --debug
         Activate tracing/debug mode.
     -h, --help
@@ -51,6 +54,7 @@ Example:
 
 parse_args() {
     WORKSPACE_DIR="$PROJECT_DIR"
+    CONFIG_FILE="$SCRIPT_DIR/../config/hadolint.yaml"
     while [[ $# -gt 0 ]]; do
         case $1 in
         -w | --workspace_dir)
@@ -65,6 +69,10 @@ parse_args() {
         -h | --help)
             usage
             exit 0
+            ;;
+        -c | --config-file)
+            shift
+            CONFIG_FILE="$1"
             ;;
         *)
             echo "[ERROR] Unknown argument: $1" >&2
@@ -82,7 +90,7 @@ init() {
 
 run() {
     find "$WORKSPACE_DIR" -name Dockerfile -exec \
-        hadolint -c "$SCRIPT_DIR/../config/hadolint.yaml" {} +
+        hadolint -c "$CONFIG_FILE" {} +
 }
 
 main() {

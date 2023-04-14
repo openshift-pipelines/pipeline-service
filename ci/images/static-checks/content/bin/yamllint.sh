@@ -39,6 +39,9 @@ Optional arguments:
     -w, --workspace_dir WORKSPACE_DIR.
         Workspace directory.
         Default: $PROJECT_DIR
+    -c, --config-file CONFIG_FILE
+        Configuration file.
+        Default: the path '../config/yamllint.yaml' from this script
     -d, --debug
         Activate tracing/debug mode.
     -h, --help
@@ -51,6 +54,7 @@ Example:
 
 parse_args() {
     WORKSPACE_DIR="$PROJECT_DIR"
+    CONFIG_FILE="$SCRIPT_DIR/../config/yamllint.yaml"
     while [[ $# -gt 0 ]]; do
         case $1 in
         -w | --workspace_dir)
@@ -65,6 +69,10 @@ parse_args() {
         -h | --help)
             usage
             exit 0
+            ;;
+        -c | --config-file)
+            shift
+            CONFIG_FILE="$1"
             ;;
         *)
             echo "[ERROR] Unknown argument: $1" >&2
@@ -81,7 +89,7 @@ init() {
 }
 
 run() {
-    yamllint -c "$SCRIPT_DIR/../config/yamllint.yaml" "$WORKSPACE_DIR"
+    yamllint -c "$CONFIG_FILE" "$WORKSPACE_DIR"
 }
 
 main() {

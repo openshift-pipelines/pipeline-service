@@ -57,7 +57,7 @@ spec:
               imagePullPolicy: Always
               script: |
                 #!/usr/bin/env bash
-                /opt/static-checks/bin/shellcheck.sh --workspace_dir $(workspaces.source.path)
+                $(workspaces.source.path)/ci/images/static-checks/content/bin/shellcheck.sh --workspace_dir $(workspaces.source.path)
           workspaces:
             - name: source
       - name: yamllint
@@ -78,7 +78,7 @@ spec:
               imagePullPolicy: Always
               script: |
                 #!/usr/bin/env bash
-                /opt/static-checks/bin/yamllint.sh --workspace_dir $(workspaces.source.path)
+                $(workspaces.source.path)/ci/images/static-checks/content/bin/yamllint.sh --config-file $(workspaces.source.path)/ci/images/static-checks/content/config/yamllint.yaml --workspace_dir $(workspaces.source.path)
           workspaces:
             - name: source
       - name: hadolint
@@ -98,7 +98,7 @@ spec:
               image: quay.io/redhat-pipeline-service/static-checks:$(params.target_branch)
               script: |
                 #!/usr/bin/env bash
-                /opt/static-checks/bin/hadolint.sh --workspace_dir $(workspaces.source.path)
+                $(workspaces.source.path)/ci/images/static-checks/content/bin/hadolint.sh --config-file $(workspaces.source.path)/ci/images/static-checks/content/config/hadolint.yaml --workspace_dir $(workspaces.source.path)
           workspaces:
             - name: source
       - name: checkov
