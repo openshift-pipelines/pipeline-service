@@ -17,6 +17,10 @@ EXCLUDE_CLUSTER=(local-cluster)
 
 delete_cluster() {
     cluster_name="$1"
+    # if hostedcluster doesn't exist, skip
+    if ! kubectl get hostedcluster -n clusters "$cluster_name" > /dev/null 2>&1; then
+        return
+    fi
     deletionTimestamp=$(kubectl get hostedcluster -n clusters "$cluster_name" -o json \
         | jq -r '.metadata.deletionTimestamp?'
     )
