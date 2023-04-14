@@ -103,7 +103,7 @@ check_deployments() {
       printf ", Ready\n"
     else
       kubectl -n "$ns" describe "deployment/$deploy"
-      kubectl -n "$ns" logs "deployment/$deploy"
+      kubectl -n "$ns" logs "deployment/$deploy --all-containers"
       kubectl -n "$ns" get events | grep Warning
       exit 1
     fi
