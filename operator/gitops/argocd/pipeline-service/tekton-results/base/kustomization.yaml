@@ -30,6 +30,7 @@ configMapGenerator:
     behavior: replace
 
 patchesStrategicMerge:
+  - api-migrator-config.yaml
   - api-db-config.yaml
   - api-s3-config.yaml
   - api-service-tls.yaml
