@@ -22,3 +22,10 @@ After that, you need to add a Configmap for storing the kubeconfig of ROSA clust
 ## Setup GitHub app
 
 - Need to configure GitHub app for Pipelines as Code configuration into Pipeline Service repository.
+
+## Debugging an issue during the CI execution
+The CI will destroy the test cluster at the end of the pipeline by default.
+This is an issue when troubleshooting is required.
+
+To bypass deletion of the test cluster, delete the `destroy-cluster.txt` file in created in the root of the cloned repository.
+There is a 15 minutes window to log onto the container running the `destroy-cluster` step and delete the file.

@@ -188,24 +188,6 @@ spec:
         - input: "$(tasks.deploy-cluster.status)"
           operator: notin
           values: ["None"]
-        - input: "$(tasks.plnsvc-setup.status)"
-          operator: notin
-          values: ["Failed"]
-        - input: "$(tasks.tests-before-upgrade.status)"
-          operator: notin
-          values: ["Failed"]
-        - input: "$(tasks.plnsvc-upgrade-setup.status)"
-          operator: notin
-          values: ["Failed"]
-        - input: "$(tasks.tests-post-upgrade.status)"
-          operator: notin
-          values: ["Failed"]
-        - input: "$(tasks.plnsvc-downgrade-setup.status)"
-          operator: notin
-          values: ["Failed"]
-        - input: "$(tasks.tests-post-downgrade.status)"
-          operator: notin
-          values: ["Failed"]
       params:
         - name: cluster-name
           value: "$(tasks.generate-cluster-name.results.cluster-name)"

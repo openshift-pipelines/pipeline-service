@@ -33,5 +33,6 @@ spec:
             secretKeyRef:
               name: hypershift-bitwarden
               key: "BW_PASSWORD"
+      workingDir: "$(workspaces.source.path)"
       command:
         - $(workspaces.source.path)/ci/images/ci-runner/hack/bin/destroy-cluster.sh

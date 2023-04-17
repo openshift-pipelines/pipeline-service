@@ -9,6 +9,18 @@ SCRIPT_DIR="$(
   pwd
 )"
 
+# Give developers 15mins to connect to a pod and remove the file
+# if they want to investigate the failure
+if [ -e "$PWD/destroy-cluster.txt" ]; then
+    sleep 900
+    if [ -e "$PWD/destroy-cluster.txt" ]; then
+      echo "Failure is not being investigated, cluster will be destroyed."
+    else
+      echo "Failure under investigation, cluster will not be destroyed."
+      exit 1
+    fi
+fi
+
 # shellcheck source=ci/images/ci-runner/hack/bin/utils.sh
 source "$SCRIPT_DIR/utils.sh"
 
