@@ -162,7 +162,9 @@ main() {
   parse_args "$@"
   fetch_bitwarden_secrets
   get_clusters
+  INSTALL_FAILED=0
   install_clusters
+  exit "$INSTALL_FAILED"
 }
 
 if [ "${BASH_SOURCE[0]}" == "$0" ]; then
