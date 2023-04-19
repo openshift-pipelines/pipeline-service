@@ -16,6 +16,27 @@ and be dropped in a shell.
 environment. This will require an action on your side when opening the project, so look
 out for the `Reopen in container` notification.
 
+## Testing changes
+
+Testing changes always involves commiting those changes to a branch, and pushing those changes.
+This is because even in development mode, ArgoCD is used to control the resources deployed on the cluster.
+
+### Using the locally checked out repository/branch
+This method is best when testing a current development as it does not require any modification to files tracked by git.
+
+* Run `developer/openshift/dev_setup.sh` with the `--use-current-branch` option.
+
+Note: If the current checked out workdir belongs to a branch, the branch will be deployed.
+If it is a detached HEAD, then the revision number will be used.
+In the latter case updating the deployment requires running the script again, whereas in the former just pushing a change to branch will cause ArogCD to trigger the synchronization.
+
+### Using another repository/branch
+
+* Update the `git_url` and `git_ref` in `developer/config.yaml` to reference the fork and branch/revision.
+* Run `developer/openshift/dev_setup.sh`.
+
+When using this method, make sure that you do not commit and push changes to `developer/config.yaml`.
+
 ## PR process
 
 * When you open a PR, add a few reviewers. If the PR solves a GitHub issue, make sure
