@@ -16,6 +16,11 @@ if [ -e "$PWD/destroy-cluster.txt" ]; then
     if [ -e "$PWD/destroy-cluster.txt" ]; then
       echo "Failure is not being investigated, cluster will be destroyed."
     else
+      echo "KUBECONFIG:"
+      cat "$KUBECONFIG"
+      echo
+      echo "Connect to the ci-runner: kubectl exec -n default --stdin --tty ci-runner -- bash"
+      echo
       echo "Failure under investigation, cluster will not be destroyed."
       exit 1
     fi
