@@ -10,10 +10,13 @@ spec:
     - name: revision
     - name: target_branch
     - name: ocp_version
+    - name: results_url
   timeouts:
     finally: "0h30m0s"
   workspaces:
     - name: source
+    - name: tekton-results-source
+    - name: kubeconfig-dir
     - name: shared-workspace
   tasks:
     - name: generate-cluster-name
@@ -106,6 +109,35 @@ spec:
           workspace: shared-workspace
         - name: source
           workspace: source
+    - name: tekton-results-fetch-sha
+      taskRef:
+        name: tekton-results-fetch-sha
+      runAfter:
+        - "clone-pipeline-service-git"
+      params:
+        - name: target_branch
+          value: $(params.target_branch)
+      workspaces:
+        - name: source
+          workspace: source
+    - name: tekton-results-upstream-e2e
+      taskRef:
+        name: tekton-results-upstream-e2e
+      runAfter:
+        - "tekton-results-fetch-sha"
+        - "plnsvc-setup"
+      params:
+        - name: target_branch
+          value: $(params.target_branch)
+        - name: repo_url
+          value: "$(params.results_url)"
+        - name: revision
+          value: "$(tasks.tekton-results-fetch-sha.results.tekton-results-downstream-sha)"
+      workspaces:
+        - name: source
+          workspace: tekton-results-source
+        - name: kubeconfig-dir
+          workspace: shared-workspace
   finally:
     - name: destroy-cluster
       taskRef:

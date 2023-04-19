@@ -1,0 +1,55 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: tekton-results-upstream-e2e
+spec:
+  params:
+    - name: target_branch
+    - name: repo_url
+    - name: revision
+  workspaces:
+    - name: source
+    - name: kubeconfig-dir
+  steps:
+    - name: execute-tekton-results-upstream-e2e
+      image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: KUBECONFIG
+          value: "$(workspaces.kubeconfig-dir.path)/kubeconfig"
+      script: |
+        #! /usr/bin/env bash
+        cd $(workspaces.source.path)
+        git clone --no-checkout $(params.repo_url)
+        cd tektoncd-results
+        git config remote.origin.fetch '+refs/heads/downstream*:refs/remotes/origin/downstream*'
+        git fetch origin $(params.revision)
+        git checkout $(params.revision)
+        export SA_TOKEN_PATH=${SA_TOKEN_PATH:-"/tmp/tekton-results/tokens"}
+        export SSL_CERT_PATH=${SSL_CERT_PATH:="/tmp/tekton-results/ssl"}
+        mkdir -p ${SA_TOKEN_PATH} ${SSL_CERT_PATH}
+        kubectl get secrets tekton-results-tls -n tekton-results --template='{{index .data "tls.crt"}}' | base64 -d > ${SSL_CERT_PATH}/tekton-results-cert.pem
+        kubectl get secrets tekton-results-tls -n tekton-results --template='{{index .data "tls.key"}}' | base64 -d > ${SSL_CERT_PATH}/tekton-results-key.pem
+        kubectl apply -f ./test/e2e/kustomize/rbac.yaml
+        service_accounts=(all-namespaces-read-access single-namespace-read-access)
+        for service_account in "${service_accounts[@]}"; do
+        kubectl create token "$service_account" > "${SA_TOKEN_PATH}"/"$service_account"
+        done
+        RESULT_ROUTE=$(kubectl get route tekton-results -n tekton-results --template='{{.spec.host}}')
+        cat <<EOF > patch-test-config.patch
+        diff --git a/test/e2e/grpc_client.go b/test/e2e/grpc_client.go
+        --- a/test/e2e/grpc_client.go
+        +++ b/test/e2e/grpc_client.go
+        @@ -36,4 +36,4 @@ const (
+         	certFile         = "tekton-results-cert.pem"
+        -	apiServerName    = "tekton-results-api-service.tekton-pipelines.svc.cluster.local"
+        -	apiServerAddress = "localhost:50051"
+        +	apiServerName    = "tekton-results-api-service.tekton-results.svc.cluster.local"
+        +	apiServerAddress = "$RESULT_ROUTE"
+         	defCertFolder    = "/tmp/tekton-results/ssl"
+        
+        EOF
+        git apply patch-test-config.patch
+        export CGO_ENABLED=0
+        go test -v -count=1 --tags=e2e ./test/e2e/...
