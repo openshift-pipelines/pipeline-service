@@ -29,3 +29,16 @@ This is an issue when troubleshooting is required.
 
 To bypass deletion of the test cluster, delete the `destroy-cluster.txt` file in created in the root of the cloned repository.
 There is a 15 minutes window to log onto the container running the `destroy-cluster` step and delete the file.
+
+
+### Login to the HyperShift cluster
+When the test cluster is remained, to access the test cluster, you can go to the task named `deploy-cluster` to find the content of kubeconfig and login username/password.  
+
+### Debugging the plnsvc-setup task
+When the CI failed during the plnsvc-setup task, you can ssh to the ci-runner pod in the test cluster to manually execute `dev_setup.sh` to debug the task. For example
+
+```
+$ oc -n default rsh pod/ci-runner
+$ export KUBECONFIG=/kubeconfig
+$ /source/developer/openshift/dev_setup.sh --debug --use-current-branch --force --work-dir /source/developer/openshift/work
+```
