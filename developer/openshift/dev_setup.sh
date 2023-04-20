@@ -117,8 +117,17 @@ init() {
   # get the list of APPS to be installed
   read -ra APP_LIST <<< "$(yq eval '.apps // [] | join(" ")' "$CONFIG")"
 
-  GIT_URL=$(yq '.git_url // "https://github.com/openshift-pipelines/pipeline-service.git"' "$CONFIG")
-  GIT_REF=$(yq '.git_ref // "main"' "$CONFIG")
+  # Get the repository/branch used by ArgoCD as the source of truth
+  if [ -n "${USE_CURRENT_BRANCH:-}" ]; then
+    GIT_URL="$(git remote get-url origin | sed "s|git@github.com:|https://github.com/|")"
+    GIT_REF="$(git branch --show-current)"
+    # In the case of a PR, there's no branch, so use the revision instead
+    GIT_REF="${GIT_REF:-$(git rev-parse HEAD)}"
+  else
+    GIT_URL=$(yq '.git_url // "https://github.com/openshift-pipelines/pipeline-service.git"' "$CONFIG")
+    GIT_REF=$(yq '.git_ref // "main"' "$CONFIG")
+  fi
+  GIT_URL=$(echo "$GIT_URL" | sed '/\.git$/! s/$/.git/')
 
   # Create SRE repository folder
   WORK_DIR="${WORK_DIR:-}"
@@ -197,11 +206,7 @@ install_openshift_gitops() {
 
 
 setup_compute_access() {
-  if [ -n "${USE_CURRENT_BRANCH:-}" ]; then
-    kustomization_dir="$PROJECT_DIR/operator/gitops/compute/pipeline-service-manager"
-  else
-    kustomization_dir="$GIT_URL/operator/gitops/compute/pipeline-service-manager?ref=$GIT_REF"
-  fi
+  kustomization_dir="$GIT_URL/operator/gitops/compute/pipeline-service-manager?ref=$GIT_REF"
   "$PROJECT_DIR/operator/images/access-setup/content/bin/setup_compute.sh" \
     ${DEBUG:+"$DEBUG"} \
     --kubeconfig "$KUBECONFIG" \
@@ -211,6 +216,8 @@ setup_compute_access() {
 }
 
 install_pipeline_service() {
+
+  echo "- Source: ${GIT_URL//.git/}/tree/$GIT_REF"
 
   #############################################################################
   # Setup working directory
@@ -229,26 +236,32 @@ install_pipeline_service() {
   "$PROJECT_DIR/operator/images/access-setup/content/bin/setup_work_dir.sh" \
     ${DEBUG:+"$DEBUG"} \
     --work-dir "$WORK_DIR" \
-    --kustomization "git::$GIT_URL/developer/openshift/gitops/argocd?ref=$GIT_REF" |
+    --kustomization "$GIT_URL/developer/openshift/gitops/argocd?ref=$GIT_REF" |
     indent 2
+
+  # Patch the url/branch to target the expected repository/branch
+  manifest_dir="$(find "$WORK_DIR/environment/compute" -mindepth 1 -maxdepth 1 -type d)"
+  for app in "pipeline-service" "pipeline-service-storage"; do
+    cat << EOF >"$manifest_dir/patch-$app.yaml"
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: $app
+  namespace: openshift-gitops
+spec:
+  source:
+    repoURL: $GIT_URL
+    targetRevision: $GIT_REF
+EOF
+    yq -i ".patches += [{\"path\": \"patch-$app.yaml\"}]" "$manifest_dir/kustomization.yaml"
+  done
 
   #############################################################################
   # Deploy Applications
   #############################################################################
 
   echo "- Deploy applications:"
-  if [ -n "${USE_CURRENT_BRANCH:-}" ]; then
-    echo -n "  - Source: "
-    manifest_dir="$(find "$WORK_DIR/environment/compute" -mindepth 1 -maxdepth 1 -type d)"
-    repo_url="$(git remote get-url origin | sed "s|git@github.com:|https://github.com/|")"
-    branch="$(git branch --show-current)"
-    # In the case of a PR, there's no branch, so use the revision instead
-    branch="${branch:-$(git rev-parse HEAD)}"
-    kubectl create -k "$manifest_dir" --dry-run=client -o yaml >"$manifest_dir/pipeline-service.yaml"
-    yq -i ".spec.source.repoURL=\"$repo_url\" | .spec.source.targetRevision=\"$branch\"" "$manifest_dir/pipeline-service.yaml"
-    yq -i '.resources[0]="pipeline-service.yaml"' "$manifest_dir/kustomization.yaml"
-    echo "$(echo "$repo_url" | sed "s:\.git$::")/tree/$branch"
-  fi
   "$PROJECT_DIR/operator/images/cluster-setup/content/bin/install.sh" \
     ${DEBUG:+"$DEBUG"} \
     --workspace-dir "$WORK_DIR" | indent 2
