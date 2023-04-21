@@ -8,10 +8,6 @@ metadata:
     # the CRD will be applied and the resource can be created once the required dependencies are met.
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
-  platforms:
-    openshift:
-      pipelinesAsCode:
-        enable: false
   pipeline:
     default-service-account: pipeline
     enable-bundles-resolver: true
