@@ -35,4 +35,5 @@ patchesStrategicMerge:
   - api-s3-config.yaml
   - api-service-tls.yaml
   - watcher-config.yaml
+  - watcher-logging.yaml
   - delete-postgres.yaml
