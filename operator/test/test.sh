@@ -297,12 +297,16 @@ test_results() {
     QUERY_RESULT=$("${QUERY_CMD[@]}" 2>/dev/null)
     wait
 
-    # we are not interested in the content of the logs or records so just checking if the query result contains certain string (uid/type) 
+    echo "GGM results $QUERY_RESULT"
+
+
+    # we are not interested in the content of the logs or records so just checking if the query result contains certain string (uid/type)
     if [[ $QUERY_RESULT == *"$RESULT_UID/$1"* ]]; then
       echo "OK"
     else
       echo "Failed"
       echo "[ERROR] Unable to retrieve $1 for $RESULT_UID from pipeline run $pipeline_name" >&2
+      kubectl get pods -o name -n tekton-results | xargs -l -r kubectl -n tekton-results logs
       exit 1
     fi
 
