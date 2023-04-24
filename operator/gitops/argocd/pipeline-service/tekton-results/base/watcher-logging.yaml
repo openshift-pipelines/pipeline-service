@@ -6,8 +6,9 @@ metadata:
   name: tekton-results-config-logging
   namespace: tekton-pipelines
 data:
-  loglevel.controller: info
+  loglevel.controller: debug
+  loglevel.watcher: debug
   zap-logger-config: |
     {
-      "level": "info",
+      "level": "debug",
     }
