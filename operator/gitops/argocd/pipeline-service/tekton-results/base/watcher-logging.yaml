@@ -1,0 +1,13 @@
+# Adjust logging level of the watcher
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tekton-results-config-logging
+  namespace: tekton-pipelines
+data:
+  loglevel.controller: info
+  zap-logger-config: |
+    {
+      "level": "info",
+    }
