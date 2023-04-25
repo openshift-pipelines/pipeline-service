@@ -299,6 +299,22 @@ test_results() {
     else
       echo "Failed"
       echo "[ERROR] Unable to retrieve $1 for $RESULT_UID from pipeline run $pipeline_name" >&2
+      echo "GGM results pods summary"
+      oc get pods -n tekton-results
+      echo "GGM results pods yaml"
+      oc get pods -o yaml -n tekton-results
+      echo "GGM results events"
+      kubectl get events -n tekton-results
+      echo "GGM results route yaml"
+      kubectl get routes -n tekton-results -o yaml
+      echo "GGM api server mc logs"
+      kubectl logs deployments/tekton-results-api -n tekton-results -c mc
+      echo "GGM api server main logs"
+      kubectl logs deployments/tekton-results-api -n tekton-results
+      echo "GGM watcher logs"
+      kubectl logs deployments/tekton-results-watcher -n tekton-results
+      echo "GGM statefulsets logs"
+      kubectl get statefulsets -o name -n tekton-results | xargs -l -r kubectl logs -n tekton-results
       exit 1
     fi
 
@@ -314,6 +330,22 @@ test_results() {
       if ! echo "$LOGS_OUTPUT" | grep -qF "PipelineRun name from params:" ; then
           echo "[ERROR] Unable to retrieve logs output."
           printf "[ERROR] Log record: %s \n" "${LOGS_RESULT}"
+          echo "GGM results pods summary"
+          oc get pods -n tekton-results
+          echo "GGM results pods yaml"
+          oc get pods -o yaml -n tekton-results
+          echo "GGM results events"
+          kubectl get events -n tekton-results -o yaml
+          echo "GGM results route yaml"
+          kubectl get routes -n tekton-results
+          echo "GGM api server mc logs"
+          kubectl logs deployments/tekton-results-api -n tekton-results -c mc
+          echo "GGM api server main logs"
+          kubectl logs deployments/tekton-results-api -n tekton-results
+          echo "GGM watcher logs"
+          kubectl logs deployments/tekton-results-watcher -n tekton-results
+          echo "GGM statefulsets logs"
+          kubectl get statefulsets -o name -n tekton-results | xargs -l -r kubectl logs -n tekton-results
           exit 1
       fi
     fi
