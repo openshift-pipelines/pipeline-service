@@ -30,6 +30,7 @@ configMapGenerator:
     behavior: replace
 
 patchesStrategicMerge:
+  - argocd-sync-wave.yaml
   - api-migrator-config.yaml
   - api-db-config.yaml
   - api-s3-config.yaml
