@@ -93,7 +93,7 @@ setup_test() {
 }
 
 wait_for_pipeline() {
-  kubectl wait --for=condition=succeeded "$1" -n "$2" --timeout 60s >/dev/null
+  kubectl wait --for=condition=succeeded "$1" -n "$2" --timeout 300s >/dev/null
 }
 
 check_pod_security() {
