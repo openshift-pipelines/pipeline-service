@@ -46,10 +46,12 @@ check_applications() {
       else
         printf ", Unhealthy\n"
         kubectl -n "$ns" describe "application/$app"
+        export INSTALL_FAILED=1
       fi
     else
       printf ", OutOfSync\n"
       kubectl -n "$ns" describe "application/$app"
+        export INSTALL_FAILED=1
     fi
   done
 }
@@ -78,6 +80,7 @@ check_subscriptions() {
     else
       printf ", NotUpdated\n"
       kubectl -n "$ns" describe "subscription/$sub"
+      export INSTALL_FAILED=1
     fi
   done
 }
@@ -108,6 +111,7 @@ check_deployments() {
       kubectl -n "$ns" describe "deployment/$deploy"
       kubectl -n "$ns" logs "deployment/$deploy"
       kubectl -n "$ns" get events | grep Warning
+      export INSTALL_FAILED=1
       exit 1
     fi
   done
