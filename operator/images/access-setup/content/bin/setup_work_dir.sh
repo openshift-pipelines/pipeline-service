@@ -172,6 +172,18 @@ tekton_chains_manifest(){
 }
 
 tekton_results_manifest(){
+  miniosecret="$(kubectl get secrets minio-storage-configuration -o name -n tekton-results --ignore-not-found)"
+  if [ -z "$miniosecret" ]; then
+    printf "Need to create tekton results manifests for DB and S3 \n"
+  else
+    printf "Tekton results secrets already in place, returning from tekton_results_manifest \n"
+    # create minimal kustomization.yaml so calling function does not need to check for the secret as well
+    mkdir -p "$manifests_dir/compute/tekton-results"
+    kubectl create namespace tekton-results --dry-run=client -o yaml > "$manifests_dir/compute/tekton-results/namespace.yaml"
+    yq e -n '.resources += ["namespace.yaml"]' > "$manifests_dir/compute/tekton-results/kustomization.yaml"
+    return
+  fi
+
   results_kustomize="$manifests_dir/compute/tekton-results/kustomization.yaml"
   results_namespace="$manifests_dir/compute/tekton-results/namespace.yaml"
   results_db_secret="$manifests_dir/compute/tekton-results/tekton-results-db-secret.yaml"
