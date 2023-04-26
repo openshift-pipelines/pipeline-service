@@ -29,29 +29,28 @@ check_applications() {
     printf -- "- %s: " "$app"
 
     # Check if the ArgoCD application exists
-    if ! timeout 300s bash -c "while ! kubectl get application/$app -n $ns >/dev/null 2>/dev/null; do printf '.'; sleep 10; done"; then
+    if ! timeout 900s bash -c "while ! kubectl get application/$app -n $ns >/dev/null 2>/dev/null; do printf '.'; sleep 10; done"; then
       printf "%s not found (timeout)\n" "$app"
       kubectl get application/"$app" -n "$ns"
-      export INSTALL_FAILED=1
-      return
+      exit 1
     else
       printf "Exists"
     fi
 
     # Check if the ArgoCD application is synced
-    if kubectl wait --for=jsonpath="{.status.sync.status}"="Synced" "application/$app" -n "$ns" --timeout=600s >/dev/null; then
+    if kubectl wait --for=jsonpath="{.status.sync.status}"="Synced" "application/$app" -n "$ns" --timeout=1200s >/dev/null; then
       printf ", Synced"
-      if kubectl wait --for=jsonpath="{.status.health.status}"="Healthy" "application/$app" -n "$ns" --timeout=600s >/dev/null; then
+      if kubectl wait --for=jsonpath="{.status.health.status}"="Healthy" "application/$app" -n "$ns" --timeout=1200s >/dev/null; then
         printf ", Healthy\n"
       else
         printf ", Unhealthy\n"
         kubectl -n "$ns" describe "application/$app"
-        export INSTALL_FAILED=1
+        exit 1
       fi
     else
       printf ", OutOfSync\n"
       kubectl -n "$ns" describe "application/$app"
-        export INSTALL_FAILED=1
+      exit 1
     fi
   done
 }
@@ -65,22 +64,21 @@ check_subscriptions() {
     printf -- "- %s: " "$sub"
 
     # Check if the OLM Subscription exists
-    if ! timeout 300s bash -c "while ! kubectl get subscription/$sub -n $ns >/dev/null 2>/dev/null; do printf '.'; sleep 10; done"; then
+    if ! timeout 900s bash -c "while ! kubectl get subscription/$sub -n $ns >/dev/null 2>/dev/null; do printf '.'; sleep 10; done"; then
       printf "%s not found (timeout)\n" "$sub"
       kubectl get subscription/"$sub" -n "$ns"
-      export INSTALL_FAILED=1
-      return
+      exit 1
     else
       printf "Exists"
     fi
 
     # Check if the OLM Subscription is at the latest known version
-    if kubectl wait --for=jsonpath="{.status.state}"="AtLatestKnown" "subscription/$sub" -n "$ns" --timeout=600s >/dev/null; then
+    if kubectl wait --for=jsonpath="{.status.state}"="AtLatestKnown" "subscription/$sub" -n "$ns" --timeout=1200s >/dev/null; then
       printf ", AtLatestKnown\n"
     else
       printf ", NotUpdated\n"
       kubectl -n "$ns" describe "subscription/$sub"
-      export INSTALL_FAILED=1
+      exit 1
     fi
   done
 }
@@ -94,24 +92,22 @@ check_deployments() {
     printf -- "- %s: " "$deploy"
 
     # Check if the deployment exists
-    if ! timeout 300s bash -c "while ! kubectl get deployment/$deploy -n $ns >/dev/null 2>/dev/null; do printf '.'; sleep 10; done"; then
+    if ! timeout 900s bash -c "while ! kubectl get deployment/$deploy -n $ns >/dev/null 2>/dev/null; do printf '.'; sleep 10; done"; then
       printf "%s not found (timeout)\n" "$deploy"
       kubectl get deployment/"$deploy" -n "$ns"
       kubectl -n "$ns" get events | grep Warning
-      export INSTALL_FAILED=1
-      return
+      exit 1
     else
       printf "Exists"
     fi
 
     # Check if the deployment is Available and Ready
-    if kubectl wait --for=condition=Available=true "deployment/$deploy" -n "$ns" --timeout=200s >/dev/null; then
+    if kubectl wait --for=condition=Available=true "deployment/$deploy" -n "$ns" --timeout=600s >/dev/null; then
       printf ", Ready\n"
     else
       kubectl -n "$ns" describe "deployment/$deploy"
       kubectl -n "$ns" logs "deployment/$deploy"
       kubectl -n "$ns" get events | grep Warning
-      export INSTALL_FAILED=1
       exit 1
     fi
   done
