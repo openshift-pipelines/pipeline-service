@@ -24,6 +24,7 @@ spec:
       - CreateNamespace=true
       # workaround to make working both minio: newer and old 4.5.4
       - Validate=false
+      - ApplyOutOfSyncOnly=true
     retry:
       limit: -1 # number of failed sync attempt retries; unlimited number of attempts if less than 0
       backoff:
