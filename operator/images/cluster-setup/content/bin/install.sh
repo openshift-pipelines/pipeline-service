@@ -150,7 +150,11 @@ install_shared_manifests() {
   if [ "$(kubectl get secret -n tekton-chains signing-secrets --ignore-not-found -o json | jq -r ".immutable")" != "true" ]; then
     kubectl apply -k "$CREDENTIALS_DIR/manifests/compute/tekton-chains"
   fi
-  kubectl apply -k "$CREDENTIALS_DIR/manifests/compute/tekton-results"
+  miniosecret="$(kubectl get secrets -n tekton-results | grep "minio-storage-configuration" || true )"
+  if [ -z "$miniosecret" ]; then
+    kubectl apply -k "$CREDENTIALS_DIR/manifests/compute/tekton-results"
+  fi
+
 }
 
 install_applications() {

@@ -172,6 +172,14 @@ tekton_chains_manifest(){
 }
 
 tekton_results_manifest(){
+  miniosecret="$(kubectl get secrets -n tekton-results | grep "minio-storage-configuration" || true )"
+  if [ -z "$miniosecret" ]; then
+    printf "Need to create tekton results manifests for DB and S3"
+  else
+    printf "GGM Tekton results secrets already in place, returning from tekton_results_manifest"
+    return
+  fi
+
   results_kustomize="$manifests_dir/compute/tekton-results/kustomization.yaml"
   results_namespace="$manifests_dir/compute/tekton-results/namespace.yaml"
   results_db_secret="$manifests_dir/compute/tekton-results/tekton-results-db-secret.yaml"
