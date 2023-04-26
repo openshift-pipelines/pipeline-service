@@ -177,7 +177,10 @@ tekton_results_manifest(){
   results_db_secret="$manifests_dir/compute/tekton-results/tekton-results-db-secret.yaml"
   results_s3_secret="$manifests_dir/compute/tekton-results/tekton-results-s3-secret.yaml"
   results_minio_config="$manifests_dir/compute/tekton-results/tekton-results-minio-config.yaml"
+  echo "GGM setup_work_dir tekton_results_manifest current yaml listing before possibly updates"
+  ls -la "$manifests_dir/compute/tekton-results" || true
   if [ ! -e "$results_kustomize" ]; then
+    echo "GGM setup_work_dir tekton_results_manifest updating kustomize yaml"
     results_dir="$(dirname "$results_kustomize")"
     mkdir -p "$results_dir"
     if [[ -z $TEKTON_RESULTS_DATABASE_USER || -z $TEKTON_RESULTS_DATABASE_PASSWORD ]]; then
@@ -227,6 +230,9 @@ EOF
 
     yq e -n '.resources += ["namespace.yaml", "tekton-results-db-secret.yaml", "tekton-results-s3-secret.yaml", "tekton-results-minio-config.yaml"]' > "$results_kustomize"
   fi
+  echo "GGM setup_work_dir tekton_results_manifest current yaml listing after possibly updates"
+  ls -la "$manifests_dir/compute/tekton-results" || true
+  echo "GGM setup_work_dir tekton_results_manifest exit "
   printf "OK\n"
 }
 
