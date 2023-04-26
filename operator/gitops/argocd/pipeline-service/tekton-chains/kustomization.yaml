@@ -13,7 +13,7 @@ resources:
   - chains-secrets-config.yaml
   - public-key.yaml
 
-patchesJson6902:
+patches:
   # allow openshift-gitops to manage tekton-chains
   - target:
       kind: Namespace
@@ -23,20 +23,19 @@ patchesJson6902:
         path: "/metadata/labels"
         value:
           argocd.argoproj.io/managed-by: openshift-gitops
-
-patchesStrategicMerge:
-  #
   # Add some chains configuration
-  - chains-config.yaml
+  - path: chains-config.yaml
   #
   # Mount the chains cert volume and apply operator security standards
-  - chains-controller-deployment.yaml
-  #
-  # Remove signing-secrets so it does not conflict with an existing immutable secret
-  - |-
-    apiVersion: v1
-    kind: Secret
-    metadata:
+  - path: chains-controller-deployment.yaml
+  - target:
+      kind: Secret
       name: signing-secrets
       namespace: tekton-chains
-    $patch: delete
+    patch: |-
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: signing-secrets
+        namespace: tekton-chains
+      $patch: delete

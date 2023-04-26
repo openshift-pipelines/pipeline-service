@@ -4,6 +4,6 @@ kind: Kustomization
 resources:
   - ../../../../../../operator/gitops/argocd/pipeline-service/tekton-results/base
 
-patchesStrategicMerge:
-  - minio-create-bucket.yaml
-  - minio-tls.yaml
+patches:
+  - path: minio-create-bucket.yaml
+  - path: minio-tls.yaml

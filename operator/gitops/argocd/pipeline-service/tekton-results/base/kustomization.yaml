@@ -3,7 +3,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: tekton-results
 resources:
-  - https://github.com/openshift-pipelines/tektoncd-results.git/config/overlays/default-local-db/?ref=4c93d5c4f34d96d31ade787ee1856d144e342143
+  - github.com/openshift-pipelines/tektoncd-results.git/config/overlays/default-local-db/?ref=4c93d5c4f34d96d31ade787ee1856d144e342143
   - namespace.yaml
   - api-route.yaml
   - watcher-logging-rbac.yaml
@@ -21,19 +21,21 @@ images:
 
 # generate a new configmap with updated values (logs api, db ssl mode) and replace the default one
 configMapGenerator:
-  - name: api-config
-    namespace: tekton-pipelines
+  - behavior: replace
     files:
       - env/config
+    name: api-config
+    namespace: tekton-pipelines
     options:
       disableNameSuffixHash: true
-    behavior: replace
 
-patchesStrategicMerge:
-  - api-migrator-config.yaml
-  - api-db-config.yaml
-  - api-s3-config.yaml
-  - api-service-tls.yaml
-  - watcher-config.yaml
-  - watcher-logging.yaml
-  - delete-postgres.yaml
+patches:
+  - path: api-migrator-config.yaml
+  - path: api-db-config.yaml
+  - path: api-s3-config.yaml
+  - path: api-service-tls.yaml
+  - path: watcher-config.yaml
+  - path: watcher-logging.yaml
+  - path: delete-postgres-configmap.yaml
+  - path: delete-postgres-service.yaml
+  - path: delete-postgres-statefulset.yaml
