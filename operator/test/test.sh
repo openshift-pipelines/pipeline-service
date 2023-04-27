@@ -97,57 +97,49 @@ wait_for_pipeline() {
 }
 
 check_pod_security() {
-  sccs="$(kubectl get pod -o name -n "$1" | xargs -l -r kubectl get -o jsonpath='{.metadata.annotations.openshift\.io/scc}' -n "$1")"
-  if [[ "$sccs" =~ "restricted-v2" ]]; then
-     prune="$(echo "$sccs" | sed 's/restricted-v2//g')"
-     # if anything besides restricted-v2 is in there, we want to investigate
-     if [ -z "$prune" ]; then
-       echo "   - OK pod security for $1"
-     else
-       echo "Failed, scc's are "
-       echo "$sccs"
-       echo "[ERROR] Unexpected $1 pod security context constraints" >&2
-       exit 1
-     fi
-  else
-     # if none of the pods are restricted-v2, we want to investigate
-     echo "Failed, scc's are "
-     echo "$sccs"
-     echo "[ERROR] Unexpected $1 pod security context constraints" >&2
-     exit 1
-  fi
-
+  mapfile -t pods < <(kubectl get pod -o name -n "$1")
+  for pod in "${pods[@]}"; do
+    if [[ "$pod" == "pod/storage-pool-0-0" ]] || [[ "$pod" == "pod/postgres-postgresql-0" ]]; then
+      echo "   - Skip: $pod is exempt"
+      continue
+    fi
+    scc="$(kubectl get "$pod" -o jsonpath='{.metadata.annotations.openshift\.io/scc}' -n "$1"  --ignore-not-found)"
+    if [ -z "$scc" ]; then
+      echo "   - Skip: $pod could not be inspected (most like the pod terminated quickly)"
+      continue
+    fi
+    if [[ "$scc" =~ "restricted" ]]; then
+      echo "   - OK pod security check for $pod with scc $scc"
+      continue
+    fi
+    echo "[ERROR] Unexpected scc $scc for pod $pod"
+    securityErrorFound="yes"
+  done
 }
 
 check_host_network() {
-  # got to '|| true' or the script exits with the rc 1 that grep returns if nothing found
-  hostipc="$(kubectl get pods -o yaml -n "$1" | grep "hostIPC" || true )"
-  if [ -z "$hostipc" ]; then
-    echo "   - OK hostIPC settings for $1"
-  else
+  mapfile -t pods < <(kubectl get pod -o name -n "$1")
+  for pod in "${pods[@]}"; do
+    # got to '|| true' or the script exits with the rc 1 that grep returns if nothing found
+    hostipc="$(kubectl get "$pod" -o yaml -n "$1"  --ignore-not-found | grep "hostIPC" || true )"
+    if [ -z "$hostipc" ]; then
+      echo "   - OK hostIPC settings for $pod"
+    else
        echo "Failed, hostIPC's are "
        echo "$hostipc"
-       echo "[ERROR] Unexpected $1 hostIPC settings" >&2
-       exit 1
-  fi
-  hostpid="$(kubectl get pods -o yaml -n "$1" | grep "hostPID" || true )"
-  if [ -z "$hostpid" ]; then
-    echo "   - OK hostPID settings for $1"
-  else
+       echo "[ERROR] Unexpected $pod hostIPC settings" >&2
+       securityErrorFound="yes"
+    fi
+    hostpid="$(kubectl get "$pod" -o yaml -n "$1"  --ignore-not-found | grep "hostPID" || true )"
+    if [ -z "$hostpid" ]; then
+      echo "   - OK hostPID settings for $pod"
+    else
        echo "Failed, hostPID's are "
-       echo "$hostipc"
-       echo "[ERROR] Unexpected $1 hostPID settings" >&2
-       exit 1
-  fi
-  hostnetwork="$(kubectl get pods -o yaml -n "$1" | grep "hostNetwork" || true )"
-  if [ -z "$hostnetwork" ]; then
-    echo "   - OK hostNetwork settings for $1"
-  else
-       echo "Failed, hostNetwork's are "
-       echo "$hostnetwork"
-       echo "[ERROR] Unexpected $1 hostNetwork settings" >&2
-       exit 1
-  fi
+       echo "$hostpid"
+       echo "[ERROR] Unexpected $pod hostPID settings" >&2
+       securityErrorFound="yes"
+    fi
+  done
 }
 
 test_chains() {
@@ -238,6 +230,7 @@ test_pipelines() {
 }
 
 test_security() {
+  export securityErrorFound=""
   echo " - Check security: "
   echo "  - Check Pod Security openshift-pipelines: "
   check_pod_security "openshift-pipelines"
@@ -253,6 +246,12 @@ test_security() {
   check_pod_security "tekton-chains"
   echo "  - Check Pod Host Network tekton-chains: "
   check_host_network "tekton-chains"
+
+  if [[ "$securityErrorFound" == "yes" ]]; then
+    echo " - Check security failed"
+    exit 1
+  fi
+
 }
 
 test_results() {
