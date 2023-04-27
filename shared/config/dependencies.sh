@@ -4,8 +4,8 @@
 # E.g.:
 #       export FOOBAR_VERSION="1.2.3"  # Freeze
 export ARGOCD_VERSION="v2.6.7"
-export BITWARDEN_VERSION="v2023.3.0"
-export CHECKOV_VERSION="2.3.199"
+export BITWARDEN_VERSION="v2023.4.0"
+export CHECKOV_VERSION="2.3.203"
 export GO_VERSION="1.20.3"
 export HADOLINT_VERSION="v2.12.0"
 export HYPERSHIFT_VERSION="main"  # Freeze
