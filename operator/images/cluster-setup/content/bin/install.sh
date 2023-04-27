@@ -139,6 +139,8 @@ install_clusters() {
     check_deployments "openshift-pipelines" "${tektonDeployments[@]}" | indent 4
     resultsDeployments=("tekton-results-api" "tekton-results-watcher")
     check_deployments "tekton-results" "${resultsDeployments[@]}" | indent 4
+    resultsStatefulsets=("postgres-postgresql" "storage-pool-0")
+    check_statefulsets "tekton-results" "${resultsStatefulsets[@]}" | indent 4
     chainsDeployments=("tekton-chains-controller")
     check_deployments "tekton-chains" "${chainsDeployments[@]}" | indent 4
   done

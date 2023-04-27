@@ -113,6 +113,37 @@ check_deployments() {
   done
 }
 
+check_statefulsets() {
+  local ns="$1"
+  shift
+  local statefulsets=("$@")
+
+  for statefulset in "${statefulsets[@]}"; do
+    printf -- "- %s: " "$statefulset"
+
+    # Check if the statefulset exists
+    if ! timeout 300s bash -c "while ! kubectl get statefulset/$statefulset -n $ns >/dev/null 2>/dev/null; do printf '.'; sleep 10; done"; then
+      printf "%s not found (timeout)\n" "$statefulset"
+      kubectl get statefulset/"$statefulset" -n "$ns"
+      kubectl -n "$ns" get events | grep Warning
+      export INSTALL_FAILED=1
+      return
+    else
+      printf "Exists"
+    fi
+
+    # Check if the statefulset has available replica
+    if kubectl wait --for=jsonpath='{.status.availableReplicas}'=1 "statefulset/$statefulset" -n "$ns" --timeout=200s >/dev/null; then
+      printf ", Ready\n"
+    else
+      kubectl -n "$ns" describe "statefulset/$statefulset"
+      kubectl -n "$ns" logs "statefulset/$statefulset"
+      kubectl -n "$ns" get events | grep Warning
+      exit 1
+    fi
+  done
+}
+
 fetch_bitwarden_secrets() {
   CREDENTIALS_DIR="$WORKSPACE_DIR/credentials"
   BITWARDEN_CRED="$CREDENTIALS_DIR/secrets/bitwarden.yaml"
