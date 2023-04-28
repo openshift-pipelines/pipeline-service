@@ -30,12 +30,16 @@ configMapGenerator:
       disableNameSuffixHash: true
 
 patches:
-  - path: api-migrator-config.yaml
   - path: api-db-config.yaml
+  - path: api-migrator-config.yaml
   - path: api-s3-config.yaml
+  - path: api-sync.yaml
+  - path: api-service-sync.yaml
   - path: api-service-tls.yaml
   - path: watcher-config.yaml
   - path: watcher-logging.yaml
+  - path: watcher-sync.yaml
+  - path: watcher-service-sync.yaml
   - path: delete-postgres-configmap.yaml
   - path: delete-postgres-service.yaml
   - path: delete-postgres-statefulset.yaml

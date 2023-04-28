@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tekton-results-watcher
+  namespace: tekton-pipelines
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
