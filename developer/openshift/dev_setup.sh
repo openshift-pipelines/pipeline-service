@@ -234,7 +234,7 @@ install_pipeline_service() {
   TEKTON_RESULTS_DATABASE_PASSWORD="$(yq '.tekton_results_db.password' "$CONFIG")"
   export TEKTON_RESULTS_DATABASE_USER
   export TEKTON_RESULTS_DATABASE_PASSWORD
-  TEKTON_RESULTS_S3_USER="$(yq '.tekton_results_s3.user // "minio"' "$CONFIG")"
+  TEKTON_RESULTS_S3_USER="$(yq '.tekton_results_s3.user // "tekton"' "$CONFIG")"
   TEKTON_RESULTS_S3_PASSWORD="$(yq ".tekton_results_s3.password // \"$(openssl rand -base64 20)\"" "$CONFIG")"
   export TEKTON_RESULTS_S3_USER
   export TEKTON_RESULTS_S3_PASSWORD
@@ -251,17 +251,14 @@ install_pipeline_service() {
   for app in "pipeline-service" "pipeline-service-storage" "pipeline-service-o11y"; do
     cat << EOF >"$manifest_dir/patch-$app.yaml"
 ---
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: $app
-  namespace: openshift-gitops
-spec:
-  source:
-    repoURL: $GIT_URL
-    targetRevision: $GIT_REF
+- op: replace
+  path: "/spec/sources/0/repoURL"
+  value: $GIT_URL
+- op: replace
+  path: "/spec/sources/0/targetRevision"
+  value: $GIT_REF
 EOF
-    yq -i ".patches += [{\"path\": \"patch-$app.yaml\"}]" "$manifest_dir/kustomization.yaml"
+    yq -i ".patches += [{\"path\": \"patch-$app.yaml\", \"target\": {\"kind\": \"Application\", \"namespace\": \"openshift-gitops\", \"name\": \"$app\" }}]" "$manifest_dir/kustomization.yaml"
   done
 
   #############################################################################

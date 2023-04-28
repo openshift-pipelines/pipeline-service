@@ -10,10 +10,10 @@ spec:
   destination:
     namespace: openshift-gitops
     server: https://kubernetes.default.svc
-  source:
-    path: developer/openshift/gitops/argocd/pipeline-service-o11y
-    repoURL: https://github.com/openshift-pipelines/pipeline-service.git
-    targetRevision: main
+  sources:
+    - path: developer/openshift/gitops/argocd/pipeline-service-o11y
+      repoURL: https://github.com/openshift-pipelines/pipeline-service.git
+      targetRevision: main
   project: default
   syncPolicy:
     # Comment this out if you want to manually trigger deployments (using the

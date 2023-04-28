@@ -5,9 +5,8 @@ kind: Kustomization
 resources:
   - ../../../../../operator/gitops/argocd/pipeline-service
 
-patches:
-  - path: tekton-results/minio-create-bucket.yaml
-  - path: tekton-results/minio-tls.yaml
+  # patches:
+  #  - path: tekton-results/minio-tls.yaml
 
   # Skip applying the Tekton operands while the Tekton operator is being installed.
   # See more information about this option, here:

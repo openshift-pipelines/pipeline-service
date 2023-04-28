@@ -4,5 +4,5 @@ kind: Kustomization
 
 resources:
   - pipeline-service.yaml
-  - pipeline-service-storage.yaml
   - pipeline-service-o11y.yaml
+  - pipeline-service-storage

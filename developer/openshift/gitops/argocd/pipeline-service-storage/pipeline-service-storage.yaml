@@ -8,12 +8,20 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
 spec:
   destination:
-    namespace: openshift-gitops
+    namespace: tekton-results
     server: https://kubernetes.default.svc
-  source:
-    path: developer/openshift/gitops/argocd/pipeline-service-storage
-    repoURL: https://github.com/openshift-pipelines/pipeline-service.git
-    targetRevision: main
+  sources:
+    - repoURL: https://github.com/openshift-pipelines/pipeline-service.git
+      path: developer/openshift/gitops/argocd/pipeline-service-storage/minio
+      targetRevision: main
+      ref: values
+    - repoURL: https://charts.bitnami.com/bitnami
+      chart: postgresql
+      targetRevision: 12.2.7
+      helm:
+        releaseName: postgres
+        valueFiles:
+          - $values/developer/openshift/gitops/argocd/pipeline-service-storage/postgres/values.yaml
   project: default
   syncPolicy:
     # Comment this out if you want to manually trigger deployments (using the

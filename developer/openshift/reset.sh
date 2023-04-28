@@ -109,9 +109,9 @@ check_if_argocd_app_was_removed() {
   local appName=$1
   local numOfAttempts=$2
   local i=0
-  printf "    Removing ArgoCD application '%s': " "$appName"
-  while [[ $(argocd app get "${appName}" 2>&1) != *"not found"* ]]; do
-    printf '.'; sleep 5;
+  printf "Removing ArgoCD application '%s': " "$appName"
+  while argocd app get "${appName}" >/dev/null 2>&1; do
+    printf '.'; sleep 10;
     i=$((i+1))
     if [[ $i -eq "${numOfAttempts}" ]]; then
       printf "\n[ERROR] ArgoCD app %s was no deleted by timeout \n" "$appName" >&2
@@ -123,37 +123,37 @@ check_if_argocd_app_was_removed() {
   printf " OK\n"
 }
 
-uninstall_minio() {
-    printf "\n  Uninstalling Minio Service:\n"
-    if argocd app get minio >/dev/null 2>&1; then
+uninstall_pipeline_service_storage() {
+    printf "\nUninstalling Pipeline Service Storage:\n"
+    if argocd app get pipeline-service-storage >/dev/null 2>&1; then
 
       # If something went wrong(e.g. bad development changes) the ArgoCD sync operation can be very long or could hang.
       # In this case any other ArgoCD operation will be queued.
       # Therefore the 'delete' operation will not be executed in a timely manner.
       # Cancelling the sync operation speeds up the process.
-      argocd app terminate-op minio >/dev/null 2>&1
+      argocd app terminate-op pipeline-service-storage >/dev/null 2>&1
 
-      argocd app delete minio --yes
+      argocd app delete pipeline-service-storage --yes
 
       if [ -n "${RESET_HARD}" ]; then
         # Remove any finalizers that might inhibit deletion
-        if argocd app get minio >/dev/null 2>&1; then
-          kubectl patch applications.argoproj.io -n openshift-gitops minio --type json --patch='[ { "op": "remove", "path": "/metadata/finalizers" } ]' >/dev/null 2>&1
+        if argocd app get pipeline-service-storage >/dev/null 2>&1; then
+          kubectl patch applications.argoproj.io -n openshift-gitops pipeline-service-storage --type json --patch='[ { "op": "remove", "path": "/metadata/finalizers" } ]' >/dev/null 2>&1
         fi
 
         # Check if the Argo CD application has been indeed removed
-        if argocd app get minio >/dev/null 2>&1; then
-          printf "\n[ERROR] Couldn't uninstall Minio Argo CD application." >&2
+        if argocd app get pipeline-service-storage >/dev/null 2>&1; then
+          printf "\n[ERROR] Couldn't uninstall Pipeline Service Storage Argo CD application." >&2
           exit 1
         fi
 
-        printf "\n  Uninstalling Minio Operator:\n"
-        kubectl delete -k "$DEV_DIR/gitops/argocd/minio" --ignore-not-found=true
+        printf "\nUninstalling Pipeline Service Storage:\n"
+        kubectl delete -k "$DEV_DIR/gitops/argocd/pipeline-service-storage" --ignore-not-found=true
       else
-        check_if_argocd_app_was_removed "minio" 25
+        check_if_argocd_app_was_removed "pipeline-service-storage" 100
       fi
 
-      printf "\n  Uninstalling Minio Operator:\n"
+      printf "\nRemoving Minio Operator:\n"
       minio_gitops_csv=$(kubectl get csv -n openshift-operators | grep -ie "minio-operator" | cut -d " " -f 1)
       if [[ -n "$minio_gitops_csv" ]]; then
         kubectl delete csv -n openshift-operators "$minio_gitops_csv"
@@ -162,21 +162,57 @@ uninstall_minio() {
       mapfile -t minio_crds < <(kubectl get crd -n openshift-operators | grep -iE "tenant" | cut -d " " -f 1)
       if [[ "${#minio_crds[@]}" -gt 0 ]]; then
         for crd in "${minio_crds[@]}"; do
-          printf "\n    Delete crd %s\n" "$crd"
+          printf "\nDelete crd %s\n" "$crd"
           kubectl delete crd "$crd"
         done
       fi
 
       minio_operator=$(kubectl get operator | grep -ie "minio" | cut -d " " -f 1)
       if [[ -n "$minio_operator" ]]; then
-        printf "\n    Delete operator cr %s\n" "$minio_operator"
+        printf "\nDelete operator cr %s\n" "$minio_operator"
         kubectl delete operator "$minio_operator"
       fi
     fi
+
+    printf "\n[INFO] Pipeline-Service-Storage Argo CD application has been successfully removed.\n"
+}
+
+uninstall_pipeline_service_monitoring() {
+    printf "\nUninstalling Pipeline Service Monitoring:\n"
+    if argocd app get pipeline-service-o11y >/dev/null 2>&1; then
+
+      # If something went wrong(e.g. bad development changes) the ArgoCD sync operation can be very long or could hang.
+      # In this case any other ArgoCD operation will be queued.
+      # Therefore the 'delete' operation will not be executed in a timely manner.
+      # Cancelling the sync operation speeds up the process.
+      argocd app terminate-op pipeline-service-o11y >/dev/null 2>&1
+
+      argocd app delete pipeline-service-o11y --yes
+
+      if [ -n "${RESET_HARD}" ]; then
+        # Remove any finalizers that might inhibit deletion
+        if argocd app get pipeline-service-o11y >/dev/null 2>&1; then
+          kubectl patch applications.argoproj.io -n openshift-gitops pipeline-service-o11y --type json --patch='[ { "op": "remove", "path": "/metadata/finalizers" } ]' >/dev/null 2>&1
+        fi
+
+        # Check if the Argo CD application has been indeed removed
+        if argocd app get pipeline-service-o11y >/dev/null 2>&1; then
+          printf "\n[ERROR] Couldn't uninstall Pipeline Service O11y Argo CD application." >&2
+          exit 1
+        fi
+
+        printf "\nUninstalling Pipeline Service Monitoring:\n"
+        kubectl delete -k "$DEV_DIR/gitops/argocd/pipeline-service-o11y" --ignore-not-found=true
+      else
+        check_if_argocd_app_was_removed "pipeline-service-o11y" 100
+      fi
+    fi
+
+    printf "\n[INFO] Pipeline-Service-Monitoring Argo CD application has been successfully removed.\n"
 }
 
 uninstall_pipeline_service() {
-    printf "\n  Uninstalling Pipeline Service:\n"
+    printf "\nUninstalling Pipeline Service:\n"
     # Remove pipeline-service Argo CD application
     if [ -z "$RESET_HARD" ]; then
       if ! argocd app get pipeline-service >/dev/null 2>&1; then
@@ -185,6 +221,10 @@ uninstall_pipeline_service() {
       fi
     fi
 
+    # Remove tektonconfig and finalizers
+    argocd app delete-resource pipeline-service --orphan --force --kind "TektonConfig" --resource-name "config" >/dev/null 2>&1
+    kubectl patch tektonconfigs.operator.tekton.dev config --type json --patch='[ { "op": "remove", "path": "/metadata/finalizers" } ]' >/dev/null 2>&1
+
     # If something went wrong(e.g. bad development changes) the ArgoCD sync operation can be very long or could hang.
     # In this case any other ArgoCD operation will be queued.
     # Therefore the 'delete' operation will not be executed in a timely manner.
@@ -192,7 +232,7 @@ uninstall_pipeline_service() {
     argocd app terminate-op pipeline-service >/dev/null 2>&1
 
     argocd app delete pipeline-service --yes
-  
+
     if [ -n "$RESET_HARD" ]; then
       # Remove any finalizers that might inhibit deletion
       if argocd app get pipeline-service >/dev/null 2>&1; then
@@ -205,17 +245,17 @@ uninstall_pipeline_service() {
         exit 1
       fi
     else
-      check_if_argocd_app_was_removed "pipeline-service" 40
+      check_if_argocd_app_was_removed "pipeline-service" 100
     fi
 
     # Remove pipeline-service-manager resources
     kubectl delete -k "$COMPUTE_DIR" --ignore-not-found=true
 
-    printf "\nPipeline-Service Argo CD application has been successfully removed.\n"
+    printf "\n[INFO] Pipeline-Service Argo CD application has been successfully removed.\n"
 }
 
 uninstall_operators_and_controllers(){
-    printf "\n  Uninstalling Openshift-GitOps Operator:\n"
+    printf "\nUninstalling Openshift-GitOps Operator:\n"
     kubectl delete -k "$DEV_DIR/operators/openshift-gitops" --ignore-not-found=true
     openshift_gitops_csv=$(kubectl get csv -n openshift-operators | grep -ie "openshift-gitops-operator" | cut -d " " -f 1)
     if [[ -n "$openshift_gitops_csv" ]]; then
@@ -258,7 +298,7 @@ uninstall_operators_and_controllers(){
         exit 1
     fi
 
-    printf "\nGitops operator and Tekton controllers are successfully uninstalled.\n"
+    printf "\n[INFO] Gitops operator and Tekton controllers are successfully uninstalled.\n"
 }
 
 # ArgoCD installs openshift pipelines operator with "pipeline-service" ArgoCD application
@@ -269,7 +309,7 @@ uninstall_operators_and_controllers(){
 # We need to clean up these resources to make the certified CatalogSource healthy. 
 # A CatalogSource with unhealthy status prevents installation of more operators.
 uninstallOpenshiftPipelines() {
-    printf "\n  Uninstalling Openshift-Pipelines Operator:\n"
+    printf "\nUninstalling Openshift-Pipelines Operator:\n"
     # We start with deleting tektonconfig so that the 'tekton.dev' CRs are removed gracefully by it.
     kubectl delete tektonconfig config --ignore-not-found=true
     if [ -n "$RESET_HARD" ]; then
@@ -312,7 +352,8 @@ uninstallOpenshiftPipelines() {
 main(){
     parse_args "$@"
     prechecks
-    uninstall_minio
+    uninstall_pipeline_service_storage
+    uninstall_pipeline_service_monitoring
     uninstall_pipeline_service
 
     if [ -n "${RESET_HARD}" ]; then
@@ -324,5 +365,5 @@ main(){
 
 if [ "${BASH_SOURCE[0]}" == "$0" ]; then
     main "$@"
-    printf "[INFO] Uninstallation pipeline-service was completed.\n"
+    printf "\n[INFO] Uninstallation pipeline-service was completed.\n"
 fi
