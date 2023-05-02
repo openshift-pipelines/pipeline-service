@@ -83,11 +83,7 @@ setup_test() {
     echo -n "."
     kubectl create namespace "$NAMESPACE" >/dev/null
   fi
-  # Wait for pipelines to set up all the components
-  while [ "$(kubectl get serviceaccounts -n "$NAMESPACE" | grep -cE "^pipeline ")" != "1" ]; do
-    echo -n "."
-    sleep 2
-  done
+  kubectl apply -k "$SCRIPT_DIR/manifests/test/tekton-pipelines" -n "$NAMESPACE" >/dev/null
   echo "OK"
   echo
 }
@@ -154,6 +150,7 @@ test_chains() {
     tkn -n "$NAMESPACE" pipeline start simple-copy \
       --param image-src="$image_src" \
       --param image-dst="$image_dst" \
+      --serviceaccount="appstudio-pipeline" \
       --workspace name=shared,pvc,claimName="tekton-build" |
       head -1 | sed "s:.* ::"
   )"
