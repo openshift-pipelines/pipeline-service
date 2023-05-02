@@ -237,11 +237,15 @@ test_security() {
   echo "  - Check Pod Host Network openshift-pipelines: "
   check_host_network "openshift-pipelines"
 
+  echo "  - Check Pod Security pipelines-as-code: "
+  check_pod_security "pipelines-as-code"
+  echo "  - Check Pod Host Network pipelines-as-code: "
+  check_host_network "pipelines-as-code"
+
   echo "  - Check Pod Security tekton-results: "
   check_pod_security "tekton-results"
   echo "  - Check Pod Host Network tekton-results: "
   check_host_network "tekton-results"
-
   echo "  - Check Pod Security tekton-chains: "
   check_pod_security "tekton-chains"
   echo "  - Check Pod Host Network tekton-chains: "
