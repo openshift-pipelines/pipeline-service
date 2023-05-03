@@ -20,3 +20,30 @@ patchesJson6902:
         path: "/metadata/labels"
         value:
           argocd.argoproj.io/managed-by: openshift-gitops
+  - target:
+      kind: Deployment
+      name: pipelines-as-code-controller
+      namespace: pipelines-as-code
+    patch: |-
+      - op: replace
+        path: "/spec/template/spec/containers/0/image"
+        value:
+          registry.redhat.io/openshift-pipelines/pipelines-pipelines-as-code-rhel8:v1.10.0-6
+  - target:
+      kind: Deployment
+      name: pipelines-as-code-watcher
+      namespace: pipelines-as-code
+    patch: |-
+      - op: replace
+        path: "/spec/template/spec/containers/0/image"
+        value:
+          registry.redhat.io/openshift-pipelines/pipelines-pipelines-as-code-rhel8:v1.10.0-6
+  - target:
+      kind: Deployment
+      name: pipelines-as-code-webhook
+      namespace: pipelines-as-code
+    patch: |-
+      - op: replace
+        path: "/spec/template/spec/containers/0/image"
+        value:
+          registry.redhat.io/openshift-pipelines/pipelines-pipelines-as-code-rhel8:v1.10.0-6
