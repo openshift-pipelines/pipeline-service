@@ -17,6 +17,7 @@ spec:
         enable: false
   pipeline:
     default-service-account: appstudio-pipeline
+    enable-api-fields: beta
     enable-bundles-resolver: true
     enable-cluster-resolver: true
     enable-git-resolver: true
