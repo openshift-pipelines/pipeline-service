@@ -28,7 +28,7 @@ patchesJson6902:
       - op: replace
         path: "/spec/template/spec/containers/0/image"
         value:
-          registry.redhat.io/openshift-pipelines/pipelines-pipelines-as-code-rhel8:v1.10.0-6
+          registry.redhat.io/openshift-pipelines/pipelines-pipelines-as-code-rhel8:v1.9.2-1
   - target:
       kind: Deployment
       name: pipelines-as-code-watcher
@@ -37,7 +37,7 @@ patchesJson6902:
       - op: replace
         path: "/spec/template/spec/containers/0/image"
         value:
-          registry.redhat.io/openshift-pipelines/pipelines-pipelines-as-code-rhel8:v1.10.0-6
+          registry.redhat.io/openshift-pipelines/pipelines-pipelines-as-code-rhel8:v1.9.2-1
   - target:
       kind: Deployment
       name: pipelines-as-code-webhook
@@ -46,4 +46,4 @@ patchesJson6902:
       - op: replace
         path: "/spec/template/spec/containers/0/image"
         value:
-          registry.redhat.io/openshift-pipelines/pipelines-pipelines-as-code-rhel8:v1.10.0-6
+          registry.redhat.io/openshift-pipelines/pipelines-pipelines-as-code-rhel8:v1.9.2-1
