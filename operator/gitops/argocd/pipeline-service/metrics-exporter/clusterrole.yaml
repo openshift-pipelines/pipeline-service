@@ -8,9 +8,16 @@ rules:
     resources: ["pods", "services", "namespaces", "endpoints"]
     verbs: ["get", "list", "watch"]
 
+  - apiGroups:
+      - apiextensions.k8s.io
+    resources:
+      - customresourcedefinitions
+    verbs:
+      - get
+
   - apiGroups: ["tekton.dev"]
     resources: ["pipelineruns", "taskruns"]
-    verbs: ["get", "list"]
+    verbs: ["get", "list", "watch"]
 
   - nonResourceURLs:
       - "/metrics"
