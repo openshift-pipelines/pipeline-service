@@ -6,3 +6,4 @@ resources:
   - pipelines-scc.yaml
   - openshift-operator.yaml
   - tekton-config.yaml
+  - config-logging.yaml
