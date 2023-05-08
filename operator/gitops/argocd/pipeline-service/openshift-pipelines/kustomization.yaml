@@ -5,3 +5,4 @@ resources:
   - allow-argocd-to-manage.yaml
   - openshift-operator.yaml
   - tekton-config.yaml
+  - config-logging.yaml
