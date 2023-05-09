@@ -39,8 +39,9 @@ open_bitwarden_session() {
     fi
   
     login_status=$(bw login --check 2>&1)
-    if [ "$login_status" = "You are not logged in." ]; then
-      printf "Error while logging into Bitwarden.\n" >&2 | indent 2
+    echo "$login_status"
+    if [ ! "$login_status" = "You are logged in!" ]; then
+      printf 'Error while logging into Bitwarden: %s \n' "$login_status" >&2 | indent 2
       return
     fi
   
@@ -53,7 +54,18 @@ open_bitwarden_session() {
 get_password() {
     setx_off
     local itemid="$1"
-    password=$(bw get password "$itemid" --session "$session")
+    local retry=0
+    echo "Fetching password from Bitwarden"
+    while ! password=$(bw get password "$itemid" --session "$session" 2>/dev/null); do
+        sleep 2
+        retry=$((retry+1))
+        if [ "$retry" -eq 5 ]; then
+            printf "Error: passwords could not be retrieved.\n"  >&2 | indent 2
+            exit 1
+        else
+            printf "Retrying...\n"  | indent 2
+        fi
+    done
     export password
     setx_on
 }
