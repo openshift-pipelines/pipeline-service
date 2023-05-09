@@ -1,4 +1,3 @@
-# Adjust logging level of the watcher
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -6,9 +5,28 @@ metadata:
   name: tekton-results-config-logging
   namespace: tekton-pipelines
 data:
-  loglevel.controller: info
-  loglevel.watcher: info
+  # Adjust zap-logger config according to ADR 6
   zap-logger-config: |
     {
       "level": "info",
+      "development": false,
+      "outputPaths": ["stdout"],
+      "errorOutputPaths": ["stderr"],
+      "encoding": "json",
+      "encoderConfig": {
+        "timeKey": "ts",
+        "levelKey": "level",
+        "nameKey": "logger",
+        "callerKey": "caller",
+        "messageKey": "msg",
+        "stacktraceKey": "stacktrace",
+        "lineEnding": "",
+        "levelEncoder": "",
+        "timeEncoder": "iso8601",
+        "durationEncoder": "string",
+        "callerEncoder": ""
+      }
     }
+  # Adjust logging level of the watcher and controller
+  loglevel.watcher: info
+  loglevel.controller: info
