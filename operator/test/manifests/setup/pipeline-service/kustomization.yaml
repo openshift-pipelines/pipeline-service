@@ -2,5 +2,5 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - chains-test-service-account.yaml
-  - simple-copy-pipeline.yaml
+  - appstudio-pipeline-service-account.yaml
+  - namespace.yaml

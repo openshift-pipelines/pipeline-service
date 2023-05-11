@@ -8,12 +8,15 @@ metadata:
     # the CRD will be applied and the resource can be created once the required dependencies are met.
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
+  # params:
+  #   - name: createRbacResource
+  #     value: "false"
   platforms:
     openshift:
       pipelinesAsCode:
         enable: false
   pipeline:
-    default-service-account: pipeline
+    default-service-account: appstudio-pipeline
     enable-bundles-resolver: true
     enable-cluster-resolver: true
     enable-git-resolver: true
