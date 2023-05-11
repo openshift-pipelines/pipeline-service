@@ -79,15 +79,7 @@ init() {
 setup_test() {
   echo "[Setup]"
   echo -n "  - Namespace configuration: "
-  if ! kubectl get namespace $NAMESPACE >/dev/null 2>&1; then
-    echo -n "."
-    kubectl create namespace "$NAMESPACE" >/dev/null
-  fi
-  # Wait for pipelines to set up all the components
-  while [ "$(kubectl get serviceaccounts -n "$NAMESPACE" | grep -cE "^pipeline ")" != "1" ]; do
-    echo -n "."
-    sleep 2
-  done
+  kubectl apply -k "$SCRIPT_DIR/manifests/setup/pipeline-service" >/dev/null
   echo "OK"
   echo
 }
@@ -154,6 +146,7 @@ test_chains() {
     tkn -n "$NAMESPACE" pipeline start simple-copy \
       --param image-src="$image_src" \
       --param image-dst="$image_dst" \
+      --serviceaccount "chains-test" \
       --workspace name=shared,pvc,claimName="tekton-build" |
       head -1 | sed "s:.* ::"
   )"
