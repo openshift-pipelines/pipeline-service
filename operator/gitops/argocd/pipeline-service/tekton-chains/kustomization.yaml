@@ -39,12 +39,3 @@ patches:
         name: signing-secrets
         namespace: tekton-chains
       $patch: delete
-  # Use downstream image
-  - target:
-      kind: Deployment
-      name: tekton-chains-controller
-      namespace: tekton-chains
-    patch: |-
-     - op: replace
-       path: /spec/template/spec/containers/0/image
-       value: registry.redhat.io/openshift-pipelines/pipelines-chains-controller-rhel8:v1.10.0-4
