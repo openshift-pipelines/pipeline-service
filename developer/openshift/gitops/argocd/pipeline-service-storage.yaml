@@ -10,8 +10,8 @@ spec:
     server: https://kubernetes.default.svc
   source:
     path: developer/openshift/gitops/argocd/pipeline-service-storage
-    repoURL: https://github.com/openshift-pipelines/pipeline-service.git
-    targetRevision: main
+    repoURL: https://github.com/AndrienkoAleksandr/pipeline-service.git
+    targetRevision: useCreateBucketFeatForMinio
   project: default
   syncPolicy:
     # Comment this out if you want to manually trigger deployments (using the
