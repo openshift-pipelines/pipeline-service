@@ -20,4 +20,4 @@ spec:
                 set -x
                 PUBLIC_KEY=$(oc get secret public-key -n tekton-chains -o jsonpath='{.data.cosign\.pub}')
                 echo "$PUBLIC_KEY" | base64 -d
-  serviceAccountName: pipeline
+  serviceAccountName: chains-test
