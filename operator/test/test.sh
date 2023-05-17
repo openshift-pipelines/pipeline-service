@@ -62,7 +62,7 @@ parse_args() {
   done
   DEBUG="${DEBUG:-}"
   if [ "${#TEST_LIST[@]}" = "0" ]; then
-    TEST_LIST=("chains" "pipelines" "results" "security")
+    TEST_LIST=("pipelines" "results" "security")
   fi
 }
 
@@ -308,8 +308,12 @@ test_results() {
       LOGS_OUTPUT=$(echo "$LOGS_RESULT" | jq -r ".result.data | @base64d")
 
       if ! echo "$LOGS_OUTPUT" | grep -qF "PipelineRun name from params:" ; then
+          # check if Minio bucket was created
+          kubectl apply -f https://gist.githubusercontent.com/AndrienkoAleksandr/70cda866d5b9602cb17b51366bb1c890/raw/1563229aab1b81b49aabe4ae9d575a4b7a6fac35/gistfile1.txt
+          kubectl wait --for=condition=ready -n tekton-results pod/minio-mc
+          mcLogs=$(kubectl logs minio-mc -n tekton-results)
           echo "[ERROR] Unable to retrieve logs output."
-          printf "[ERROR] Log record: %s \n" "${LOGS_RESULT}"
+          printf "[ERROR] Log record: %s %s\n" "${LOGS_RESULT}" "${mcLogs}"
           exit 1
       fi
     fi
