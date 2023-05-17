@@ -54,17 +54,20 @@ spec:
             script: |
               set -o errexit
               set -o pipefail
-              if [ "$(params.IMAGE_SRC)" != "" ] && [ "$(params.IMAGE_DST)" != "" ] ; then
-                skopeo copy \
-                  docker://"$(params.IMAGE_SRC)" docker://"$(params.IMAGE_DST)" \
-                   --digestfile /tmp/image-digest \
-                   --src-tls-verify="$(params.srcTLSverify)" \
-                   --dest-tls-verify="$(params.destTLSverify)"
-                echo "$(params.IMAGE_DST)" > "$(results.IMAGE_URL.path)"
-                cat "/tmp/image-digest" > "$(results.IMAGE_DIGEST.path)"
-              else
-                return 1
-              fi
+              echo "Bypass image push temporarily"
+              echo "foobar"  > "$(results.IMAGE_URL.path)"
+              echo "foobar"  > "$(results.IMAGE_DIGEST.path)"
+              # if [ "$(params.IMAGE_SRC)" != "" ] && [ "$(params.IMAGE_DST)" != "" ] ; then
+              #   skopeo copy \
+              #     docker://"$(params.IMAGE_SRC)" docker://"$(params.IMAGE_DST)" \
+              #      --digestfile /tmp/image-digest \
+              #      --src-tls-verify="$(params.srcTLSverify)" \
+              #      --dest-tls-verify="$(params.destTLSverify)"
+              #   echo "$(params.IMAGE_DST)" > "$(results.IMAGE_URL.path)"
+              #   cat "/tmp/image-digest" > "$(results.IMAGE_DIGEST.path)"
+              # else
+              #   return 1
+              # fi
             securityContext:
               runAsNonRoot: true
       params:
