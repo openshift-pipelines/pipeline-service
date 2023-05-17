@@ -67,7 +67,6 @@ spec:
               fi
             securityContext:
               runAsNonRoot: true
-              runAsUser: 65532
       params:
         - name: IMAGE_SRC
           value: $(params.image-src)
