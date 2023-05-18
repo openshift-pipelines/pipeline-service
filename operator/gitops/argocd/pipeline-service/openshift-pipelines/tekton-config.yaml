@@ -24,6 +24,10 @@ spec:
     enable-hub-resolver: true
     enable-tekton-oci-bundles: true
     embedded-status: both
+    performance:
+      threads-per-controller: 32
+      kube-api-qps: 50
+      kube-api-burst: 50
   pruner:
     keep: 10
     resources:
