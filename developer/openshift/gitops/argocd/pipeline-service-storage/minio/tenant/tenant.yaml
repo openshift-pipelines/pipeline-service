@@ -13,7 +13,6 @@ metadata:
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   exposeServices:
-    console: true
     minio: true
   features:
     bucketDNS: false
