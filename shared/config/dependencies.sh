@@ -5,7 +5,7 @@
 #       export FOOBAR_VERSION="1.2.3"  # Freeze
 export ARGOCD_VERSION="v2.7.2"
 export BITWARDEN_VERSION="v2023.4.0"
-export CHECKOV_VERSION="2.3.247"
+export CHECKOV_VERSION="2.3.251"
 export GO_VERSION="1.20.4"
 export HADOLINT_VERSION="v2.12.0"
 export HYPERSHIFT_VERSION="main"  # Freeze
@@ -15,5 +15,5 @@ export KUBECTL_VERSION="v1.27.2"
 export OC_VERSION="4.13.0"
 export SHELLCHECK_VERSION="v0.9.0"
 export TEKTONCD_CLI_VERSION="v0.31.0"
-export YAMLLINT_VERSION="1.31.0"
+export YAMLLINT_VERSION="1.32.0"
 export YQ_VERSION="v4.33.3"
