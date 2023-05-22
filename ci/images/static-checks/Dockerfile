@@ -19,7 +19,7 @@ WORKDIR /
 RUN mkdir /workspace && chmod 777 /workspace && chown 65532:65532 /workspace
 ENV HOME /tmp/home
 RUN mkdir $HOME && chmod 777 $HOME && chown 65532:65532 $HOME
-RUN microdnf install -y findutils-4.8.0 python3-3.9.14 python3-pip-21.2.3 tar-1.34 xz-5.2.5 && \
+RUN microdnf install -y findutils-4.8.0 python3-3.9.16 python3-pip-21.2.3 tar-1.34 xz-5.2.5 && \
     microdnf clean all
 
 COPY shared /tmp/image-build/shared

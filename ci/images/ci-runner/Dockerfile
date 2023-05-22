@@ -4,7 +4,7 @@ RUN set -x \
     && microdnf install -y \
         cmake-3.20.2 \
         gcc-c++-11.3.1 \
-        git-2.31.1 \
+        git-2.39.3 \
         libtool-2.4.6 \
     && microdnf clean all
 COPY shared /tmp/image-build/shared
@@ -17,10 +17,10 @@ RUN set -x \
     && mkdir -p /tmp/image-build \
     && microdnf install -y \
         gettext-0.21 \
-        git-2.31.1 \
+        git-2.39.3 \
         findutils-1:4.8.0 \
-        openssl-3.0.1 \
-        podman-2:4.2.0 \
+        openssl-1:3.0.7 \
+        podman-2:4.4.1 \
         procps-ng-3.3.17 \
         python3-pip-21.2.3 \
         rsync-3.2.3 \
