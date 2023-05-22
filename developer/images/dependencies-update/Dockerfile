@@ -21,8 +21,8 @@ ENV HOME /tmp/home
 RUN mkdir $HOME && chmod 777 $HOME && chown 65532:65532 $HOME
 RUN microdnf install -y \
       findutils-4.8.0 \
-      git-2.31.1 \
-      skopeo-1.9.4 \
+      git-2.39.3 \
+      skopeo-2:1.11.2 \
     && microdnf clean all
 
 COPY shared /tmp/image-build/shared

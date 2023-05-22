@@ -5,11 +5,11 @@ RUN set -x \
     && dnf install -y \
         # gcc is needed when installing checkov's dependencies
         gcc-c++-12.2.1 \
-        git-2.39.2 \
+        git-2.40.1 \
         openssl-3.0.5 \
         procps-ng-3.3.17 \
         # python3-devl is needed when installing checkov's dependencies
-        python3-devel-3.11.2 \
+        python3-devel-3.11.3 \
         python3-pip-22.2.2 \
         rsync-3.2.7 \
         unzip-6.0 \

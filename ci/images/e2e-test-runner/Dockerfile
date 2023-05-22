@@ -5,9 +5,9 @@ RUN set -x \
     && mkdir -p /tmp/image-build \
     && microdnf install -y \
         httpd-tools \
-        git-2.31.1 \
+        git-2.39.3 \
         make-1:4.3 \
-        openssl-3.0.1 \
+        openssl-1:3.0.7 \
         tar-2:1.34 \
         unzip-6.0 \
         which-2.21 \

@@ -19,7 +19,7 @@ WORKDIR /
 RUN mkdir /workspace && chmod 777 /workspace && chown 65532:65532 /workspace
 RUN microdnf install -y \
       findutils-4.8.0 \
-      git-2.31.1 \
+      git-2.39.3 \
       unzip-6.0 \
     && microdnf clean all
 
