@@ -143,6 +143,13 @@ install_clusters() {
     check_statefulsets "tekton-results" "${resultsStatefulsets[@]}" | indent 4
     chainsDeployments=("tekton-chains-controller")
     check_deployments "tekton-chains" "${chainsDeployments[@]}" | indent 4
+
+    printf -- "- Checking pods status for controlplane namespaces\n"
+    # list of control plane namespaces
+    CONTROL_PLANE_NS=("openshift-apiserver" "openshift-controller-manager" "openshift-etcd" "openshift-ingress" "openshift-kube-apiserver" "openshift-kube-controller-manager" "openshift-kube-scheduler")
+    for ns in "${CONTROL_PLANE_NS[@]}"; do
+      check_crashlooping_pods "$ns" | indent 4
+    done
   done
 }
 

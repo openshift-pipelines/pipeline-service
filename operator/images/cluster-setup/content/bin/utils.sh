@@ -113,6 +113,27 @@ check_deployments() {
   done
 }
 
+check_crashlooping_pods() {
+  local ns="$1"
+  local crashlooping_pods
+
+  printf "checking for crashlooping pods in namsespace: %s\n" "$ns"
+  crashlooping_pods=$(kubectl get pods -n "$ns" --field-selector=status.phase!=Running -o jsonpath='{range .items[?(@.status.containerStatuses[*].state.waiting.reason=="CrashLoopBackOff")]}{.metadata.name}{","}{end}' 2>/dev/null)
+
+  # Check if the any crashlooping pods found
+  if [[ -n $crashlooping_pods ]]; then
+    printf ", CrashLoopBackOff error in namespace: %s\n" "$ns"      
+    IFS=',' read -ra pods <<< "$crashlooping_pods"
+    for pod in "${pods[@]}"; do
+      kubectl get pod "$pod" -n "$ns"
+      kubectl logs "$pod" -n "$ns"
+    done
+    exit 1
+  else
+    printf ", Running\n"
+  fi
+}
+
 check_statefulsets() {
   local ns="$1"
   shift
