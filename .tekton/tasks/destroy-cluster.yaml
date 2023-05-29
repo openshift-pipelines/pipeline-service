@@ -6,16 +6,15 @@ metadata:
 spec:
   params:
     - name: cluster-name
+    - name: region
+      description: ocp cluster region where you want to provision
     - name: target_branch
   workspaces:
-    - name: kubeconfig-dir
     - name: source
   steps:
     - name: destroy
       image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
       env:
-        - name: "KUBECONFIG"
-          value: "$(workspaces.kubeconfig-dir.path)/kubeconfig"
         - name: CLUSTER_NAME
           value: "$(params.cluster-name)"
         - name: BW_CLIENTID
@@ -33,6 +32,8 @@ spec:
             secretKeyRef:
               name: hypershift-bitwarden
               key: "BW_PASSWORD"
+        - name: REGION
+          value: "$(params.region)"
       workingDir: "$(workspaces.source.path)"
       command:
         - $(workspaces.source.path)/ci/images/ci-runner/hack/bin/destroy-cluster.sh

@@ -20,6 +20,10 @@ spec:
   pipelineRef:
     name: acceptance-tests
   params:
+    - name: aws_region
+      value: "us-east-1"
+    - name: ocp_version
+      value: "4.12.16"
     - name: repo_url
       value: "{{ repo_url }}"
     - name: revision
@@ -29,9 +33,6 @@ spec:
   timeouts:
     pipeline: "1h0m0s"
   workspaces:
-    - name: kubeconfig-dir
-      configMap:
-        name: newkubeconfig
     - name: source
       volumeClaimTemplate:
         spec:

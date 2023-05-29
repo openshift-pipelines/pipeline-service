@@ -5,32 +5,28 @@ metadata:
   name: deploy-cluster
 spec:
   params:
-    - name: image
-      description: choose the ocp image as per your ocp cluster version requirement
+    - name: ocp_version
+      description: ocp cluster version that you want to provision
     - name: region
-      description: aws region for cluster deployment
+      description: ocp cluster region where you want to provision
     - name: cluster-name
     - name: target_branch
   workspaces:
-    - name: kubeconfig-dir
     - name: source
-      description: The kubeconfig of new cluster will be stored onto the volume backing this Workspace
     - name: output
   steps:
     - name: install-cluster
       image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
       imagePullPolicy: Always
       env:
-        - name: KUBECONFIG
-          value: "$(workspaces.kubeconfig-dir.path)/kubeconfig"
         - name: CLUSTER_NAME
           value: "$(params.cluster-name)"
-        - name: WORKSPACE
+        - name: KUBECONFIG_DIR
           value: "$(workspaces.output.path)"
         - name: REGION
           value: "$(params.region)"
-        - name: IMAGE
-          value: "$(params.image)"
+        - name: OCP_VERSION
+          value: "$(params.ocp_version)"
         - name: BW_CLIENTID
           valueFrom:
             secretKeyRef:

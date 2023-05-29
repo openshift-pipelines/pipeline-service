@@ -6,7 +6,7 @@ metadata:
   annotations:
     pipelinesascode.tekton.dev/on-event: "[pull_request, push]"
     pipelinesascode.tekton.dev/on-target-branch: "[refs/heads/*]"
-    pipelinesascode.tekton.dev/pipeline: "[.tekton/pipeline/acceptance-tests.yaml]"
+    pipelinesascode.tekton.dev/pipeline: "[.tekton/pipeline/upgrade-tests.yaml]"
     pipelinesascode.tekton.dev/task: "[.tekton/tasks/ci-runner-container-setup.yaml]"
     pipelinesascode.tekton.dev/task-1: "[.tekton/tasks/deploy-cluster.yaml]"
     pipelinesascode.tekton.dev/task-2: "[.tekton/tasks/destroy-cluster.yaml]"
@@ -21,6 +21,10 @@ spec:
   pipelineRef:
     name: upgrade-tests
   params:
+    - name: ocp_version
+      value: "4.12.16"
+    - name: aws_region
+      value: "us-east-1"
     - name: repo_url
       value: "{{ repo_url }}"
     - name: revision
@@ -30,9 +34,6 @@ spec:
   timeouts:
     pipeline: "1h0m0s"
   workspaces:
-    - name: kubeconfig-dir
-      configMap:
-        name: newkubeconfig
     - name: source
       volumeClaimTemplate:
         spec:

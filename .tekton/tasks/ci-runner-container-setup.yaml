@@ -8,8 +8,8 @@ spec:
     - name: target_branch
   workspaces:
     - name: kubeconfig-dir
-    - name: source
       description: The kubeconfig of new cluster will be stored onto the volume backing this Workspace
+    - name: source
   steps:
     - name: create-ci-runner-container
       image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)

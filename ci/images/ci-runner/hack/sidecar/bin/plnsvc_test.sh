@@ -6,4 +6,7 @@ set -x
 
 echo "Start executing pipeline cases ..."
 TEST_DIR=$(find "$PWD" -type f -name test.sh -exec dirname {} +)
-"$TEST_DIR/test.sh" --kubeconfig /kubeconfig
+"$TEST_DIR/test.sh" --kubeconfig "$KUBECONFIG"
+
+# If the tests are successful, the cluster can be destroyed right away
+rm "$PWD/destroy-cluster.txt"

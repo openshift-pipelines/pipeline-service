@@ -14,58 +14,92 @@ source "$SCRIPT_DIR/utils.sh"
 fetch_bitwarden_secrets() {
     printf "Fetch secrets from bitwarden server\n" | indent 2
     open_bitwarden_session
-    get_base_domain
-    get_pull_secret
     get_aws_credentials
+    get_rosa_token
 }
 
 print_debug_info() {
     printf "Print debug info......\n" | indent 2
+    rosa describe cluster --cluster="$CLUSTER_NAME"
+}
 
-    printf "HostedCluster CR Status: " | indent 4
-    kubectl -n clusters get hostedcluster "$CLUSTER_NAME" -o yaml
+# Check all of clusteroperators are AVAILABLE
+check_clusteroperators() {
+    operators=$(kubectl get co -o jsonpath='{range .items[*]}{.metadata.name}{" "}{end}')
 
-    printf "Control Plane pods of HostedCluster: " | indent 4
-    kubectl -n "clusters-${CLUSTER_NAME}" get pods
+    for operator in $operators; do
+        # need to check if the operator is available or not in a loop
+        retries=0
+        max_retries=10
+        # if the operator is not available, wait 60s and check again
+        while [ "$retries" -lt "$max_retries" ]; do
+            available=$(kubectl get co "$operator" -o jsonpath='{.status.conditions[?(@.type=="Available")].status}')
+            if [ "$available" == "True" ]; then
+                break
+            fi
+            sleep 60
+            retries=$((retries + 1))
+            echo "Retried $retries times..."
+        done
+        # if the operator is still not available after 10 times, exit 1
+        if [ "$retries" -eq "$max_retries" ]; then
+            echo "Operator $operator is not available" >&2
+            exit 1
+        fi
+    done
 
-    # Export kubeconfig of hosted cluster
-    hypershift create kubeconfig --name "$CLUSTER_NAME" > "${CLUSTER_NAME}.kubeconfig"
-
-    printf "Cluster Operators on Hosted Cluster: " | indent 4
-    kubectl --kubeconfig="${CLUSTER_NAME}.kubeconfig" get co -o yaml
+    echo "All operators are available"
 }
 
 deploy_cluster() {
+    printf "Log in to your Red Hat account...\n" | indent 2
     setx_off
-    hypershift create cluster aws --pull-secret "$PULL_SECRET" --aws-creds "$AWS_CREDENTIALS"  --name "$CLUSTER_NAME"  --node-pool-replicas=2  --base-domain "$BASE_DOMAIN"  --region="$REGION" --release-image="$IMAGE" --root-volume-type=gp3 --root-volume-size=120 --instance-type=m5.2xlarge
+    rosa login --token="$ROSA_TOKEN"
     setx_on
 
-    echo "Wait until hypershift hosted cluster is ready..."
-    wait_period=0
-    while
-        [ \
-            "$(
-                kubectl -n clusters get hostedcluster "$CLUSTER_NAME" -o json \
-                    | jq -r '.status.version.history[0].state'
-            )" != "Completed" \
-        ]; do
-        if [ "$wait_period" -gt 1800 ]; then
-            echo "[ERROR] Failed to create OCP cluster." >&2
+    printf "Provision ROSA with HCP cluster...\n" | indent 2
+    rosa create cluster --cluster-name "$CLUSTER_NAME" \
+        --sts --mode=auto --oidc-config-id "24132snjs8gktc5rtufqv8hggjv3ivbt" \
+        --operator-roles-prefix plnsvc-ci --region "$REGION" --version "$OCP_VERSION" \
+        --compute-machine-type m5.2xlarge \
+        --subnet-ids="subnet-001487732ebdd14f4,subnet-0718fb663f4b97f38,subnet-0fe426997da62662c" \
+        --hosted-cp -y
+
+    printf "Track the progress of the cluster creation...\n" | indent 2
+    rosa logs install --cluster="$CLUSTER_NAME" --region "$REGION" --watch
+
+    printf "ROSA with HCP cluster is ready, create a cluster admin account for accessing the cluster\n" | indent 2
+    admin_output="$(rosa create admin --region "$REGION" --cluster="$CLUSTER_NAME")"
+ 
+    # Get the admin account credentials and API server URL
+    admin_user="$(echo "$admin_output" | grep -oP '(?<=--username ).*(?= --password)')"
+    admin_pass="$(echo "$admin_output" | grep -oP '(?<=--password ).*')"
+    api_url="$(echo "$admin_output" | grep -oP '(?<=oc login ).*(?= --username)')"
+
+    # Use the admin account to login to the cluster in a loop until the account is active.
+    max_retries=5
+    retries=0
+    export KUBECONFIG="$KUBECONFIG_DIR/kubeconfig"
+    while ! oc login "$api_url" --username "$admin_user" --password "$admin_pass" > /dev/null 2>&1; do
+        if [ "$retries" -eq "$max_retries" ]; then
+            echo "[ERROR] Failed to login the cluster." >&2
             print_debug_info
             exit 1
         fi
         sleep 60
-        wait_period=$((wait_period + 60))
-        echo "Waited $wait_period seconds..."
+        retries=$((retries + 1))
+        echo "Retried $retries times..."
     done
 
-    echo "Hypershift is ready, The following is Cluster credentials"
-    local pass
-    pass="$(kubectl get secret -n clusters "${CLUSTER_NAME}"-kubeadmin-password -o json | jq -r .data.password | base64 -d)"
-    echo "kubeadmin:${pass}"
-    echo "The following is the cluster kubeconfig"
+    printf "The following is the cluster kubeconfig:\n" | indent 2
+    cat "$KUBECONFIG"
 
-    hypershift create kubeconfig --name "$CLUSTER_NAME" | tee "$WORKSPACE/kubeconfig"
+    #Workaround: Check if apiserver is ready by calling kubectl get nodes
+    if ! timeout 300s bash -c "while ! kubectl get nodes >/dev/null 2>/dev/null; do printf '.'; sleep 10; done"; then
+        echo "API server is not ready" >&2
+        exit 1
+    fi
+    check_clusteroperators
 }
 
 fetch_bitwarden_secrets
