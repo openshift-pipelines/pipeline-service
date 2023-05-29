@@ -81,11 +81,6 @@ get_hadolint_version() {
     get_github_release "https://github.com/hadolint/hadolint"
 }
 
-get_hypershift_version() {
-    echo "[ERROR] Not implemented: get_hypershift_version"
-    exit 1
-}
-
 get_jq_version() {
     get_github_release "https://github.com/stedolan/jq" "jq-"
 }
@@ -108,12 +103,27 @@ get_oc_version() {
     )
 }
 
+get_rosa_version() {
+    get_github_release "https://github.com/openshift/rosa"
+    VERSION=$(echo "$VERSION" | sed "s:^v::")
+}
+
 get_shellcheck_version() {
     get_github_release "https://github.com/koalaman/shellcheck"
 }
 
 get_tektoncd_cli_version() {
     get_github_release "https://github.com/tektoncd/cli"
+}
+
+get_terraform_version() {
+    URL="https://api.github.com/repos/hashicorp/terraform/releases/latest"
+    VERSION=$(
+        curl --location --silent "$URL" \
+            | grep '"tag_name":' \
+            | sed -E 's/.*"([^"]+)".*/\1/' \
+            | sed "s:^v::"
+    )
 }
 
 get_yamllint_version() {
@@ -136,6 +146,7 @@ get_github_release() {
             | sort -V \
             | tail -1
     )
+    echo "VERSION=$VERSION"
 }
 
 if [ "${BASH_SOURCE[0]}" == "$0" ]; then

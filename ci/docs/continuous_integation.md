@@ -2,22 +2,30 @@
 
 Pipelines as Code triggers the PipelineRuns in [.tekton](../../.tekton) which execute the test tasks for each PR, before merging it.
 
-All the functional tests run on a HyperShift AWS cluster.
+All the functional tests run on a ROSA HCP cluster.
 
-## How to configure HyperShift
+## How to configure ROSA HCP
 
-HyperShift official [Documentation Guide](https://hypershift-docs.netlify.app/).
+ROSA with HCP official [Documentation Guide](https://docs.openshift.com/rosa/rosa_hcp/rosa-hcp-sts-creating-a-cluster-quickly.html).
 
 ### Pre-requisites:
 
 - Install [aws](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) cli
-- Install [hypershift](https://hypershift-docs.netlify.app/getting-started/#prerequisites) cli
-- Provision a ROSA cluster by following [documentation](rosa_cluster_provision.md)
+- Install [rosa](https://docs.openshift.com/rosa/rosa_cli/rosa-get-started-cli.html) cli
+- Install [terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli) cli
 
-### HyperShift Setup
-You can configure HyperShift on ROSA by running the [hypershift_setup.sh](../hack/hypershift_setup.sh) script.
+### ROSA with HCP Prerequisites
+To create a ROSA with HCP cluster, you can create the following items by running the [rosa_hcp_setup.sh](../hack/rosa_hcp_setup.sh) script.
 
-After that, you need to add a Configmap for storing the kubeconfig of ROSA cluster and a Secret for sotring the Bitwarden credentials(BW_CLIENTID,BW_CLIENTSECRET and BW_PASSWORD). 
+* A configured virtual private cloud (VPC)
+
+* Account-wide roles
+
+* An OIDC configuration
+
+* Operator roles
+
+After that, you need to add a Secret for storing the Bitwarden credentials(BW_CLIENTID,BW_CLIENTSECRET and BW_PASSWORD). 
 
 ## Setup GitHub app
 
@@ -31,7 +39,7 @@ To bypass deletion of the test cluster, delete the `destroy-cluster.txt` file in
 There is a 15 minutes window to log onto the container running the `destroy-cluster` step and delete the file.
 
 
-### Login to the HyperShift cluster
+### Login to the ROSA with HCP cluster
 When the test cluster is remained, to access the test cluster, you can go to the task named `deploy-cluster` to find the content of kubeconfig and login username/password.  
 
 ### Debugging the plnsvc-setup task

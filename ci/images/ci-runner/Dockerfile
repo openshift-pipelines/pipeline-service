@@ -1,16 +1,4 @@
 #@FROM registry.access.redhat.com/ubi9/ubi-minimal
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:b00f7556d64a698aad6cb63bb75b2692f1538926c6f619d6123cbc20a74239ec AS hypershift
-RUN set -x \
-    && microdnf install -y \
-        cmake-3.20.2 \
-        gcc-c++-11.3.1 \
-        git-2.39.3 \
-        libtool-2.4.6 \
-    && microdnf clean all
-COPY shared /tmp/image-build/shared
-RUN /tmp/image-build/shared/hack/install.sh --debug --bin go,hypershift
-
-#@FROM registry.access.redhat.com/ubi9/ubi-minimal
 FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:b00f7556d64a698aad6cb63bb75b2692f1538926c6f619d6123cbc20a74239ec
 RUN set -x \
     && mkdir ~/.kube \
@@ -28,8 +16,7 @@ RUN set -x \
         tar-2:1.34 \
         xz-5.2.5 \
     && microdnf clean all
-COPY --from=hypershift /usr/local/bin/hypershift /usr/local/bin/
 COPY shared /tmp/image-build/shared
-RUN /tmp/image-build/shared/hack/install.sh --debug --bin argocd,bitwarden,go,jq,kubectl,tkn,yq \
+RUN /tmp/image-build/shared/hack/install.sh --debug --bin argocd,aws,bitwarden,go,jq,kubectl,oc,rosa,terraform,tkn,yq \
     && rm -rf /tmp/image-build
 WORKDIR "/source"

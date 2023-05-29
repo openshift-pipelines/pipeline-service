@@ -133,6 +133,13 @@ install_argocd() {
     argocd version --client --short
 }
 
+install_aws() {
+    curl "${CURL_OPTS[@]}" -o "$TMPDIR/awscliv2.zip" "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
+    unzip -q "$TMPDIR/awscliv2.zip" -d "$TMPDIR"
+    "$TMPDIR/aws/install"
+    aws --version
+}
+
 install_bitwarden() {
     curl "${CURL_OPTS[@]}" -o "$TMPDIR/bw.zip" "https://github.com/bitwarden/clients/releases/download/cli-${BITWARDEN_VERSION}/bw-linux-${BITWARDEN_VERSION:1}.zip"
     unzip -q "$TMPDIR/bw.zip" -d "$TMPBIN/"
@@ -150,22 +157,6 @@ install_go() {
     tar -C /usr/local -xzf "$TMPDIR/go.tgz"
     ln -s /usr/local/go/bin/go /usr/bin/go
     go version
-}
-
-install_hypershift() {
-    # Build from code
-    git clone https://github.com/openshift/hypershift.git
-    cd hypershift
-    git checkout "${HYPERSHIFT_VERSION}"
-    make build
-    mv "bin/hypershift" "$TMPBIN"
-
-    move_bin
-    if [[ "$(hypershift help 2>&1)" == *"command not found"* ]]; then
-        echo "[ERROR] Could not find hypershift" >&2
-        exit 1
-    fi
-    hypershift -v
 }
 
 install_hadolint() {
@@ -199,12 +190,27 @@ install_oc() {
     oc version --client
 }
 
+install_rosa() {
+    curl "${CURL_OPTS[@]}" -o "$TMPDIR/rosa.tgz" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/rosa/${ROSA_VERSION}/rosa-linux.tar.gz"
+    tar -C "$TMPDIR" -xzf "$TMPDIR/rosa.tgz" rosa
+    mv "$TMPDIR/rosa" "$TMPBIN"
+    move_bin
+    rosa version
+}
+
 install_shellcheck() {
     curl "${CURL_OPTS[@]}" -o "$TMPDIR/shellcheck.tar.xz" "https://github.com/koalaman/shellcheck/releases/download/${SHELLCHECK_VERSION}/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz"
     tar -C "$TMPDIR" -xJf "$TMPDIR/shellcheck.tar.xz" "shellcheck-${SHELLCHECK_VERSION}/shellcheck"
     mv "$TMPDIR/shellcheck-${SHELLCHECK_VERSION}/shellcheck" "$TMPBIN"
     move_bin
     shellcheck --version
+}
+
+install_terraform() {
+    curl "${CURL_OPTS[@]}" -o "$TMPDIR/terraform.zip" "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
+    unzip -q "$TMPDIR/terraform.zip" -d "$TMPBIN/"
+    move_bin
+    terraform version
 }
 
 install_tkn() {

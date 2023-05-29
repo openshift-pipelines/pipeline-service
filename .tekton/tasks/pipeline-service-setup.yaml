@@ -10,8 +10,8 @@ spec:
     - name: target_branch
   workspaces:
     - name: kubeconfig-dir
-    - name: source
       description: The kubeconfig of new cluster will be stored onto the volume backing this Workspace
+    - name: source
   steps:
     - name: run-plnsvc-setup
       image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
@@ -28,4 +28,4 @@ spec:
         - name: REPO_REVISION
           value: $(params.revision)
       command:
-        - $(workspaces.source.path)/ci/images/ci-runner/hack/bin/run-plnsvc-setup.sh
+        - ci/images/ci-runner/hack/bin/run-plnsvc-setup.sh

@@ -5,6 +5,8 @@ metadata:
   name: upgrade-tests
 spec:
   params:
+    - name: aws_region
+    - name: ocp_version
     - name: repo_url
     - name: revision
     - name: target_branch
@@ -12,7 +14,6 @@ spec:
     finally: "0h20m0s"
   workspaces:
     - name: source
-    - name: kubeconfig-dir
     - name: upgrade-shared-workspace
   tasks:
     - name: clone-pipeline-service-git
@@ -36,17 +37,15 @@ spec:
         - "generate-cluster-name"
         - "clone-pipeline-service-git"
       params:
-        - name: image
-          value: "quay.io/openshift-release-dev/ocp-release:4.12.2-x86_64"
+        - name: ocp_version
+          value: $(params.ocp_version)
         - name: region
-          value: "us-east-1"
+          value: $(params.aws_region)
         - name: cluster-name
           value: "$(tasks.generate-cluster-name.results.cluster-name)"
         - name: target_branch
           value: $(params.target_branch)
       workspaces:
-        - name: kubeconfig-dir
-          workspace: kubeconfig-dir
         - name: output
           workspace: upgrade-shared-workspace
         - name: source
@@ -193,8 +192,8 @@ spec:
           value: "$(tasks.generate-cluster-name.results.cluster-name)"
         - name: target_branch
           value: $(params.target_branch)
+        - name: region
+          value: $(params.aws_region)
       workspaces:
-        - name: kubeconfig-dir
-          workspace: kubeconfig-dir
         - name: source
           workspace: source

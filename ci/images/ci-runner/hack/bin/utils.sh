@@ -170,3 +170,11 @@ get_default_quay_org_token() {
     export DEFAULT_QUAY_ORG_TOKEN
     setx_on
 }
+
+get_rosa_token() {
+    get_password "98c65f83-ce9e-4b77-aea2-b011007e730a"
+    setx_off
+    ROSA_TOKEN="${password}"
+    export ROSA_TOKEN
+    setx_on
+}

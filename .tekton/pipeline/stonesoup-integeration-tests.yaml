@@ -7,19 +7,19 @@ spec:
   timeouts:
     finally: "0h20m0s"
   params:
+    - name: aws_region
+    - name: ocp_version
     - name: repo_url
     - name: revision
     - name: repo_owner
     - name: target_branch
   workspaces:
     - name: source
-    - name: kubeconfig-dir
     - name: shared-workspace
   tasks:
     - name: fetch-repository
       taskRef:
         name: git-clone
-        kind: ClusterTask
       workspaces:
         - name: output
           workspace: source
@@ -28,26 +28,24 @@ spec:
           value: $(params.repo_url)
         - name: revision
           value: $(params.revision)
-    - name: produce-cluster-name
+    - name: generate-cluster-name
       runAfter:
         - "fetch-repository"
       taskRef:
         name: generate-cluster-name
     - name: deploy-cluster
       runAfter:
-        - "produce-cluster-name"
+        - "generate-cluster-name"
       params:
-        - name: image
-          value: "quay.io/openshift-release-dev/ocp-release:4.12.2-x86_64"
-        - name: region
-          value: "us-east-1"
         - name: cluster-name
-          value: "$(tasks.produce-cluster-name.results.cluster-name)"
+          value: "$(tasks.generate-cluster-name.results.cluster-name)"
+        - name: ocp_version
+          value: $(params.ocp_version)
+        - name: region
+          value: $(params.aws_region)
         - name: target_branch
           value: $(params.target_branch)
       workspaces:
-        - name: kubeconfig-dir
-          workspace: kubeconfig-dir
         - name: output
           workspace: shared-workspace
         - name: source
@@ -75,19 +73,19 @@ spec:
         name: stonesoup-tests
   finally:
     - name: destroy-cluster
+      taskRef:
+        name: destroy-cluster
       when:
         - input: "$(tasks.deploy-cluster.status)"
           operator: notin
           values: ["None"]
       params:
         - name: cluster-name
-          value: "$(tasks.produce-cluster-name.results.cluster-name)"
+          value: "$(tasks.generate-cluster-name.results.cluster-name)"
         - name: target_branch
           value: $(params.target_branch)
+        - name: region
+          value: $(params.aws_region)
       workspaces:
-        - name: kubeconfig-dir
-          workspace: kubeconfig-dir
         - name: source
           workspace: source
-      taskRef:
-        name: destroy-cluster
