@@ -241,7 +241,7 @@ install_pipeline_service() {
 
   # Patch the url/branch to target the expected repository/branch
   manifest_dir="$(find "$WORK_DIR/environment/compute" -mindepth 1 -maxdepth 1 -type d)"
-  for app in "pipeline-service" "pipeline-service-storage"; do
+  for app in "pipeline-service" "pipeline-service-storage" "pipeline-service-o11y"; do
     cat << EOF >"$manifest_dir/patch-$app.yaml"
 ---
 apiVersion: argoproj.io/v1alpha1
