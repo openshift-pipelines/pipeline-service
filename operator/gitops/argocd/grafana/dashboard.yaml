@@ -1,0 +1,11 @@
+---
+apiVersion: integreatly.org/v1alpha1
+kind: GrafanaDashboard
+metadata:
+  name: grafana-dashboard-pipeline-service
+  labels:
+    app: appstudio-grafana
+spec:
+  configMapRef:
+    name: grafana-dashboard-pipeline-service
+    key: pipeline-service-dashboard.json

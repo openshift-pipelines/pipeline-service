@@ -10,4 +10,14 @@ We want to make the onboarding experience to use Pipeline Service as easy and cu
 
 Before installing the prerequisites, refer [DEPENDENCIES.md](../../DEPENDENCIES.md) to verify the versions of products, operators and tools used in Pipeline Service.
 
-## TODO
+## Components
+
+Pipeline Service is composed of the following components, which can be deployed via `kustomize` or referenced in an ArgoCD application:
+
+- `pipeline-service` - the core components that make up the service. Deploys the following:
+  - OpenShift Pipelines operator
+  - Pipelines as Code
+  - Tekton Chains
+  - Tekton Results
+  - Tekton Metrics Exporter
+- `grafana` - optional Grafana dashboard for monitoring.
