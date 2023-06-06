@@ -97,6 +97,7 @@ deploy_cluster() {
         exit 1
     fi
     check_clusteroperators
+    oc annotate ingresses.config/cluster ingress.operator.openshift.io/default-enable-http2=true
 }
 
 deploy_cluster

@@ -17,4 +17,4 @@ spec:
       image: quay.io/openshift-pipeline/ci:latest
       script: |
         #! /usr/bin/env bash
-        echo -n "$(yq '.images[0].newTag' $(workspaces.source.path)/operator/gitops/argocd/pipeline-service/tekton-results/base/kustomization.yaml)" | tee $(results.tekton-results-downstream-sha.path)
+        echo -n "$(yq '.images[0].newTag' $(workspaces.source.path)/operator/gitops/argocd/pipeline-service/tekton-results/kustomization.yaml)" | tee $(results.tekton-results-downstream-sha.path)

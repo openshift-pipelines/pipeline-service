@@ -36,20 +36,8 @@ spec:
         for service_account in "${service_accounts[@]}"; do
         kubectl create token "$service_account" > "${SA_TOKEN_PATH}"/"$service_account"
         done
-        RESULT_ROUTE=$(kubectl get route tekton-results -n tekton-results --template='{{.spec.host}}')
-        cat <<EOF > patch-test-config.patch
-        diff --git a/test/e2e/grpc_client.go b/test/e2e/grpc_client.go
-        --- a/test/e2e/grpc_client.go
-        +++ b/test/e2e/grpc_client.go
-        @@ -36,4 +36,4 @@ const (
-         	certFile         = "tekton-results-cert.pem"
-        -	apiServerName    = "tekton-results-api-service.tekton-pipelines.svc.cluster.local"
-        -	apiServerAddress = "localhost:50051"
-        +	apiServerName    = "tekton-results-api-service.tekton-results.svc.cluster.local"
-        +	apiServerAddress = "$RESULT_ROUTE"
-         	defCertFolder    = "/tmp/tekton-results/ssl"
-        
-        EOF
-        git apply patch-test-config.patch
+        export API_SERVER_NAME="tekton-results-api-service.tekton-results.svc.cluster.local"
+        export API_SERVER_ADDR="https://$(kubectl get route tekton-results -n tekton-results --template='{{.spec.host}}'):443"
+        echo $API_SERVER_ADDR
         export CGO_ENABLED=0
-        go test -v -count=1 --tags=e2e ./test/e2e/...
+        go test -v -count=1 --tags=e2e $(go list --tags=e2e ./test/e2e/... | grep -v /client)

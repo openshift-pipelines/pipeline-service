@@ -16,7 +16,6 @@ spec:
   workspaces:
     - name: source
     - name: tekton-results-source
-    - name: kubeconfig-dir
     - name: shared-workspace
   tasks:
     - name: generate-cluster-name
