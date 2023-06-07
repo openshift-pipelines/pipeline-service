@@ -17,7 +17,7 @@ spec:
       serviceAccountName: pipeline-service-exporter
       containers:
         - name: pipeline-metrics-exporter
-          image: quay.io/redhat-appstudio/user-workload:main
+          image: quay.io/redhat-appstudio/pipeline-service-exporter:placeholder
           ports:
             - containerPort: 9117
           resources:
