@@ -19,7 +19,7 @@ Optional arguments:
         Default value: \$KUBECONFIG
     -t, --test TEST
         Name of the test to be executed. Can be repeated to run multiple tests.
-        Must be one of: chains, pipelines, results, security.
+        Must be one of: chains, pipelines, results, security, metrics.
         Default: Run all tests.
     -d, --debug
         Activate tracing/debug mode.
@@ -62,7 +62,7 @@ parse_args() {
   done
   DEBUG="${DEBUG:-}"
   if [ "${#TEST_LIST[@]}" = "0" ]; then
-    TEST_LIST=("chains" "pipelines" "results" "security")
+    TEST_LIST=("chains" "pipelines" "results" "security" "metrics")
   fi
 }
 
@@ -132,6 +132,13 @@ check_host_network() {
        securityErrorFound="yes"
     fi
   done
+}
+
+test_metrics() {
+  prName="$(kubectl create -n "$NAMESPACE" -f "$SCRIPT_DIR/manifests/test/metrics/curl-metrics-service-pipeline.yaml" | awk '{print $1}')"
+  echo "Checking $prName for metric output"
+  wait_for_pipeline "$prName" "$NAMESPACE"
+  echo "OK"
 }
 
 test_chains() {
@@ -331,7 +338,7 @@ main() {
   setup_test
   for case in "${TEST_LIST[@]}"; do
     case $case in
-    chains | pipelines | results | security)
+    chains | pipelines | results | security | metrics)
       echo "[$case]"
       test_"$case"
       echo

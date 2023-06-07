@@ -1,0 +1,25 @@
+---
+kind: PipelineRun
+apiVersion: tekton.dev/v1beta1
+metadata:
+  generateName: metrics-curl-test-
+spec:
+  serviceAccountName: appstudio-pipeline
+  pipelineSpec:
+    tasks:
+      - name: metrics-curl
+        taskSpec:
+          steps:
+            - image: registry.access.redhat.com/ubi8/ubi-minimal:8.7
+              name: metrics-curl
+              securityContext:
+                runAsNonRoot: true
+              script: |
+                stats="$(curl http://pipeline-metrics-exporter-service.openshift-pipelines.svc.cluster.local:9117/metrics 2> /dev/null | grep pipelinerun_duration)"
+                if [ -z "$stats" ]; then
+                   echo "FAILED: did not get pipelinerun_duration stats"
+                   echo $stats
+                   exit 1
+                fi
+                echo "SUCCESS: got pipelinerun_duration stats:"
+                echo $stats
