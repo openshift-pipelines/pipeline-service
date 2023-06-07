@@ -7,8 +7,8 @@ resources:
   - service.yaml
 
 images:
-  - name: quay.io/redhat-appstudio/user-workload
-    newName: quay.io/redhat-appstudio/user-workload
+  - name: quay.io/redhat-appstudio/pipeline-service-exporter
+    newName: quay.io/redhat-appstudio/pipeline-service-exporter
     newTag: 450708aa46088d8b7e9e1915b8489ccbf8dbe47f
 
 apiVersion: kustomize.config.k8s.io/v1beta1
