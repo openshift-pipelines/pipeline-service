@@ -7,19 +7,16 @@ metadata:
 
 data:
   # See https://tekton.dev/docs/chains/config/
-  artifacts.taskrun.format: "in-toto"
 
-  # The internal openshift image registry can handle storing
-  # taskrun attestations with oci, but quay.io can't. So currently
-  # we need to change this to "tekton" for quay.io registries.
+  # Configure TaskRun attestation
+  artifacts.taskrun.format: "in-toto"
   artifacts.taskrun.storage: "oci"
 
-  # Attest pipelineruns the same way taskruns are attested, for details see:
-  # https://issues.redhat.com/browse/HACBS-264
+  # Configure PipelineRun attestation
   artifacts.pipelinerun.format: "in-toto"
   artifacts.pipelinerun.storage: "oci"
 
-  # For image signing iiuc
+  # Configure image signing
   artifacts.oci.storage: "oci"
 
   # Rekor integration is disabled for now. It is planned to be re-introduced
