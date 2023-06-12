@@ -1,8 +1,6 @@
 ---
 ########################
-# Mount the secrets volume where chains CA cert is located
-########################
-# Apply operator security standards (drop capabilities, resourece limits, run as non root, etc)
+# Apply operator security standards (drop capabilities, run as non root, etc)
 ########################
 #
 # The default install of chains includes the following
@@ -24,16 +22,12 @@ metadata:
   name: tekton-chains-controller
   namespace: tekton-chains
   annotations:
-    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   template:
     spec:
       containers:
         - name: tekton-chains-controller
-          volumeMounts:
-            # Mount the secrets volume
-            - mountPath: /etc/ssl/certs
-              name: chains-ca-cert
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -45,7 +39,3 @@ spec:
             seccompProfile:
               type: RuntimeDefault
             readOnlyRootFilesystem: true
-      volumes:
-        - name: chains-ca-cert
-          secret:
-            secretName: chains-ca-cert
