@@ -102,6 +102,7 @@ init() {
   export COMMIT_MSG
   export WORKSPACE_DIR
   cd "$WORKSPACE_DIR"
+  git config --global --add safe.directory "$PWD"
 }
 
 prepare_branch(){
