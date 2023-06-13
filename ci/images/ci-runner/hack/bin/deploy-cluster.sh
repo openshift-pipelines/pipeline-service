@@ -18,11 +18,6 @@ fetch_bitwarden_secrets() {
     get_rosa_token
 }
 
-print_debug_info() {
-    printf "Print debug info......\n" | indent 2
-    rosa describe cluster --cluster="$CLUSTER_NAME"
-}
-
 # Check all of clusteroperators are AVAILABLE
 check_clusteroperators() {
     operators=$(kubectl get co -o jsonpath='{range .items[*]}{.metadata.name}{" "}{end}')
@@ -30,7 +25,8 @@ check_clusteroperators() {
     for operator in $operators; do
         # need to check if the operator is available or not in a loop
         retries=0
-        max_retries=10
+        # Because the ROSA HCP cluster is taking longer than we anticipated, we temporarily adjusted the max_retries from 10 to 20.
+        max_retries=20
         # if the operator is not available, wait 60s and check again
         while [ "$retries" -lt "$max_retries" ]; do
             available=$(kubectl get co "$operator" -o jsonpath='{.status.conditions[?(@.type=="Available")].status}')
@@ -44,6 +40,8 @@ check_clusteroperators() {
         # if the operator is still not available after 10 times, exit 1
         if [ "$retries" -eq "$max_retries" ]; then
             echo "Operator $operator is not available" >&2
+            # Print debug info
+            kubectl get co
             exit 1
         fi
     done
@@ -77,13 +75,14 @@ deploy_cluster() {
     api_url="$(echo "$admin_output" | grep -oP '(?<=oc login ).*(?= --username)')"
 
     # Use the admin account to login to the cluster in a loop until the account is active.
-    max_retries=5
+    max_retries=10 # Temporarily adjusted the max_retries from 5 to 10.
     retries=0
     export KUBECONFIG="$KUBECONFIG_DIR/kubeconfig"
     while ! oc login "$api_url" --username "$admin_user" --password "$admin_pass" > /dev/null 2>&1; do
         if [ "$retries" -eq "$max_retries" ]; then
             echo "[ERROR] Failed to login the cluster." >&2
-            print_debug_info
+            # Print debug info
+            rosa describe cluster --cluster="$CLUSTER_NAME"
             exit 1
         fi
         sleep 60
