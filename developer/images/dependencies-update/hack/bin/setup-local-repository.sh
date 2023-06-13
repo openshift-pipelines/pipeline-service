@@ -51,6 +51,7 @@ parse_args() {
 
 run() {
     # Setup user
+    git config --global --add safe.directory "$PWD"
     git config --local user.email "pipeline-service@example.com"
     git config --local user.name "Pipeline Service CI Robot"
 

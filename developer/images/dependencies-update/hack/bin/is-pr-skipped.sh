@@ -88,6 +88,7 @@ prechecks() {
 
 run() {
     prechecks
+    git config --global --add safe.directory "$PWD"
     if git diff --quiet "$REPO_TARGET_BRANCH"; then
         # No diff
         printf "yes" >"$RESULT"
