@@ -192,7 +192,7 @@ install_oc() {
 
 install_rosa() {
     curl "${CURL_OPTS[@]}" -o "$TMPDIR/rosa.tgz" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/rosa/${ROSA_VERSION}/rosa-linux.tar.gz"
-    tar -C "$TMPDIR" -xzf "$TMPDIR/rosa.tgz" rosa
+    tar -C "$TMPDIR" -xzf "$TMPDIR/rosa.tgz" --no-same-owner rosa
     mv "$TMPDIR/rosa" "$TMPBIN"
     move_bin
     rosa version
