@@ -4,7 +4,7 @@ kind: PipelineRun
 metadata:
   annotations:
     pipelinesascode.tekton.dev/on-event: "[push]"
-    pipelinesascode.tekton.dev/on-target-branch: "[refs/heads/*]"
+    pipelinesascode.tekton.dev/on-target-branch: "[main]"
     pipelinesascode.tekton.dev/task: "[git-clone, github-open-pr]"
     pipelinesascode.tekton.dev/max-keep-runs: "5"
   name: pipeline-service-update-dependencies
