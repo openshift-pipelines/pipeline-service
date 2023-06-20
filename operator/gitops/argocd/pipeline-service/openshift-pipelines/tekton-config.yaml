@@ -14,7 +14,7 @@ spec:
   platforms:
     openshift:
       pipelinesAsCode:
-        enable: false
+        enable: true
   pipeline:
     default-service-account: appstudio-pipeline
     enable-api-fields: beta
