@@ -16,7 +16,7 @@ resources:
 images:
   - name: gcr.io/tekton-releases/github.com/tektoncd/chains/cmd/controller:v0.14.0
     newName: registry.redhat.io/openshift-pipelines/pipelines-chains-controller-rhel8
-    newTag: v1.10.2-1
+    newTag: v1.11.0-22
 
 patches:
   # allow openshift-gitops to manage tekton-chains

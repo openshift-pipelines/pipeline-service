@@ -8,17 +8,16 @@ resources:
   - allow-argocd.yaml
   - https://github.com/openshift-pipelines/pipelines-as-code/releases/download/v0.16.0/release.yaml
 
-# TODO backing off until https://issues.redhat.com/browse/SRVKP-3134 is resolved
-# images:
-#  - name: ghcr.io/openshift-pipelines/pipelines-as-code-controller:v0.16.0
-#    newName: registry.redhat.io/openshift-pipelines/pipelines-pipelines-as-code-rhel8
-#    newTag: v1.10.2-1
-#  - name: ghcr.io/openshift-pipelines/pipelines-as-code-watcher:v0.16.0
-#    newName: registry.redhat.io/openshift-pipelines/pipelines-pipelines-as-code-rhel8
-#    newTag: v1.10.2-1
-#  - name: ghcr.io/openshift-pipelines/pipelines-as-code-webhook:v0.16.0
-#    newName: registry.redhat.io/openshift-pipelines/pipelines-pipelines-as-code-rhel8
-#    newTag: v1.10.2-1
+images:
+  - name: ghcr.io/openshift-pipelines/pipelines-as-code-controller:v0.16.0
+    newName: registry.redhat.io/openshift-pipelines/pipelines-pipelines-as-code-rhel8
+    newTag: v1.11.0-25
+  - name: ghcr.io/openshift-pipelines/pipelines-as-code-watcher:v0.16.0
+    newName: registry.redhat.io/openshift-pipelines/pipelines-pipelines-as-code-rhel8
+    newTag: v1.11.0-25
+  - name: ghcr.io/openshift-pipelines/pipelines-as-code-webhook:v0.16.0
+    newName: registry.redhat.io/openshift-pipelines/pipelines-pipelines-as-code-rhel8
+    newTag: v1.11.0-25
 
 patchesStrategicMerge:
   - disable-pipelines-as-code-webhook.yaml
