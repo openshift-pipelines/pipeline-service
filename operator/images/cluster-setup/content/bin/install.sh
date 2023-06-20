@@ -135,14 +135,12 @@ install_clusters() {
 
     #checking if the pipelines and triggers pods are up and running
     printf -- "- Checking deployment status\n"
-    tektonDeployments=("tekton-pipelines-controller" "tekton-triggers-controller" "tekton-triggers-core-interceptors")
+    tektonDeployments=("tekton-pipelines-controller" "tekton-triggers-controller" "tekton-triggers-core-interceptors" "tekton-chains-controller")
     check_deployments "openshift-pipelines" "${tektonDeployments[@]}" | indent 4
     resultsDeployments=("tekton-results-api" "tekton-results-watcher")
     check_deployments "tekton-results" "${resultsDeployments[@]}" | indent 4
     resultsStatefulsets=("postgres-postgresql" "storage-pool-0")
     check_statefulsets "tekton-results" "${resultsStatefulsets[@]}" | indent 4
-    chainsDeployments=("tekton-chains-controller")
-    check_deployments "tekton-chains" "${chainsDeployments[@]}" | indent 4
 
     printf -- "- Checking pods status for controlplane namespaces\n"
     # list of control plane namespaces
@@ -156,9 +154,9 @@ install_clusters() {
 install_shared_manifests() {
   CREDENTIALS_DIR="$WORKSPACE_DIR/credentials"
 
-  if [ "$(kubectl get secret -n tekton-chains signing-secrets --ignore-not-found -o json | jq -r ".immutable")" != "true" ]; then
-    kubectl apply -k "$CREDENTIALS_DIR/manifests/compute/tekton-chains"
-  fi
+#  if [ "$(kubectl get secret -n openshift-pipelines signing-secrets --ignore-not-found -o json | jq -r ".immutable")" != "true" ]; then
+#    kubectl apply -k "$CREDENTIALS_DIR/manifests/compute/tekton-chains"
+#  fi
   kubectl apply -k "$CREDENTIALS_DIR/manifests/compute/tekton-results"
 }
 
