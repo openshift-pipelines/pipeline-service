@@ -244,13 +244,6 @@ uninstall_operators_and_controllers(){
       kubectl delete ns "$pac_ns"
     fi
 
-    printf "\n  Uninstalling tekton-chains:\n"
-    kubectl delete -k "$GITOPS_DIR/tekton-chains" --ignore-not-found=true
-    tkn_chains_ns=$(kubectl get ns | grep -ie "tekton-chains" | cut -d " " -f 1)
-    if [[ -n "$pac_ns" ]]; then
-      kubectl delete ns "$tkn_chains_ns"
-    fi
-
     printf "\n  Uninstalling tekton-results:\n"
     kubectl delete -k "$GITOPS_DIR/tekton-results/base" --ignore-not-found=true
     tkn_results_ns=$(kubectl get ns | grep -ie "tekton-results" | cut -d " " -f 1)
@@ -266,7 +259,7 @@ uninstall_operators_and_controllers(){
     fi
 
     # Checks if the Tekton controllers are uninstalled successfully
-    mapfile -t controllers < <(kubectl get ns | grep -iE "tekton-results|tekton-chains|pipelines-as-code" | cut -d " " -f 1)
+    mapfile -t controllers < <(kubectl get ns | grep -iE "tekton-results" | cut -d " " -f 1)
     if (( ${#controllers[@]} >= 1 )); then
         printf "\n[ERROR] Couldn't remove Tekton controllers, please try removing them manually." >&2
         exit 1
