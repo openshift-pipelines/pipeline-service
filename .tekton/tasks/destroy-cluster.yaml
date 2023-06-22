@@ -11,6 +11,7 @@ spec:
     - name: target_branch
   workspaces:
     - name: source
+    - name: output
   steps:
     - name: destroy
       image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
@@ -32,6 +33,8 @@ spec:
             secretKeyRef:
               name: hypershift-bitwarden
               key: "BW_PASSWORD"
+        - name: KUBECONFIG_DIR
+          value: "$(workspaces.output.path)"
         - name: REGION
           value: "$(params.region)"
       workingDir: "$(workspaces.source.path)"

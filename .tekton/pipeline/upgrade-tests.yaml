@@ -26,7 +26,7 @@ spec:
         - name: url
           value: $(params.repo_url)
         - name: revision
-          value: $(params.target_branch)
+          value: $(params.revision)
     - name: generate-cluster-name
       taskRef:
         name: generate-cluster-name
@@ -63,11 +63,24 @@ spec:
           workspace: source
         - name: kubeconfig-dir
           workspace: upgrade-shared-workspace
-    - name: plnsvc-setup
+    - name: clone-pipeline-service-git-baseline
+      runAfter:
+        - "setup-ci-runner"
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: source
+      params:
+        - name: url
+          value: $(params.repo_url)
+        - name: revision
+          value: $(params.target_branch)
+    - name: plnsvc-setup-baseline
       taskRef:
         name: pipeline-service-setup
       runAfter:
-        - "setup-ci-runner"
+        - "clone-pipeline-service-git-baseline"
       workspaces:
         - name: kubeconfig-dir
           workspace: upgrade-shared-workspace
@@ -80,11 +93,11 @@ spec:
           value: $(params.revision)
         - name: target_branch
           value: $(params.target_branch)
-    - name: tests-before-upgrade
+    - name: tests-baseline
       taskRef:
         name: pipeline-service-tests
       runAfter:
-        - "plnsvc-setup"
+        - "plnsvc-setup-baseline"
       params:
         - name: target_branch
           value: $(params.target_branch)
@@ -93,9 +106,9 @@ spec:
           workspace: upgrade-shared-workspace
         - name: source
           workspace: source
-    - name: clone-pipeline-service-git-for-upgrade
+    - name: clone-pipeline-service-git-upgrade
       runAfter:
-        - "tests-before-upgrade"
+        - "tests-baseline"
       taskRef:
         name: git-clone
       workspaces:
@@ -106,11 +119,11 @@ spec:
           value: $(params.repo_url)
         - name: revision
           value: $(params.revision)
-    - name: plnsvc-upgrade-setup
+    - name: plnsvc-setup-upgrade
       taskRef:
         name: pipeline-service-upgrade-setup
       runAfter:
-        - "clone-pipeline-service-git-for-upgrade"
+        - "clone-pipeline-service-git-upgrade"
       workspaces:
         - name: kubeconfig-dir
           workspace: upgrade-shared-workspace
@@ -123,11 +136,11 @@ spec:
           value: $(params.revision)
         - name: target_branch
           value: $(params.target_branch)
-    - name: tests-post-upgrade
+    - name: tests-upgrade
       taskRef:
         name: pipeline-service-tests
       runAfter:
-        - "plnsvc-upgrade-setup"
+        - "plnsvc-setup-upgrade"
       params:
         - name: target_branch
           value: $(params.target_branch)
@@ -136,9 +149,9 @@ spec:
           workspace: upgrade-shared-workspace
         - name: source
           workspace: source
-    - name: clone-pipeline-service-git-post-upgrade
+    - name: clone-pipeline-service-git-downgrade
       runAfter:
-        - "tests-post-upgrade"
+        - "tests-upgrade"
       taskRef:
         name: git-clone
       workspaces:
@@ -149,11 +162,11 @@ spec:
           value: $(params.repo_url)
         - name: revision
           value: $(params.target_branch)
-    - name: plnsvc-downgrade-setup
+    - name: plnsvc-setup-downgrade
       taskRef:
         name: pipeline-service-upgrade-setup
       runAfter:
-        - "clone-pipeline-service-git-post-upgrade"
+        - "clone-pipeline-service-git-downgrade"
       workspaces:
         - name: kubeconfig-dir
           workspace: upgrade-shared-workspace
@@ -166,11 +179,11 @@ spec:
           value: $(params.revision)
         - name: target_branch
           value: $(params.target_branch)
-    - name: tests-post-downgrade
+    - name: tests-downgrade
       taskRef:
         name: pipeline-service-tests
       runAfter:
-        - "plnsvc-downgrade-setup"
+        - "plnsvc-setup-downgrade"
       params:
         - name: target_branch
           value: $(params.target_branch)
@@ -195,5 +208,7 @@ spec:
         - name: region
           value: $(params.aws_region)
       workspaces:
+        - name: output
+          workspace: upgrade-shared-workspace
         - name: source
           workspace: source
