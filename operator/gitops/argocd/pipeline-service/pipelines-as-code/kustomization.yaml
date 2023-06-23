@@ -6,6 +6,7 @@ commonLabels:
 
 resources:
   - allow-argocd.yaml
+  - bugfix.yaml
   - https://github.com/openshift-pipelines/pipelines-as-code/releases/download/v0.16.0/release.yaml
 
 # TODO backing off until https://issues.redhat.com/browse/SRVKP-3134 is resolved
