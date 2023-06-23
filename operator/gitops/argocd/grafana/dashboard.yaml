@@ -5,6 +5,8 @@ metadata:
   name: grafana-dashboard-pipeline-service
   labels:
     app: appstudio-grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   configMapRef:
     name: grafana-dashboard-pipeline-service

@@ -3,6 +3,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: openshift-gitops-apply-prometheus
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 rules:
   - apiGroups:
       - monitoring.rhobs
@@ -32,6 +34,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: openshift-gitops-apply-prometheus
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -46,6 +50,8 @@ kind: Role
 metadata:
   name: openshift-gitops-manage-secrets
   namespace: o11y
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 rules:
   - apiGroups:
       - ""
@@ -64,6 +70,8 @@ kind: RoleBinding
 metadata:
   name: openshift-gitops-manage-secrets
   namespace: o11y
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role

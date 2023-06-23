@@ -4,6 +4,8 @@ kind: Application
 metadata:
   name: postgres
   namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   project: default
   destination:

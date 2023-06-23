@@ -8,6 +8,8 @@ kind: ConfigMap
 metadata:
   name: pipelines-as-code
   namespace: openshift-pipelines
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 data:
   # The application name, you can customize this label. If using the Github App you will need to customize the label on the github app setting as well.
   application-name: "Pipelines as Code CI"

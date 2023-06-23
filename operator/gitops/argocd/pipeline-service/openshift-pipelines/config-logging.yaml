@@ -10,7 +10,7 @@ metadata:
     app.kubernetes.io/instance: default
     operator.tekton.dev/operand-name: tektoncd-pipelines
   annotations:
-    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-wave: "1"
 data:
   zap-logger-config: |
     {

@@ -5,6 +5,8 @@ kind: ServiceMonitor
 metadata:
   name: pipeline-service
   namespace: openshift-pipelines
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   jobLabel: app
   namespaceSelector:

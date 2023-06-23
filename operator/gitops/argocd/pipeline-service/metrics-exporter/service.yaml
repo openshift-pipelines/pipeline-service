@@ -6,6 +6,8 @@ metadata:
   namespace: openshift-pipelines
   labels:
     app: pipeline-metrics-exporter
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   selector:
     app: pipeline-metrics-exporter
