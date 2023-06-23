@@ -87,5 +87,7 @@ spec:
         - name: region
           value: $(params.aws_region)
       workspaces:
+        - name: output
+          workspace: shared-workspace
         - name: source
           workspace: source

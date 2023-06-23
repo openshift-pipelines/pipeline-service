@@ -122,5 +122,7 @@ spec:
         - name: target_branch
           value: $(params.target_branch)
       workspaces:
+        - name: output
+          workspace: shared-workspace
         - name: source
           workspace: source

@@ -11,16 +11,21 @@ SCRIPT_DIR="$(
 
 # Give developers 15mins to connect to a pod and remove the file
 # if they want to investigate the failure
-if [ -e "$PWD/destroy-cluster.txt" ]; then
+failure_file="$PWD/destroy-cluster.txt"
+if [ -e "$failure_file" ]; then
+    echo "Failure detected."
+    echo "Delete '$failure_file' within 15 minutes to keep the cluster alive for investigation."
+    echo
+    echo "KUBECONFIG:"
+    cat "$KUBECONFIG_DIR/$KUBECONFIG"
+    echo
+    echo "Connect to the ci-runner with: kubectl exec -n default --stdin --tty ci-runner -- bash"
+    echo
+
     sleep 900
-    if [ -e "$PWD/destroy-cluster.txt" ]; then
+    if [ -e "$failure_file" ]; then
       echo "Failure is not being investigated, cluster will be destroyed."
     else
-      echo "KUBECONFIG:"
-      cat "$KUBECONFIG"
-      echo
-      echo "Connect to the ci-runner: kubectl exec -n default --stdin --tty ci-runner -- bash"
-      echo
       echo "Failure under investigation, cluster will not be destroyed."
       exit 1
     fi
