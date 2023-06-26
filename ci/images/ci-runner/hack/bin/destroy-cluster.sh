@@ -36,9 +36,6 @@ source "$SCRIPT_DIR/utils.sh"
 
 if [[ -n "$CLUSTER_NAME"  ]]; then
     echo "Started to destroy cluster [$CLUSTER_NAME]..."
-    open_bitwarden_session
-    get_aws_credentials
-    get_rosa_token
 
     printf "Log in to your Red Hat account...\n" | indent 2
     setx_off
