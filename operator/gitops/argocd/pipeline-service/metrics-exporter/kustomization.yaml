@@ -5,6 +5,7 @@ resources:
   - clusterrolebinding.yaml
   - deployment.yaml
   - service.yaml
+  - servicemonitor.yaml
 
 images:
   - name: quay.io/redhat-appstudio/pipeline-service-exporter

@@ -1,0 +1,21 @@
+---
+# for RHTAP, the pipeline-service monitor is defined in infra-deployments, but we define here in our developer folder (vs. the operator folder) to define this out of dev_setup.sh
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: pipeline-service
+  namespace: openshift-pipelines
+spec:
+  jobLabel: app
+  namespaceSelector:
+    matchNames:
+      - openshift-pipelines
+  endpoints:
+    - path: /metrics
+      port: metrics
+      interval: 15s
+      scheme: http
+      honorLabels: true
+  selector:
+    matchLabels:
+      app: pipeline-metrics-exporter

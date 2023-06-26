@@ -20,6 +20,7 @@ spec:
           image: quay.io/redhat-appstudio/pipeline-service-exporter:placeholder
           ports:
             - containerPort: 9117
+              name: metrics
           resources:
             requests:
               memory: "128Mi"
