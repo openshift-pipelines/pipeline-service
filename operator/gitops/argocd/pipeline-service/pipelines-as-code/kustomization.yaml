@@ -24,6 +24,7 @@ patchesStrategicMerge:
   - disable-pipelines-as-code-webhook.yaml
   - controller-sync.yaml
   - watcher-sync.yaml
+  - controller-service-update.yaml
 
 patchesJson6902:
   - target:

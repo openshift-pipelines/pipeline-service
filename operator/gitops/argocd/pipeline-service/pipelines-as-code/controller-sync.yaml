@@ -6,3 +6,19 @@ metadata:
   namespace: pipelines-as-code
   annotations:
     argocd.argoproj.io/sync-wave: "1"
+spec:
+  template:
+    metadata:
+      labels:
+        app: pipelines-as-code-controller
+    spec:
+      containers:
+        - name: pac-controller
+          ports:
+            - name: metrics
+              containerPort: 9090
+          env:
+            - name: K_METRICS_CONFIG
+              value: '{"Domain":"pipelinesascode.tekton.dev/controller","Component":"pac_controller","PrometheusPort":9090,"ConfigMap":{"name":"pipelines-as-code-config-observability"}}'
+            - name: K_TRACING_CONFIG
+              value: '{"backend":"prometheus","debug":"false","sample-rate":"0"}'
