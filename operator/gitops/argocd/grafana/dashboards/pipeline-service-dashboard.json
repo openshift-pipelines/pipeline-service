@@ -21,7 +21,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 18,
-  "iteration": 1688375985019,
+  "iteration": 1688375985021,
   "links": [],
   "panels": [
     {
@@ -686,6 +686,13 @@
         "textMode": "auto"
       },
       "pluginVersion": "7.5.17",
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
       "targets": [
         {
           "exemplar": true,
@@ -746,6 +753,13 @@
         "textMode": "auto"
       },
       "pluginVersion": "7.5.17",
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
       "targets": [
         {
           "exemplar": true,
@@ -801,6 +815,13 @@
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
       "seriesOverrides": [],
       "spaceLength": 10,
       "stack": false,
@@ -921,6 +942,13 @@
         }
       },
       "pluginVersion": "7.5.17",
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
       "targets": [
         {
           "exemplar": true,
@@ -999,6 +1027,13 @@
         }
       },
       "pluginVersion": "7.5.17",
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
       "targets": [
         {
           "exemplar": true,
@@ -1077,6 +1112,13 @@
         }
       },
       "pluginVersion": "7.5.17",
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
       "targets": [
         {
           "exemplar": true,
@@ -1097,6 +1139,144 @@
         "w": 24,
         "x": 0,
         "y": 54
+      },
+      "id": 43,
+      "panels": [],
+      "repeat": "datasource",
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
+      "title": "Pipelines Troubleshooting",
+      "type": "row"
+    },
+    {
+      "datasource": null,
+      "description": "Average duration of successful Pipelineruns in seconds over one hour time window grouped by namespace.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 55
+      },
+      "id": 45,
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "text": {}
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum by (namespace) ((avg_over_time(tekton_pipelines_controller_pipelinerun_duration_seconds_sum{status=\"success\"}[1h]) / avg_over_time(tekton_pipelines_controller_pipelinerun_duration_seconds_count{status=\"success\"}[1h])))",
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Average duration of successful pipelineruns",
+      "type": "bargauge"
+    },
+    {
+      "datasource": null,
+      "description": "Average scheduling duration per PipelineRun in seconds for each namespace over the last 1 hour",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 55
+      },
+      "id": 47,
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "text": {}
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum by (namespace) ((avg_over_time(pipelinerun_duration_scheduled_seconds_sum[1h]) / avg_over_time(pipelinerun_duration_scheduled_seconds_count[1h])))",
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Average scheduling duration",
+      "type": "bargauge"
+    },
+    {
+      "collapsed": false,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 63
       },
       "id": 17,
       "panels": [],
@@ -1128,7 +1308,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 55
+        "y": 64
       },
       "hiddenSeries": false,
       "id": 21,
@@ -1233,7 +1413,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 55
+        "y": 64
       },
       "hiddenSeries": false,
       "id": 19,
@@ -1338,7 +1518,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 63
+        "y": 72
       },
       "hiddenSeries": false,
       "id": 27,
@@ -1443,7 +1623,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 63
+        "y": 72
       },
       "hiddenSeries": false,
       "id": 25,
@@ -1547,7 +1727,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 71
+        "y": 80
       },
       "hiddenSeries": false,
       "id": 23,
