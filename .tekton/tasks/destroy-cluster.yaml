@@ -18,21 +18,21 @@ spec:
       env:
         - name: CLUSTER_NAME
           value: "$(params.cluster-name)"
-        - name: BW_CLIENTID
+        - name: ROSA_TOKEN
           valueFrom:
             secretKeyRef:
-              name: hypershift-bitwarden
-              key: "BW_CLIENTID"
-        - name: BW_CLIENTSECRET
+              name: plnsvc-ci-secret
+              key: "PLNSVC_ROSA_TOKEN"
+        - name: AWS_ACCESS_KEY_ID
           valueFrom:
             secretKeyRef:
-              name: hypershift-bitwarden
-              key: "BW_CLIENTSECRET"
-        - name: BW_PASSWORD
+              name: plnsvc-ci-secret
+              key: "PLNSVC_AWS_KEY_ID"
+        - name: AWS_SECRET_ACCESS_KEY
           valueFrom:
             secretKeyRef:
-              name: hypershift-bitwarden
-              key: "BW_PASSWORD"
+              name: plnsvc-ci-secret
+              key: "PLNSVC_AWS_KEY"
         - name: KUBECONFIG_DIR
           value: "$(workspaces.output.path)"
         - name: REGION

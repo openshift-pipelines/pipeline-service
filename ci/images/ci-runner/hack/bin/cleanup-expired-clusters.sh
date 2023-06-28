@@ -13,13 +13,6 @@ source "$SCRIPT_DIR/utils.sh"
 
 EXCLUDE_CLUSTER=(local-cluster newci4plnsvc)
 
-fetch_bitwarden_secrets() {
-    printf "Fetch secrets from bitwarden server\n" | indent 2
-    open_bitwarden_session
-    get_aws_credentials
-    get_rosa_token
-}
-
 is_cluster_expired() {
     cluster_name=$1
 
@@ -47,7 +40,6 @@ destroy_expired_clusters() {
     done
 }
 
-fetch_bitwarden_secrets
 setx_off
 rosa login --token="$ROSA_TOKEN"
 setx_on

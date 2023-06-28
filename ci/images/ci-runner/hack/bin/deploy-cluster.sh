@@ -11,13 +11,6 @@ SCRIPT_DIR="$(
 # shellcheck source=ci/images/ci-runner/hack/bin/utils.sh
 source "$SCRIPT_DIR/utils.sh"
 
-fetch_bitwarden_secrets() {
-    printf "Fetch secrets from bitwarden server\n" | indent 2
-    open_bitwarden_session
-    get_aws_credentials
-    get_rosa_token
-}
-
 print_debug_info() {
     printf "Print debug info......\n" | indent 2
     rosa describe cluster --cluster="$CLUSTER_NAME"
@@ -102,5 +95,4 @@ deploy_cluster() {
     check_clusteroperators
 }
 
-fetch_bitwarden_secrets
 deploy_cluster
