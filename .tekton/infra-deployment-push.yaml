@@ -2,7 +2,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  name: pipeline-service-push
+  name: pipeline-service-infra-deployment-update
   annotations:
     pipelinesascode.tekton.dev/on-event: "push"
     pipelinesascode.tekton.dev/on-target-branch: "main"
@@ -17,6 +17,7 @@ spec:
       value: |
         sed -i -E 's/[0-9a-f]{40}/{{ revision }}/g' components/pipeline-service/development/kustomization.yaml
         sed -i -E 's/[0-9a-f]{40}/{{ revision }}/g' components/pipeline-service/staging/base/kustomization.yaml
+        sed -i -E 's/[0-9a-f]{40}/{{ revision }}/g' components/monitoring/grafana/base/pipeline-service/kustomization.yaml
   pipelineSpec:
     params:
       - description: 'Source Repository URL'
