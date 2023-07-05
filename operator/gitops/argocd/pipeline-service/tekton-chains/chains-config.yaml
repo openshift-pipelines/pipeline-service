@@ -8,9 +8,11 @@ metadata:
 data:
   # See https://tekton.dev/docs/chains/config/
 
-  # Configure TaskRun attestation
+  # Configure TaskRun attestation. RHTAP does not leverage the TaskRun
+  # attestations. This tells Tekton Chains to not store them in the OCI
+  # registry.
   artifacts.taskrun.format: "in-toto"
-  artifacts.taskrun.storage: "oci"
+  artifacts.taskrun.storage: ""
 
   # Configure PipelineRun attestation
   artifacts.pipelinerun.format: "in-toto"
