@@ -24,8 +24,10 @@ is_cluster_expired() {
 }
 
 destroy_expired_clusters() {
+    expired_clusters=()
     mapfile -t clusters < <(rosa list clusters --region "$REGION" | grep "ready" | awk '{print $2}')
 
+    echo "[$(date +"%Y/%m/%d %H:%M:%S")] Cluster count: ${#clusters[@]}"
     for cluster in "${clusters[@]}"; do
         if [[ "${EXCLUDE_CLUSTER[*]}" =~ $cluster ]]; then
             continue
@@ -34,9 +36,17 @@ destroy_expired_clusters() {
         is_expired=$(is_cluster_expired "$cluster")
         
         if [[ "$is_expired" == "true" ]]; then
-            export CLUSTER_NAME="$cluster" 
-            "$SCRIPT_DIR"/destroy-cluster.sh 
+            expired_clusters+=( "$cluster" )
         fi
+    done
+
+    echo "[$(date +"%Y/%m/%d %H:%M:%S")] Expired cluster count: ${#expired_clusters[@]}"
+    count=0
+    for cluster in "${expired_clusters[@]}"; do
+        count=$(( count + 1 ))
+        echo "Destroying $cluster [$count/${#expired_clusters[@]}]"
+        export CLUSTER_NAME="$cluster"
+        "$SCRIPT_DIR"/destroy-cluster.sh
     done
 }
 
