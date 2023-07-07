@@ -9,21 +9,29 @@ resources:
   # To list available releases:
   #  curl -s https://storage.googleapis.com/tekton-releases/ | xq | grep -E 'chains/.*/release.yaml'
   #
+  - namespace.yaml
   - chains-secrets-config.yaml
   - public-key.yaml
+  - chains-secrets-migration.yaml
 
 patches:
- # Add some chains configuration
-  - path: chains-config.yaml
-  #
   - target:
       kind: Secret
       name: signing-secrets
-      namespace: openshift-pipelines
+      namespace: tekton-chains
     patch: |-
       apiVersion: v1
       kind: Secret
       metadata:
         name: signing-secrets
-        namespace: openshift-pipelines
+        namespace: tekton-chains
       $patch: delete
+  # Allow openshift-gitops to manage tekton-chains
+  - target:
+      kind: Namespace
+      name: tekton-chains
+    patch: |-
+      - op: add
+        path: "/metadata/labels"
+        value:
+          argocd.argoproj.io/managed-by: openshift-gitops

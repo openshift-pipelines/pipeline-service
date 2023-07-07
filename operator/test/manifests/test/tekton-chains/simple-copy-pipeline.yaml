@@ -4,6 +4,7 @@ kind: Pipeline
 metadata:
   annotations:
   name: simple-copy
+  namespace: plnsvc-tests
 spec:
   params:
     - description: Reference of the image the pipeline will copy from.

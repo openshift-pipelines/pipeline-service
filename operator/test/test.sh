@@ -32,6 +32,7 @@ Example:
 }
 
 parse_args() {
+  DEBUG_OUTPUT="/dev/null"
   KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
   TEST_LIST=()
   while [[ $# -gt 0 ]]; do
@@ -46,6 +47,7 @@ parse_args() {
       ;;
     -d | --debug)
       DEBUG="--debug"
+      DEBUG_OUTPUT="/dev/stdout"
       set -x
       ;;
     -h | --help)
@@ -79,13 +81,13 @@ init() {
 setup_test() {
   echo "[Setup]"
   echo -n "  - Namespace configuration: "
-  kubectl apply -k "$SCRIPT_DIR/manifests/setup/pipeline-service" >/dev/null
+  kubectl apply -k "$SCRIPT_DIR/manifests/setup/pipeline-service" >"$DEBUG_OUTPUT"
   echo "OK"
   echo
 }
 
 wait_for_pipeline() {
-  kubectl wait --for=condition=succeeded "$1" -n "$2" --timeout 300s >/dev/null
+  kubectl wait --for=condition=succeeded "$1" -n "$2" --timeout 300s >"$DEBUG_OUTPUT"
 }
 
 check_pod_security() {
@@ -142,7 +144,11 @@ test_metrics() {
 }
 
 test_chains() {
-  kubectl apply -k "$SCRIPT_DIR/manifests/test/tekton-chains" -n "$NAMESPACE" >/dev/null
+  kubectl apply -k "$SCRIPT_DIR/manifests/test/tekton-chains" -n "$NAMESPACE" >"$DEBUG_OUTPUT"
+  while ! kubectl get pipelines -n "$NAMESPACE" -o name 2>/dev/null | grep -q "pipeline.tekton.dev/simple-copy"; do
+    echo -n "."
+    sleep 5
+  done
 
   # Trigger the pipeline
   echo -n "  - Run pipeline: "
@@ -164,7 +170,7 @@ test_chains() {
   signed="$(kubectl get pipelineruns -n "$NAMESPACE" "$pipeline_name" -o jsonpath='{.metadata.annotations.chains\.tekton\.dev/signed}')"
   retry_timer=0
   polling_interval=2
-  until [ -n "$signed" ] || [ "$retry_timer" -ge 30 ]; do
+  until [ -n "$signed" ] || [ "$retry_timer" -ge 300 ]; do
     echo -n "."
     sleep $polling_interval
     retry_timer=$((retry_timer + polling_interval))
@@ -208,12 +214,26 @@ test_chains() {
     exit 1
   fi
 
+  # TODO: Reactivate on step 2/3 of the migration.
+  # This test is not critical until we ask EC to use the openshift-pipelines namespace.
+  # echo -n "  - Public key migration: "
+  # pipeline_name=$(kubectl create -f "$SCRIPT_DIR/manifests/test/tekton-chains/public-key-migration.yaml" -n "$NAMESPACE" | cut -d' ' -f1)
+  # wait_for_pipeline "$pipeline_name" "$NAMESPACE"
+  # if [ "$(kubectl get "$pipeline_name" -n "$NAMESPACE" \
+  #   -o 'jsonpath={.status.conditions[0].reason}')" = "Succeeded" ]; then
+  #   echo "OK"
+  # else
+  #   echo "Failed"
+  #   echo "[ERROR] Public key is not accessible" >&2
+  #   exit 1
+  # fi
+
   echo
 }
 
 test_pipelines() {
   echo -n "  - Run pipeline: "
-  if ! kubectl get -n "$NAMESPACE" serviceaccount default >/dev/null 2>&1; then
+  if ! kubectl get -n "$NAMESPACE" serviceaccount default >"$DEBUG_OUTPUT" 2>&1; then
     kubectl create -n "$NAMESPACE" serviceaccount default
   fi
   BASE_URL="https://raw.githubusercontent.com/tektoncd/pipeline/v0.32.0"
@@ -260,12 +280,12 @@ test_results() {
   echo -n "  - Results in database:"
 
   # Service Account to test tekton-results
-  if ! kubectl get serviceaccount "$RESULTS_SA" -n "$NAMESPACE" >/dev/null 2>&1; then
+  if ! kubectl get serviceaccount "$RESULTS_SA" -n "$NAMESPACE" >"$DEBUG_OUTPUT" 2>&1; then
     kubectl create serviceaccount "$RESULTS_SA" -n "$NAMESPACE"
     echo -n "."
   fi
   # Grant required privileges to the Service Account
-  if ! kubectl get rolebinding tekton-results-tests -n "$NAMESPACE" >/dev/null 2>&1; then
+  if ! kubectl get rolebinding tekton-results-tests -n "$NAMESPACE" >"$DEBUG_OUTPUT" 2>&1; then
     kubectl create rolebinding tekton-results-tests -n "$NAMESPACE" --clusterrole=tekton-results-readonly --serviceaccount="$NAMESPACE":"$RESULTS_SA"
     echo -n "."
   fi

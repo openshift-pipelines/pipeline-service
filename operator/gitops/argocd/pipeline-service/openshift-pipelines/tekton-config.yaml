@@ -1,4 +1,5 @@
 ---
+# Docs: https://github.com/tektoncd/operator/blob/main/docs/TektonConfig.md
 apiVersion: operator.tekton.dev/v1alpha1
 kind: TektonConfig
 metadata:
@@ -15,6 +16,22 @@ spec:
     openshift:
       pipelinesAsCode:
         enable: true
+  chain:
+    # Configure TaskRun attestation.
+    # RHTAP does not leverage the TaskRun attestations.
+    # This tells Tekton Chains to not store them in the OCI registry.
+    artifacts.taskrun.format: "in-toto"
+    artifacts.taskrun.storage: ""
+
+    # Configure image signing
+    artifacts.oci.storage: "oci"
+
+    # Configure PipelineRun attestation
+    artifacts.pipelinerun.format: "in-toto"
+    artifacts.pipelinerun.storage: "oci"
+
+    # Rekor integration is disabled for now. It is planned to be re-introduced in the future.
+    transparency.enabled: "false"
   pipeline:
     default-service-account: appstudio-pipeline
     enable-api-fields: beta
