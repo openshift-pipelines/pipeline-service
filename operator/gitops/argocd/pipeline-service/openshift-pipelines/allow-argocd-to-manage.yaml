@@ -5,6 +5,16 @@ metadata:
   name: openshift-gitops-apply-tekton-config-parameters
 rules:
   - apiGroups:
+      - monitoring.coreos.com
+    resources:
+      - servicemonitors
+    verbs:
+      - get
+      - list
+      - patch
+      - create
+      - delete
+  - apiGroups:
       - operator.tekton.dev
     resources:
       - tektonconfigs

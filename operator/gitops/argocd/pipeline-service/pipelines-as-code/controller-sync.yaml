@@ -1,8 +1,0 @@
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: pipelines-as-code-controller
-  namespace: pipelines-as-code
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"

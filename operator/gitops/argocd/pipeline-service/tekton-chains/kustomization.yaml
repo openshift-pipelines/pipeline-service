@@ -9,30 +9,12 @@ resources:
   # To list available releases:
   #  curl -s https://storage.googleapis.com/tekton-releases/ | xq | grep -E 'chains/.*/release.yaml'
   #
-  - https://storage.googleapis.com/tekton-releases/chains/previous/v0.14.0/release.yaml
+  - namespace.yaml
   - chains-secrets-config.yaml
   - public-key.yaml
-
-images:
-  - name: gcr.io/tekton-releases/github.com/tektoncd/chains/cmd/controller:v0.14.0
-    newName: registry.redhat.io/openshift-pipelines/pipelines-chains-controller-rhel8
-    newTag: v1.10.2-1
+  - chains-secrets-migration.yaml
 
 patches:
-  # allow openshift-gitops to manage tekton-chains
-  - target:
-      kind: Namespace
-      name: tekton-chains
-    patch: |-
-      - op: add
-        path: "/metadata/labels"
-        value:
-          argocd.argoproj.io/managed-by: openshift-gitops
-  # Add some chains configuration
-  - path: chains-config.yaml
-  #
-  # Mount the chains cert volume and apply operator security standards
-  - path: chains-controller-deployment.yaml
   - target:
       kind: Secret
       name: signing-secrets
@@ -44,3 +26,12 @@ patches:
         name: signing-secrets
         namespace: tekton-chains
       $patch: delete
+  # Allow openshift-gitops to manage tekton-chains
+  - target:
+      kind: Namespace
+      name: tekton-chains
+    patch: |-
+      - op: add
+        path: "/metadata/labels"
+        value:
+          argocd.argoproj.io/managed-by: openshift-gitops
