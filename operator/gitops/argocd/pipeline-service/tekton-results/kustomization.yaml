@@ -7,6 +7,7 @@ resources:
   - namespace.yaml
   - api-route.yaml
   - watcher-logging-rbac.yaml
+  - service-monitor.yaml
 
 images:
   - name: ko://github.com/tektoncd/results/cmd/api
@@ -23,7 +24,7 @@ images:
 configMapGenerator:
   - behavior: replace
     files:
-      - env/config
+      - config.env
     name: api-config
     namespace: tekton-pipelines
     options:

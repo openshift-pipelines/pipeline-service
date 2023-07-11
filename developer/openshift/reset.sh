@@ -245,7 +245,7 @@ uninstall_operators_and_controllers(){
     fi
 
     printf "\n  Uninstalling tekton-results:\n"
-    kubectl delete -k "$GITOPS_DIR/tekton-results/base" --ignore-not-found=true
+    kubectl delete -k "$GITOPS_DIR/tekton-results" --ignore-not-found=true
     tkn_results_ns=$(kubectl get ns | grep -ie "tekton-results" | cut -d " " -f 1)
     if [[ -n "$pac_ns" ]]; then
       kubectl delete ns "$tkn_results_ns"
