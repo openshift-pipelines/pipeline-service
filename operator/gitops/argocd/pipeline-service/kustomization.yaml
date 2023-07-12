@@ -5,7 +5,7 @@ kind: Kustomization
 resources:
   - openshift-pipelines
   - tekton-chains
-  - tekton-results/base
+  - tekton-results
   - metrics-exporter
 
   # Skip applying the Tekton operands while the Tekton operator is being installed.

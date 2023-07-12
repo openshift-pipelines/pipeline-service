@@ -2,7 +2,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - ../../../../../../operator/gitops/argocd/pipeline-service/tekton-results/base
+  - ../../../../../../operator/gitops/argocd/pipeline-service/tekton-results
 
 patches:
   - path: minio-create-bucket.yaml
