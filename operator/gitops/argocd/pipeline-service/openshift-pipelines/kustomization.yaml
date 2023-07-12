@@ -6,4 +6,5 @@ resources:
   - appstudio-pipelines-scc.yaml
   - openshift-operator.yaml
   - tekton-config.yaml
+  - config-pac.yaml
   - config-logging.yaml
