@@ -20,8 +20,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 3,
-  "iteration": 1689001770839,
+  "id": 4,
+  "iteration": 1689054983860,
   "links": [],
   "panels": [
     {
@@ -2123,9 +2123,1320 @@
         "align": false,
         "alignLevel": null
       }
+    },
+    {
+      "collapsed": false,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 113
+      },
+      "id": 60,
+      "panels": [],
+      "repeat": "datasource",
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
+      "title": "Tekton Results",
+      "type": "row"
+    },
+    {
+      "datasource": null,
+      "description": "Status of API and Watcher",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-RdYlGr"
+          },
+          "mappings": [
+            {
+              "from": "",
+              "id": 1,
+              "text": "OK",
+              "to": "",
+              "type": 1,
+              "value": "1"
+            },
+            {
+              "from": "",
+              "id": 2,
+              "text": "Down",
+              "to": "",
+              "type": 1,
+              "value": "0"
+            }
+          ],
+          "noValue": "No Data",
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 50
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 114
+      },
+      "id": 61,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "value_and_name"
+      },
+      "pluginVersion": "7.5.17",
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum(up{job=\"tekton-results-api-service\"})",
+          "format": "time_series",
+          "hide": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "API",
+          "refId": "api up"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum(up{job=\"tekton-results-watcher\"})",
+          "format": "time_series",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "Watcher",
+          "refId": "watcher up"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Deployment Status",
+      "transformations": [],
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "Request success rate",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-RdYlGr"
+          },
+          "mappings": [],
+          "noValue": "No Data",
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 3,
+        "x": 6,
+        "y": 114
+      },
+      "id": 62,
+      "interval": "15s",
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.5.17",
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "1 - ((sum(rate(grpc_server_handled_total{job=\"tekton-results-api-service\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code=~\"Internal|Unavailable|Unknown|Unimplemented\"}[$__rate_interval]))) / sum(rate(grpc_server_started_total{job=\"tekton-results-api-service\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval])))\n",
+          "interval": "",
+          "intervalFactor": 4,
+          "legendFormat": "Success Rate",
+          "refId": "request success rate"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "API Success Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "Watcher work queue depth",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "noValue": "No Data",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 3,
+        "x": 9,
+        "y": 114
+      },
+      "id": 63,
+      "interval": null,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.5.17",
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum(watcher_workqueue_depth{job=\"tekton-results-watcher\"})",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Queue Depth",
+          "refId": "work queue depth"
+        }
+      ],
+      "title": "Watcher Work Queue Depth",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "Requests/Second",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 12,
+        "y": 114
+      },
+      "id": 64,
+      "interval": "15s",
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.5.17",
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum(rate(grpc_server_started_total{job=\"tekton-results-api-service\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval]))",
+          "interval": "",
+          "intervalFactor": 4,
+          "legendFormat": "Request Rate",
+          "refId": "request per second"
+        }
+      ],
+      "title": "API Request Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "Request latency 99%-tile",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "noValue": "No Data",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 16,
+        "y": 114
+      },
+      "id": 65,
+      "interval": "15s",
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.5.17",
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "histogram_quantile(0.99, sum(rate(grpc_server_handling_seconds_bucket{job=\"tekton-results-api-service\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval])) by (le) )",
+          "interval": "",
+          "intervalFactor": 4,
+          "legendFormat": "Latency",
+          "refId": "request latency"
+        }
+      ],
+      "title": "API Request Latency",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "Reconcile latency 99%-tile - \nLatency of reconcile operations.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "noValue": "No Data",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 20,
+        "y": 114
+      },
+      "id": 66,
+      "interval": "15s",
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.5.17",
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "histogram_quantile(0.99, sum(rate(watcher_reconcile_latency_bucket{job=\"tekton-results-watcher\"}[$__rate_interval])) by (le) )",
+          "interval": "",
+          "intervalFactor": 4,
+          "legendFormat": "Latency",
+          "refId": "reconcile latency"
+        }
+      ],
+      "title": "Watcher Reconcile Latency",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "Pod CPU utilisation ",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "CPU",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "graph": false,
+              "legend": false,
+              "tooltip": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 10,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 13,
+        "w": 12,
+        "x": 0,
+        "y": 120
+      },
+      "id": 67,
+      "interval": "15s",
+      "options": {
+        "graph": {},
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltipOptions": {
+          "mode": "multi"
+        }
+      },
+      "pluginVersion": "7.5.17",
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"tekton-results-api-.*\", namespace=\"tekton-results\"}[$__rate_interval]))",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 4,
+          "legendFormat": "API Server",
+          "refId": "api"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"tekton-results-watcher-.*\", namespace=\"tekton-results\"}[$__rate_interval]))",
+          "hide": false,
+          "interval": "",
+          "intervalFactor": 4,
+          "legendFormat": "Watcher",
+          "refId": "watcher"
+        }
+      ],
+      "title": "Container CPU Utilisation",
+      "type": "timeseries"
+    },
+    {
+      "datasource": null,
+      "description": "Pod memory utilisation",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Size",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "graph": false,
+              "legend": false,
+              "tooltip": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 10,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 13,
+        "w": 12,
+        "x": 12,
+        "y": 120
+      },
+      "id": 68,
+      "interval": "15s",
+      "options": {
+        "graph": {},
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltipOptions": {
+          "mode": "multi"
+        }
+      },
+      "pluginVersion": "7.5.17",
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum(container_memory_working_set_bytes{pod=~\"tekton-results-api-.*\",namespace=\"tekton-results\"})",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 4,
+          "legendFormat": "API Server",
+          "refId": "api"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum(container_memory_working_set_bytes{pod=~\"tekton-results-watcher-.*\",namespace=\"tekton-results\"})",
+          "hide": false,
+          "interval": "",
+          "intervalFactor": 4,
+          "legendFormat": "Watcher",
+          "refId": "watcher"
+        }
+      ],
+      "title": "Container Memory Utilisation",
+      "type": "timeseries"
+    },
+    {
+      "datasource": null,
+      "description": "RPC execution rate",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Response Rate",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "graph": false,
+              "legend": false,
+              "tooltip": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 10,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 13,
+        "w": 12,
+        "x": 0,
+        "y": 133
+      },
+      "id": 69,
+      "interval": "15s",
+      "options": {
+        "graph": {},
+        "legend": {
+          "calcs": [
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "right"
+        },
+        "tooltipOptions": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "7.5.17",
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api-service\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval])) by (grpc_method)",
+          "interval": "",
+          "intervalFactor": 4,
+          "legendFormat": "{{grpc_method}}",
+          "refId": "response rate"
+        }
+      ],
+      "title": "API Response Rate",
+      "type": "timeseries"
+    },
+    {
+      "cards": {
+        "cardPadding": 2,
+        "cardRound": 2
+      },
+      "color": {
+        "cardColor": "#73BF69",
+        "colorScale": "sqrt",
+        "colorScheme": "interpolateSpectral",
+        "exponent": 0.5,
+        "mode": "spectrum"
+      },
+      "dataFormat": "tsbuckets",
+      "datasource": null,
+      "description": "Latency Distribution",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 13,
+        "w": 12,
+        "x": 12,
+        "y": 133
+      },
+      "heatmap": {},
+      "hideZeroBuckets": true,
+      "highlightCards": true,
+      "id": 70,
+      "interval": "15s",
+      "legend": {
+        "show": true
+      },
+      "pluginVersion": "7.5.17",
+      "reverseYBuckets": false,
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum(increase(grpc_server_handling_seconds_bucket{job=\"tekton-results-api-service\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval])) by (le)",
+          "interval": "",
+          "intervalFactor": 4,
+          "legendFormat": "{{le}}",
+          "refId": "latency distribution"
+        }
+      ],
+      "title": "API Latency Distribution",
+      "tooltip": {
+        "show": true,
+        "showHistogram": true
+      },
+      "type": "heatmap",
+      "xAxis": {
+        "show": true
+      },
+      "xBucketNumber": null,
+      "xBucketSize": null,
+      "yAxis": {
+        "decimals": 0,
+        "format": "s",
+        "logBase": 1,
+        "max": null,
+        "min": null,
+        "show": true,
+        "splitFactor": null
+      },
+      "yBucketBound": "auto",
+      "yBucketNumber": null,
+      "yBucketSize": null
+    },
+    {
+      "datasource": null,
+      "description": "Server error distribution across gRPC methods.               \nStatus Codes:\nInternal, Unavailable, Unknown, Unimplemented",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Request Rate",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "graph": false,
+              "legend": false,
+              "tooltip": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 10,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "error codes"
+            },
+            "properties": [
+              {
+                "id": "custom.drawStyle",
+                "value": "points"
+              },
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "Error Distribution"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 13,
+        "w": 12,
+        "x": 0,
+        "y": 146
+      },
+      "id": 71,
+      "interval": "15s",
+      "options": {
+        "graph": {},
+        "legend": {
+          "calcs": [
+            "mean"
+          ],
+          "displayMode": "hidden",
+          "placement": "right"
+        },
+        "tooltipOptions": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "7.5.17",
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api-service\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[$__rate_interval])) by (grpc_method)",
+          "interval": "",
+          "intervalFactor": 4,
+          "legendFormat": "RPC: {{grpc_method}}",
+          "refId": "error methods"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api-service\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code=~\"Internal|Unavailable|Unknown|Unimplemented\"}[$__rate_interval])) by (grpc_code) / ignoring(grpc_code) group_left sum(rate(grpc_server_handled_total{job=\"tekton-results-api-service\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[$__rate_interval]))",
+          "hide": false,
+          "interval": "",
+          "intervalFactor": 4,
+          "legendFormat": "Error: {{grpc_code}}",
+          "refId": "error codes"
+        }
+      ],
+      "title": "API Server Errors",
+      "type": "timeseries"
+    },
+    {
+      "datasource": null,
+      "description": "Other error distribution across gRPC methods.           \nStatus Codes Except:\nInternal, Unavailable, Unknown, Unimplemented",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Request Rate",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "graph": false,
+              "legend": false,
+              "tooltip": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 10,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "error codes"
+            },
+            "properties": [
+              {
+                "id": "custom.drawStyle",
+                "value": "points"
+              },
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "Error Distribution"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 13,
+        "w": 12,
+        "x": 12,
+        "y": 146
+      },
+      "id": 72,
+      "interval": "15s",
+      "options": {
+        "graph": {},
+        "legend": {
+          "calcs": [
+            "mean"
+          ],
+          "displayMode": "hidden",
+          "placement": "right"
+        },
+        "tooltipOptions": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api-service\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[$__rate_interval])) by (grpc_method)",
+          "interval": "",
+          "intervalFactor": 4,
+          "legendFormat": "RPC: {{grpc_method}}",
+          "refId": "error methods"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api-service\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!~\"Internal|Unavailable|Unknown|Unimplemented\"}[$__rate_interval])) by (grpc_code) / ignoring(grpc_code) group_left sum(rate(grpc_server_handled_total{job=\"tekton-results-api-service\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[$__rate_interval]))",
+          "hide": false,
+          "interval": "",
+          "intervalFactor": 4,
+          "legendFormat": "Error: {{grpc_code}}",
+          "refId": "error codes"
+        }
+      ],
+      "title": "API Other Errors",
+      "type": "timeseries"
+    },
+    {
+      "datasource": null,
+      "description": "Number of reconcile operations",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Reconcile Rate",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "graph": false,
+              "legend": false,
+              "tooltip": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 10,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Failed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Success"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 13,
+        "w": 12,
+        "x": 0,
+        "y": 159
+      },
+      "id": 73,
+      "interval": "15s",
+      "options": {
+        "graph": {},
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltipOptions": {
+          "mode": "multi"
+        }
+      },
+      "pluginVersion": "7.5.17",
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum(rate(watcher_reconcile_count{job=\"tekton-results-watcher\"}[$__rate_interval])) by (success)",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 4,
+          "legendFormat": "{{success}}",
+          "refId": "work queue depth"
+        }
+      ],
+      "title": "Watcher Reconcile Rate",
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "(true)",
+            "renamePattern": "Success"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "(false)",
+            "renamePattern": "Failed"
+          }
+        }
+      ],
+      "type": "timeseries"
+    },
+    {
+      "datasource": null,
+      "description": "Work queue latency at queue depth",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Latency",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "graph": false,
+              "legend": false,
+              "tooltip": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 10,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "work queue depth"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "bars"
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 10
+              },
+              {
+                "id": "custom.gradientMode",
+                "value": "none"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "Items"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 13,
+        "w": 12,
+        "x": 12,
+        "y": 159
+      },
+      "id": 74,
+      "interval": "15s",
+      "options": {
+        "graph": {},
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltipOptions": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "7.5.17",
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum(rate(watcher_workqueue_queue_latency_seconds_count{job=\"tekton-results-watcher\"}[$__rate_interval]))",
+          "hide": false,
+          "interval": "",
+          "intervalFactor": 4,
+          "legendFormat": "Queue Latency",
+          "refId": "work queue latency"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum(rate(watcher_reconcile_latency_count{job=\"tekton-results-watcher\"}[$__rate_interval]))",
+          "hide": false,
+          "interval": "",
+          "intervalFactor": 4,
+          "legendFormat": "Reconcile Latency",
+          "refId": "reconcile latency"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum(watcher_work_queue_depth{job=\"tekton-results-watcher\"})",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 4,
+          "legendFormat": "Queue Depth",
+          "refId": "work queue depth"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Watcher Latency",
+      "type": "timeseries"
     }
   ],
-  "refresh": false,
+  "refresh": "10s",
   "schemaVersion": 27,
   "style": "dark",
   "tags": [],
@@ -2155,12 +3466,12 @@
     ]
   },
   "time": {
-    "from": "now-24h",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Pipeline Service",
   "uid": "02ebfdefeeed166624895c36b0c1af4ed3006c5d",
-  "version": 3
+  "version": 4
 }
