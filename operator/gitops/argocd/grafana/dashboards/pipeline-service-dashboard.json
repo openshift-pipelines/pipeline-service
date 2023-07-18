@@ -20,8 +20,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 4,
-  "iteration": 1689054983860,
+  "id": 8,
+  "iteration": 1689682512287,
   "links": [],
   "panels": [
     {
@@ -664,7 +664,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 10,
+        "h": 9,
         "w": 6,
         "x": 0,
         "y": 28
@@ -731,7 +731,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 10,
+        "h": 9,
         "w": 6,
         "x": 6,
         "y": 28
@@ -786,7 +786,7 @@
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
-        "h": 10,
+        "h": 9,
         "w": 12,
         "x": 12,
         "y": 28
@@ -927,7 +927,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 38
+        "y": 37
       },
       "id": 37,
       "options": {
@@ -962,89 +962,97 @@
       "type": "timeseries"
     },
     {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
       "datasource": null,
-      "description": "Total number of Kubernetes API requests by Tekton Controller",
+      "description": "Number of taskruns executing currently whose underlying Pods or Containers are suspended by k8s because of defined ResourceQuotas",
       "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "graph": false,
-              "legend": false,
-              "tooltip": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": true
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "short"
-        },
+        "defaults": {},
         "overrides": []
       },
+      "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 38
+        "y": 37
       },
-      "id": 39,
+      "hiddenSeries": false,
+      "id": 76,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
       "options": {
-        "graph": {},
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltipOptions": {
-          "mode": "single"
-        }
+        "alertThreshold": true
       },
+      "percentage": false,
       "pluginVersion": "7.5.17",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
       "targets": [
         {
           "exemplar": true,
-          "expr": "rate(tekton_pipelines_controller_client_results{prometheus=\"openshift-user-workload-monitoring/user-workload\"}[1h])*3600",
+          "expr": "tekton_pipelines_controller_running_taskruns_throttled_by_quota_count",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         }
       ],
-      "title": "Pipelines Client Results",
-      "type": "timeseries"
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Taskruns Throttled by Quota",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
     },
     {
       "datasource": null,
@@ -1097,7 +1105,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 46
+        "y": 45
       },
       "id": 41,
       "options": {
@@ -1132,13 +1140,193 @@
       "type": "timeseries"
     },
     {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "Number of taskruns executing currently whose underlying Pods or Containers are suspended by k8s because of Node level constraints",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 45
+      },
+      "hiddenSeries": false,
+      "id": 77,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "tekton_pipelines_controller_running_taskruns_throttled_by_node_count",
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Taskruns Throttled by Node",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "datasource": null,
+      "description": "Total number of Kubernetes API requests by Tekton Controller",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "graph": false,
+              "legend": false,
+              "tooltip": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 53
+      },
+      "id": 39,
+      "options": {
+        "graph": {},
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltipOptions": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "7.5.17",
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "rate(tekton_pipelines_controller_client_results{prometheus=\"openshift-user-workload-monitoring/user-workload\"}[1h])*3600",
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Pipelines Client Results",
+      "type": "timeseries"
+    },
+    {
       "collapsed": false,
       "datasource": null,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 54
+        "y": 61
       },
       "id": 43,
       "panels": [],
@@ -1182,7 +1370,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 55
+        "y": 62
       },
       "id": 45,
       "options": {
@@ -1247,7 +1435,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 55
+        "y": 62
       },
       "id": 47,
       "options": {
@@ -1290,7 +1478,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 63
+        "y": 70
       },
       "id": 17,
       "panels": [],
@@ -1322,7 +1510,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 64
+        "y": 71
       },
       "hiddenSeries": false,
       "id": 21,
@@ -1427,7 +1615,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 64
+        "y": 71
       },
       "hiddenSeries": false,
       "id": 19,
@@ -1532,7 +1720,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 72
+        "y": 79
       },
       "hiddenSeries": false,
       "id": 27,
@@ -1637,7 +1825,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 72
+        "y": 79
       },
       "hiddenSeries": false,
       "id": 25,
@@ -1741,7 +1929,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 80
+        "y": 87
       },
       "hiddenSeries": false,
       "id": 23,
@@ -1835,7 +2023,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 88
+        "y": 95
       },
       "id": 49,
       "panels": [],
@@ -1858,7 +2046,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 89
+        "y": 96
       },
       "hiddenSeries": false,
       "id": 51,
@@ -1952,7 +2140,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 97
+        "y": 104
       },
       "hiddenSeries": false,
       "id": 53,
@@ -2046,7 +2234,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 105
+        "y": 112
       },
       "hiddenSeries": false,
       "id": 55,
@@ -2131,7 +2319,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 113
+        "y": 120
       },
       "id": 60,
       "panels": [],
@@ -2194,7 +2382,7 @@
         "h": 6,
         "w": 6,
         "x": 0,
-        "y": 114
+        "y": 121
       },
       "id": 61,
       "options": {
@@ -2274,7 +2462,7 @@
         "h": 6,
         "w": 3,
         "x": 6,
-        "y": 114
+        "y": 121
       },
       "id": 62,
       "interval": "15s",
@@ -2344,7 +2532,7 @@
         "h": 6,
         "w": 3,
         "x": 9,
-        "y": 114
+        "y": 121
       },
       "id": 63,
       "interval": null,
@@ -2411,7 +2599,7 @@
         "h": 6,
         "w": 4,
         "x": 12,
-        "y": 114
+        "y": 121
       },
       "id": 64,
       "interval": "15s",
@@ -2479,7 +2667,7 @@
         "h": 6,
         "w": 4,
         "x": 16,
-        "y": 114
+        "y": 121
       },
       "id": 65,
       "interval": "15s",
@@ -2547,7 +2735,7 @@
         "h": 6,
         "w": 4,
         "x": 20,
-        "y": 114
+        "y": 121
       },
       "id": 66,
       "interval": "15s",
@@ -2634,7 +2822,7 @@
         "h": 13,
         "w": 12,
         "x": 0,
-        "y": 120
+        "y": 127
       },
       "id": 67,
       "interval": "15s",
@@ -2731,7 +2919,7 @@
         "h": 13,
         "w": 12,
         "x": 12,
-        "y": 120
+        "y": 127
       },
       "id": 68,
       "interval": "15s",
@@ -2824,7 +3012,7 @@
         "h": 13,
         "w": 12,
         "x": 0,
-        "y": 133
+        "y": 140
       },
       "id": 69,
       "interval": "15s",
@@ -2885,7 +3073,7 @@
         "h": 13,
         "w": 12,
         "x": 12,
-        "y": 133
+        "y": 140
       },
       "heatmap": {},
       "hideZeroBuckets": true,
@@ -3006,7 +3194,7 @@
         "h": 13,
         "w": 12,
         "x": 0,
-        "y": 146
+        "y": 153
       },
       "id": 71,
       "interval": "15s",
@@ -3121,7 +3309,7 @@
         "h": 13,
         "w": 12,
         "x": 12,
-        "y": 146
+        "y": 153
       },
       "id": 72,
       "interval": "15s",
@@ -3139,6 +3327,13 @@
         }
       },
       "pluginVersion": "7.5.17",
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
       "targets": [
         {
           "exemplar": true,
@@ -3239,7 +3434,7 @@
         "h": 13,
         "w": 12,
         "x": 0,
-        "y": 159
+        "y": 166
       },
       "id": 73,
       "interval": "15s",
@@ -3378,7 +3573,7 @@
         "h": 13,
         "w": 12,
         "x": 12,
-        "y": 159
+        "y": 166
       },
       "id": 74,
       "interval": "15s",
@@ -3473,5 +3668,5 @@
   "timezone": "",
   "title": "Pipeline Service",
   "uid": "02ebfdefeeed166624895c36b0c1af4ed3006c5d",
-  "version": 4
+  "version": 2
 }
