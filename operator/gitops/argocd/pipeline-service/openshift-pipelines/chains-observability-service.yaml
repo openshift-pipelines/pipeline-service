@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tekton-chains
+  namespace: openshift-pipelines
+  labels:
+    app.kubernetes.io/instance: default
+    app.kubernetes.io/part-of: tekton-chains
+spec:
+  ports:
+    - name: metrics
+      port: 9090
+      protocol: TCP
+      targetPort: 9090
+  selector:
+    app.kubernetes.io/name: controller
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: default
+    app.kubernetes.io/part-of: tekton-chains
