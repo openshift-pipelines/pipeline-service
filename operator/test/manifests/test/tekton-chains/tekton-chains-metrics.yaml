@@ -1,0 +1,23 @@
+---
+kind: PipelineRun
+apiVersion: tekton.dev/v1beta1
+metadata:
+  generateName: tekton-chains-metrics-
+spec:
+  serviceAccountName: chains-test
+  pipelineSpec:
+    tasks:
+      - name: chains-metrics-curl
+        taskSpec:
+          steps:
+            - image: registry.access.redhat.com/ubi8/ubi-minimal:8.7
+              name: chains-metrics-curl
+              securityContext:
+                runAsNonRoot: true
+              script: |
+                stats="$(curl http://tekton-chains.openshift-pipelines.svc.cluster.local:9090/metrics 2> /dev/null | grep 'github.com.tektoncd.chains')"
+                if [ -z "$stats" ]; then
+                   echo "FAILED: tekton chains metrics is not available/working"
+                   exit 1
+                fi
+                echo "SUCCESS: tekton chains metrics is available/working"

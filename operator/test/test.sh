@@ -228,6 +228,18 @@ test_chains() {
   #   exit 1
   # fi
 
+  echo -n "  - Metrics: "
+  prName="$(kubectl create -n "$NAMESPACE" -f "$SCRIPT_DIR/manifests/test/tekton-chains/tekton-chains-metrics.yaml" | awk '{print $1}')"
+  wait_for_pipeline "$prName" "$NAMESPACE"
+    if [ "$(kubectl get "$prName" -n "$NAMESPACE" \
+    -o 'jsonpath={.status.conditions[0].reason}')" = "Succeeded" ]; then
+    echo "OK"
+  else
+    echo "Failed"
+    echo "[ERROR] Tekton Chains metrics is not available/working" >&2
+    exit 1
+  fi
+
   echo
 }
 
