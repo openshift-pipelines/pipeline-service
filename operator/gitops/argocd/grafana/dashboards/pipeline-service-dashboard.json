@@ -20,8 +20,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 8,
-  "iteration": 1689682512287,
+  "id": 3,
+  "iteration": 1689753244988,
   "links": [],
   "panels": [
     {
@@ -412,46 +412,74 @@
       "type": "row"
     },
     {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
       "datasource": null,
-      "description": "Total average CPU usage of the Pipelines over the past hour.",
+      "description": "Total average CPU usage of the Pipelines.",
       "fieldConfig": {
-        "defaults": {},
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "cpu",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "graph": false,
+              "legend": false,
+              "tooltip": false
+            },
+            "lineInterpolation": "smooth",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "yellow",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
         "overrides": []
       },
-      "fill": 1,
-      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
         "y": 19
       },
-      "hiddenSeries": false,
       "id": 13,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null",
       "options": {
-        "alertThreshold": true
+        "graph": {},
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltipOptions": {
+          "mode": "multi"
+        }
       },
-      "percentage": false,
       "pluginVersion": "7.5.17",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
       "scopedVars": {
         "datasource": {
           "selected": true,
@@ -459,102 +487,87 @@
           "value": "prometheus-appstudio-ds"
         }
       },
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
       "targets": [
         {
           "exemplar": true,
-          "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"tekton-pipelines-controller-.*\"}[5m]))",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"tekton-pipelines-controller-.*\", namespace=\"openshift-pipelines\", container=\"\"}[5m]))",
           "format": "table",
           "interval": "",
           "legendFormat": "",
-          "refId": "A"
+          "refId": "Pipelines Controller"
         }
       ],
-      "thresholds": [],
       "timeFrom": null,
-      "timeRegions": [],
       "timeShift": null,
       "title": "CPU Usage",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
+      "type": "timeseries"
     },
     {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
       "datasource": null,
       "description": "Working set memory usage of Pipelines Controller Containers ",
       "fieldConfig": {
-        "defaults": {},
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "memory",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "graph": false,
+              "legend": false,
+              "tooltip": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "yellow",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
         "overrides": []
       },
-      "fill": 1,
-      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
         "y": 19
       },
-      "hiddenSeries": false,
       "id": 15,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null",
       "options": {
-        "alertThreshold": true
+        "graph": {},
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltipOptions": {
+          "mode": "multi"
+        }
       },
-      "percentage": false,
       "pluginVersion": "7.5.17",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
       "scopedVars": {
         "datasource": {
           "selected": true,
@@ -562,59 +575,19 @@
           "value": "prometheus-appstudio-ds"
         }
       },
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
       "targets": [
         {
           "exemplar": true,
-          "expr": "sum(container_memory_working_set_bytes{pod=~\"tekton-pipelines-controller-.*\"})",
+          "expr": "sum(container_memory_working_set_bytes{pod=~\"tekton-pipelines-controller-.*\", namespace=\"openshift-pipelines\", container=\"\"})",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         }
       ],
-      "thresholds": [],
       "timeFrom": null,
-      "timeRegions": [],
       "timeShift": null,
       "title": "Memory Utilization",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
+      "type": "timeseries"
     },
     {
       "collapsed": false,
@@ -1002,6 +975,13 @@
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
       "seriesOverrides": [],
       "spaceLength": 10,
       "stack": false,
@@ -1016,7 +996,9 @@
         }
       ],
       "thresholds": [],
+      "timeFrom": null,
       "timeRegions": [],
+      "timeShift": null,
       "title": "Taskruns Throttled by Quota",
       "tooltip": {
         "shared": true,
@@ -1180,6 +1162,13 @@
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
+      "scopedVars": {
+        "datasource": {
+          "selected": true,
+          "text": "prometheus-appstudio-ds",
+          "value": "prometheus-appstudio-ds"
+        }
+      },
       "seriesOverrides": [],
       "spaceLength": 10,
       "stack": false,
@@ -1549,7 +1538,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{pod=~\"pipelines-as-code-(watcher|controller)-.*\"}[5m]))*100",
+          "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{pod=~\"pipelines-as-code-(watcher|controller)-.*\", namespace=\"openshift-pipelines\", container=\"\"}[5m]))*100",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -1654,7 +1643,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "sum by (pod) (container_memory_working_set_bytes{pod=~\"pipelines-as-code-(watcher|controller)-.*\"})",
+          "expr": "sum by (pod) (container_memory_working_set_bytes{pod=~\"pipelines-as-code-(watcher|controller)-.*\", namespace=\"openshift-pipelines\", container=\"\"})",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -2171,7 +2160,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace='openshift-pipelines',pod=~'pipeline-metrics-exporter-.*'}[5m]))",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace='openshift-pipelines',pod=~'pipeline-metrics-exporter-.*', container=\"\"}[5m]))",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -2265,7 +2254,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "sum(container_memory_working_set_bytes{namespace='openshift-pipelines',pod=~'pipeline-metrics-exporter-.*'})",
+          "expr": "sum(container_memory_working_set_bytes{namespace='openshift-pipelines',pod=~'pipeline-metrics-exporter-.*', container=\"\"})",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -2848,7 +2837,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"tekton-results-api-.*\", namespace=\"tekton-results\"}[$__rate_interval]))",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"tekton-results-api-.*\", namespace=\"tekton-results\", container=\"\"}[$__rate_interval]))",
           "instant": false,
           "interval": "",
           "intervalFactor": 4,
@@ -2857,7 +2846,7 @@
         },
         {
           "exemplar": true,
-          "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"tekton-results-watcher-.*\", namespace=\"tekton-results\"}[$__rate_interval]))",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"tekton-results-watcher-.*\", namespace=\"tekton-results\", container=\"\"}[$__rate_interval]))",
           "hide": false,
           "interval": "",
           "intervalFactor": 4,
@@ -2945,7 +2934,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "sum(container_memory_working_set_bytes{pod=~\"tekton-results-api-.*\",namespace=\"tekton-results\"})",
+          "expr": "sum(container_memory_working_set_bytes{pod=~\"tekton-results-api-.*\",namespace=\"tekton-results\", container=\"\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 4,
@@ -2954,7 +2943,7 @@
         },
         {
           "exemplar": true,
-          "expr": "sum(container_memory_working_set_bytes{pod=~\"tekton-results-watcher-.*\",namespace=\"tekton-results\"})",
+          "expr": "sum(container_memory_working_set_bytes{pod=~\"tekton-results-watcher-.*\",namespace=\"tekton-results\", container=\"\"})",
           "hide": false,
           "interval": "",
           "intervalFactor": 4,
@@ -3668,5 +3657,5 @@
   "timezone": "",
   "title": "Pipeline Service",
   "uid": "02ebfdefeeed166624895c36b0c1af4ed3006c5d",
-  "version": 2
+  "version": 3
 }
