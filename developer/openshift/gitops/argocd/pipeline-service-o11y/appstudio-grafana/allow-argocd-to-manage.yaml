@@ -3,6 +3,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: openshift-gitops-apply-grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 rules:
   - apiGroups:
       - integreatly.org
@@ -22,6 +24,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: openshift-gitops-apply-grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -36,6 +40,8 @@ kind: Role
 metadata:
   name: openshift-gitops-manage-grafana
   namespace: appstudio-grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 rules:
   - apiGroups:
       - ""
@@ -67,6 +73,8 @@ kind: RoleBinding
 metadata:
   name: openshift-gitops-manage-grafana
   namespace: appstudio-grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role

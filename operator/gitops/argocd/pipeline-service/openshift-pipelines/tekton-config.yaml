@@ -8,6 +8,7 @@ metadata:
     # This Argo CD annotation ensures that Argo CD will skip the dry if the resource is not yet known to the cluster,
     # the CRD will be applied and the resource can be created once the required dependencies are met.
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   params:
     - name: createRbacResource

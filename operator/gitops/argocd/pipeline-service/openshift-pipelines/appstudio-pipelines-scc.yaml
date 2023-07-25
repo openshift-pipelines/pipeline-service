@@ -2,6 +2,8 @@
 kind: SecurityContextConstraints
 metadata:
   name: appstudio-pipelines-scc
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 allowHostDirVolumePlugin: false
 allowHostIPC: false
 allowHostNetwork: false

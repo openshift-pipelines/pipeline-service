@@ -9,6 +9,7 @@ metadata:
   annotations:
     openshift.io/host.generated: "true"
     haproxy.router.openshift.io/hsts_header: "max-age=63072000"
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   to:
     kind: Service

@@ -4,6 +4,8 @@ kind: Deployment
 metadata:
   name: tekton-results-api
   namespace: tekton-results
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   template:
     spec:

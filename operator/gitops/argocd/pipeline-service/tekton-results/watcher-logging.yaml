@@ -4,6 +4,8 @@ kind: ConfigMap
 metadata:
   name: tekton-results-config-logging
   namespace: tekton-pipelines
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 data:
   # Adjust zap-logger config according to ADR 6
   zap-logger-config: |
