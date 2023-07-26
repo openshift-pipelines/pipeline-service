@@ -8,6 +8,7 @@ resources:
   - api-route.yaml
   - watcher-logging-rbac.yaml
   - service-monitor.yaml
+  - watcher-rbac.yaml
 
 images:
   - name: ko://github.com/tektoncd/results/cmd/api
@@ -43,7 +44,6 @@ patches:
   - path: watcher-service-sync.yaml
   - path: api-kube-rbac-proxy.yaml
   - path: watcher-kube-rbac-proxy.yaml
-  - path: watcher-cr-patch.yaml
   - path: watcher-service-patch.yaml
     target:
       version: v1
