@@ -45,8 +45,8 @@ metadata:
 spec:
   endpoints:
     - path: /metrics
-      port: prometheus
-      scheme: http
+      port: metrics
+      scheme: https
       bearerTokenSecret:
         name: "metrics-reader"
         key: token
@@ -64,8 +64,8 @@ metadata:
 spec:
   endpoints:
     - path: /metrics
-      port: metrics
-      scheme: http
+      port: watchermetrics
+      scheme: https
       bearerTokenSecret:
         name: "metrics-reader"
         key: token

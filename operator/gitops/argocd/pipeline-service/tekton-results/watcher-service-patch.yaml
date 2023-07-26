@@ -1,0 +1,10 @@
+---
+- op: replace
+  path: /spec/ports/0/name
+  value: watchermetrics
+- op: replace
+  path: /spec/ports/0/port
+  value: 8443
+- op: add
+  path: /spec/ports/0/targetPort
+  value: watchermetrics

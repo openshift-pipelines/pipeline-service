@@ -41,3 +41,18 @@ patches:
   - path: watcher-logging.yaml
   - path: watcher-sync.yaml
   - path: watcher-service-sync.yaml
+  - path: api-kube-rbac-proxy.yaml
+  - path: watcher-kube-rbac-proxy.yaml
+  - path: watcher-cr-patch.yaml
+  - path: watcher-service-patch.yaml
+    target:
+      version: v1
+      kind: Service
+      name: tekton-results-watcher
+      labelSelector: "app.kubernetes.io/name=tekton-results-watcher"
+  - path: api-service-patch.yaml
+    target:
+      version: v1
+      kind: Service
+      name: tekton-results-api-service
+      labelSelector: "app.kubernetes.io/name=tekton-results-api"
