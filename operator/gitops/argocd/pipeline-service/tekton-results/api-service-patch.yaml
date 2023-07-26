@@ -1,0 +1,10 @@
+---
+- op: replace
+  path: /spec/ports/1/name
+  value: metrics
+- op: replace
+  path: /spec/ports/1/port
+  value: 9443
+- op: replace
+  path: /spec/ports/1/targetPort
+  value: metrics

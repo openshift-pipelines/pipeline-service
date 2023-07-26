@@ -12,8 +12,8 @@ spec:
     server: https://kubernetes.default.svc
   source:
     path: developer/openshift/gitops/argocd/pipeline-service
-    repoURL: https://github.com/openshift-pipelines/pipeline-service.git
-    targetRevision: main
+    repoURL: https://github.com/ramessesii2/pipeline-service.git
+    targetRevision: RAMESSESII2/results-kube-rbac-proxy-test
   project: default
   syncPolicy:
     # Comment this out if you want to manually trigger deployments (using the
