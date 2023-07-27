@@ -32,7 +32,7 @@ spec:
     - name: target_branch
       value: "{{ target_branch }}"
   timeouts:
-    pipeline: "1h0m0s"
+    pipeline: "1h30m0s"
   workspaces:
     - name: source
       volumeClaimTemplate:
