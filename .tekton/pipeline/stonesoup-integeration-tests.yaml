@@ -5,7 +5,7 @@ metadata:
   name: stonesoup-integeration-tests
 spec:
   timeouts:
-    finally: "0h20m0s"
+    finally: "0h30m0s"
   params:
     - name: aws_region
     - name: ocp_version

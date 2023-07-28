@@ -11,7 +11,7 @@ spec:
     - name: revision
     - name: target_branch
   timeouts:
-    finally: "0h20m0s"
+    finally: "0h30m0s"
   workspaces:
     - name: source
     - name: upgrade-shared-workspace
