@@ -11,4 +11,4 @@ commonAnnotations:
   argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 namespace: appstudio-grafana
 configurations:
-  - https://raw.githubusercontent.com/redhat-appstudio/infra-deployments/main/components/monitoring/grafana/base/cm-dashboard.yaml
+  - https://raw.githubusercontent.com/redhat-appstudio/infra-deployments/main/components/monitoring/grafana/base/dashboards/cm-dashboard.yaml
