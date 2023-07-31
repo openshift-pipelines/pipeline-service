@@ -181,6 +181,7 @@ tekton_results_manifest(){
     mkdir -p "$manifests_dir/compute/tekton-results"
     kubectl create namespace tekton-results --dry-run=client -o yaml > "$manifests_dir/compute/tekton-results/namespace.yaml"
     yq e -n '.resources += ["namespace.yaml"]' > "$manifests_dir/compute/tekton-results/kustomization.yaml"
+    printf "OK\n"
     return
   fi
 
