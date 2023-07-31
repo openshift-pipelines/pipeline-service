@@ -20,7 +20,7 @@ spec:
     - name: aws_region
       value: "us-east-1"
     - name: ocp_version
-      value: "4.12.16"
+      value: "4.12.22"
     - name: repo_url
       value: "{{ repo_url }}"
     - name: revision
