@@ -33,7 +33,7 @@ spec:
       - name: git-clone
         taskRef:
           name: git-clone
-          kind: ClusterTask
+          kind: Task
         workspaces:
           - name: output
             workspace: source
@@ -138,7 +138,7 @@ spec:
           - update-dockerfiles
         taskRef:
           name: github-open-pr
-          kind: ClusterTask
+          kind: Task
         params:
           - name: REPO_FULL_NAME
             value: "$(params.repo_owner)/$(params.repo_name)"
@@ -220,7 +220,7 @@ spec:
           - update-binaries
         taskRef:
           name: github-open-pr
-          kind: ClusterTask
+          kind: Task
         params:
           - name: REPO_FULL_NAME
             value: "$(params.repo_owner)/$(params.repo_name)"
