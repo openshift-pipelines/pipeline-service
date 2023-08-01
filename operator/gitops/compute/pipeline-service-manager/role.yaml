@@ -9,6 +9,7 @@ rules:
     resources:
       - pods
       - pods/logs
+      - pods/log
     verbs:
       - get
       - list
