@@ -8,5 +8,18 @@ resources:
   - tekton-config.yaml
   - config-pac.yaml
   - config-logging.yaml
+  - chains-service-monitor.yaml
   # Manully add ConfigMap and Service until PLNSRVCE-1359 is fixed
   - chains-observability-service.yaml
+
+## add a patch to add app label to the tekton chains deployment
+patches:
+  - target:
+      kind: Deployment
+      name: tekton-chains-controller
+      namespace: openshift-pipelines
+    patch: |-
+      - op: add
+        path: /metadata/labels
+        value:
+          app: tekton-chains-controller

@@ -14,7 +14,4 @@ spec:
       protocol: TCP
       targetPort: 9090
   selector:
-    app.kubernetes.io/name: controller
-    app.kubernetes.io/component: controller
-    app.kubernetes.io/instance: default
-    app.kubernetes.io/part-of: tekton-chains
+    app: tekton-chains-controller
