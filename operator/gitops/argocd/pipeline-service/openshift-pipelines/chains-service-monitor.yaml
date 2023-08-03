@@ -1,0 +1,16 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: tekton-chains-controller
+  namespace: openshift-pipelines
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  endpoints:
+    - path: /metrics
+      port: metrics
+      scheme: http
+  selector:
+    matchLabels:
+      app: tekton-chains-controller
