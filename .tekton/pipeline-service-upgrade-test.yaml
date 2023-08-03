@@ -22,7 +22,7 @@ spec:
     name: upgrade-tests
   params:
     - name: ocp_version
-      value: "4.12.22"
+      value: "4.12.26"
     - name: aws_region
       value: "us-east-1"
     - name: repo_url
