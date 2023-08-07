@@ -41,7 +41,6 @@ spec:
     enable-git-resolver: true
     enable-hub-resolver: true
     enable-tekton-oci-bundles: true
-    embedded-status: both
     performance:
       threads-per-controller: 32
       kube-api-qps: 50
