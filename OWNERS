@@ -1,13 +1,18 @@
 reviewers:
-  - Roming22
+  - adambkaplan
+  - avinal
+  - enarha
+  - gabemontero
   - ramessesii2
-  - bnallapeta
-  - Mo3m3n
+  - Roming22
+  - sayan-biswas
   - xinredhat
 
 approvers:
-  - Roming22
-  - bnallapeta
   - adambkaplan
-  - Mo3m3n
+  - avinal
+  - enarha
+  - gabemontero
   - ramessesii2
+  - Roming22
+  - sayan-biswas
