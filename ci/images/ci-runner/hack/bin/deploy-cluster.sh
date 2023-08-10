@@ -13,7 +13,7 @@ source "$SCRIPT_DIR/utils.sh"
 
 print_debug_info() {
     printf "Print debug info......\n" | indent 2
-    rosa describe cluster --cluster="$CLUSTER_NAME"
+    rosa --region "$REGION" describe cluster --cluster="$CLUSTER_NAME"
 }
 
 # Check all of clusteroperators are AVAILABLE
@@ -23,7 +23,7 @@ check_clusteroperators() {
     for operator in $operators; do
         # need to check if the operator is available or not in a loop
         retries=0
-        max_retries=10
+        max_retries=25
         # if the operator is not available, wait 60s and check again
         while [ "$retries" -lt "$max_retries" ]; do
             available=$(kubectl get co "$operator" -o jsonpath='{.status.conditions[?(@.type=="Available")].status}')
@@ -37,6 +37,10 @@ check_clusteroperators() {
         # if the operator is still not available after 10 times, exit 1
         if [ "$retries" -eq "$max_retries" ]; then
             echo "Operator $operator is not available" >&2
+            # print the status of all cluster operators 
+            kubectl get co
+            # print the status of the failed cluster operator
+            kubectl get co "$operator" -o yaml
             exit 1
         fi
     done
@@ -70,7 +74,7 @@ deploy_cluster() {
     api_url="$(echo "$admin_output" | grep -oP '(?<=oc login ).*(?= --username)')"
 
     # Use the admin account to login to the cluster in a loop until the account is active.
-    max_retries=5
+    max_retries=10
     retries=0
     export KUBECONFIG="$KUBECONFIG_DIR/kubeconfig"
     while ! oc login "$api_url" --username "$admin_user" --password "$admin_pass" > /dev/null 2>&1; do

@@ -109,7 +109,7 @@ prepare_branch(){
 
 show_summary(){
   local updated="false"
-  if ! git diff --quiet $START_COMMIT..HEAD; then
+  if ! git diff --quiet "$START_COMMIT"..HEAD; then
       updated="true"
   fi
 
