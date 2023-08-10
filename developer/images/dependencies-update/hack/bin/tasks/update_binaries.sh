@@ -37,7 +37,7 @@ run_task() {
     for BINARY in "${BINARIES[@]}"; do
         update_binary
     done
-    if [ $(git diff shared/config/dependencies.sh | wc -l) != "0" ]; then
+    if [ "$(git diff shared/config/dependencies.sh | wc -l)" != "0" ]; then
         git diff shared/config/dependencies.sh \
             | grep "^+export" \
             | sed -e "s:^+export:-:" -e "s:_VERSION=: to :" \

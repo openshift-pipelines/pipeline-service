@@ -199,7 +199,7 @@ spec:
       when:
         - input: "$(tasks.deploy-cluster.status)"
           operator: notin
-          values: ["None"]
+          values: ["None", "Failed"]
       params:
         - name: cluster-name
           value: "$(tasks.generate-cluster-name.results.cluster-name)"
