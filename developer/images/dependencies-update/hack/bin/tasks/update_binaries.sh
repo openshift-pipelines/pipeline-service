@@ -73,6 +73,7 @@ get_go_version() {
     URL="https://go.dev/VERSION?m=text"
     VERSION=$(
         curl --location --silent "$URL" \
+            | grep "^go" \
             | sed "s:^go::"
     )
 }
