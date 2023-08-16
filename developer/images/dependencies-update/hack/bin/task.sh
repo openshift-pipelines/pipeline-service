@@ -28,13 +28,8 @@ task_init() {
 }
 
 task_end() {
-  if [ -n "$BRANCH_NAME" ]; then
-    commit_changes
-  fi
-}
-
-commit_changes() {
-  if ! git diff --quiet HEAD; then
+  # Commit_changes
+  if ! git diff --quiet; then
     git add .
     git commit --file="$COMMIT_MSG" --quiet --signoff
   fi

@@ -44,7 +44,7 @@ process_dockerfiles() {
 
 process_base_image_cmd() {
   base_image_name=$(echo "$from_base_image" | sed 's:^.* ::')
-  echo -n "- $base_image_name"
+  echo -n "  - $base_image_name"
   get_base_image_sha
   echo -n "@$base_image_sha : "
   update_base_image_sha

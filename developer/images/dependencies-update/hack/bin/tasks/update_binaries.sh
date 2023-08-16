@@ -37,11 +37,13 @@ run_task() {
     for BINARY in "${BINARIES[@]}"; do
         update_binary
     done
-    git diff shared/config/dependencies.sh \
-        | grep "^+export" \
-        | sed -e "s:^+export:-:" -e "s:_VERSION=: to :" \
-        | tr -d \" \
-        | tr "[:upper:]" "[:lower:]" >>"$COMMIT_MSG"
+    if [ $(git diff shared/config/dependencies.sh | wc -l) != "0" ]; then
+        git diff shared/config/dependencies.sh \
+            | grep "^+export" \
+            | sed -e "s:^+export:-:" -e "s:_VERSION=: to :" \
+            | tr -d \" \
+            | tr "[:upper:]" "[:lower:]" >>"$COMMIT_MSG"
+    fi
 }
 
 update_binary() {
@@ -49,9 +51,10 @@ update_binary() {
         # Ignore frozen dependencies
         return
     fi
-    echo "$BINARY"
+    echo -n "  - $BINARY: "
     unset VERSION
     "get_${BINARY}_version"
+    echo "$VERSION"
     BINARY=$(echo "$BINARY" | tr "[:lower:]" "[:upper:]")
     sed -i -e "s:\( ${BINARY}_VERSION\)=.*:\1=\"$VERSION\":" "$DEPENDENCIES"
 }
@@ -147,7 +150,6 @@ get_github_release() {
             | sort -V \
             | tail -1
     )
-    echo "VERSION=$VERSION"
 }
 
 if [ "${BASH_SOURCE[0]}" == "$0" ]; then
