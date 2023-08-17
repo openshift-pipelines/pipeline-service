@@ -6,7 +6,6 @@ resources:
   - appstudio-pipelines-scc.yaml
   - openshift-operator.yaml
   - tekton-config.yaml
-  - config-pac.yaml
   - config-logging.yaml
   # Manully add ConfigMap and Service until PLNSRVCE-1359 is fixed
   - chains-observability-service.yaml
