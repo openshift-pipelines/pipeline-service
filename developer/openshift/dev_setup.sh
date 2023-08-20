@@ -153,6 +153,14 @@ check_cluster_role() {
   fi
 }
 
+cluster_setup() {
+  echo "[cluster-setup]"
+
+  # By default HTTP2 is not enabled in test openshift clusters
+  echo "- Enabling HTTP2 for ingress" | indent 2
+  oc annotate ingresses.config/cluster ingress.operator.openshift.io/default-enable-http2=true | indent 6
+}
+
 install_openshift_gitops() {
   APP="openshift-gitops"
 
@@ -203,7 +211,6 @@ install_openshift_gitops() {
     echo "- Register host cluster to ArgoCD as '$cluster_name': OK"
   fi
 }
-
 
 setup_compute_access() {
   kustomization_dir="$GIT_URL/operator/gitops/compute/pipeline-service-manager?ref=$GIT_REF"
@@ -269,9 +276,10 @@ EOF
 
 main() {
   parse_args "$@"
-  precheck_binary "curl" "argocd" "kubectl" "yq"
+  precheck_binary "curl" "argocd" "kubectl" "yq" "oc"
   init
   check_cluster_role
+  cluster_setup
   echo "[compute-access]"
   setup_compute_access
   echo

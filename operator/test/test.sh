@@ -288,6 +288,16 @@ test_security() {
 }
 
 test_results() {
+  # Check logs for OCP bug https://issues.redhat.com/browse/OCPBUGS-5916
+  printf "\n  - Check HTTP2 health probe errors: "
+  pattern="http2: server: error reading preface from client"
+  if kubectl logs deployment/tekton-results-api -c "api" -n "$NAMESPACE" 2>/dev/null | grep -ciq "$pattern"; then
+    echo "Failed"
+    exit 1
+  else
+    echo "OK"
+  fi
+
   test_pipelines
   echo -n "  - Results in database:"
 

@@ -52,6 +52,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 spec:
+  jobLabel: "app.kubernetes.io/name"
   endpoints:
     - path: /metrics
       port: metrics
@@ -63,7 +64,8 @@ spec:
         insecureSkipVerify: true
   selector:
     matchLabels:
-      app.kubernetes.io/name: tekton-results-api
+      app.kubernetes.io/name: "tekton-results-api"
+      app.kubernetes.io/component: "metrics"
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
