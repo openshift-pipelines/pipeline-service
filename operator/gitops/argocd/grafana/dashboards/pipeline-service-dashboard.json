@@ -2400,7 +2400,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "sum(up{job=\"tekton-results-api-service\"})",
+          "expr": "sum(up{job=\"tekton-results-api\"})",
           "format": "time_series",
           "hide": false,
           "interval": "",
@@ -2481,7 +2481,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "1 - ((sum(rate(grpc_server_handled_total{job=\"tekton-results-api-service\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code=~\"Internal|Unavailable|Unknown|Unimplemented\"}[$__rate_interval]))) / sum(rate(grpc_server_started_total{job=\"tekton-results-api-service\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval])))\n",
+          "expr": "1 - ((sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code=~\"Internal|Unavailable|Unknown|Unimplemented\"}[$__rate_interval]))) / sum(rate(grpc_server_started_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval])))\n",
           "interval": "",
           "intervalFactor": 4,
           "legendFormat": "Success Rate",
@@ -2618,7 +2618,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "sum(rate(grpc_server_started_total{job=\"tekton-results-api-service\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval]))",
+          "expr": "sum(rate(grpc_server_started_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval]))",
           "interval": "",
           "intervalFactor": 4,
           "legendFormat": "Request Rate",
@@ -2686,7 +2686,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "histogram_quantile(0.99, sum(rate(grpc_server_handling_seconds_bucket{job=\"tekton-results-api-service\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval])) by (le) )",
+          "expr": "histogram_quantile(0.99, sum(rate(grpc_server_handling_seconds_bucket{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval])) by (le) )",
           "interval": "",
           "intervalFactor": 4,
           "legendFormat": "Latency",
@@ -3029,7 +3029,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api-service\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval])) by (grpc_method)",
+          "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval])) by (grpc_method)",
           "interval": "",
           "intervalFactor": 4,
           "legendFormat": "{{grpc_method}}",
@@ -3084,7 +3084,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "sum(increase(grpc_server_handling_seconds_bucket{job=\"tekton-results-api-service\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval])) by (le)",
+          "expr": "sum(increase(grpc_server_handling_seconds_bucket{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval])) by (le)",
           "interval": "",
           "intervalFactor": 4,
           "legendFormat": "{{le}}",
@@ -3211,7 +3211,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api-service\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[$__rate_interval])) by (grpc_method)",
+          "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[$__rate_interval])) by (grpc_method)",
           "interval": "",
           "intervalFactor": 4,
           "legendFormat": "RPC: {{grpc_method}}",
@@ -3219,7 +3219,7 @@
         },
         {
           "exemplar": true,
-          "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api-service\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code=~\"Internal|Unavailable|Unknown|Unimplemented\"}[$__rate_interval])) by (grpc_code) / ignoring(grpc_code) group_left sum(rate(grpc_server_handled_total{job=\"tekton-results-api-service\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[$__rate_interval]))",
+          "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code=~\"Internal|Unavailable|Unknown|Unimplemented\"}[$__rate_interval])) by (grpc_code) / ignoring(grpc_code) group_left sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[$__rate_interval]))",
           "hide": false,
           "interval": "",
           "intervalFactor": 4,
@@ -3326,7 +3326,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api-service\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[$__rate_interval])) by (grpc_method)",
+          "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[$__rate_interval])) by (grpc_method)",
           "interval": "",
           "intervalFactor": 4,
           "legendFormat": "RPC: {{grpc_method}}",
@@ -3334,7 +3334,7 @@
         },
         {
           "exemplar": true,
-          "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api-service\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!~\"Internal|Unavailable|Unknown|Unimplemented\"}[$__rate_interval])) by (grpc_code) / ignoring(grpc_code) group_left sum(rate(grpc_server_handled_total{job=\"tekton-results-api-service\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[$__rate_interval]))",
+          "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!~\"Internal|Unavailable|Unknown|Unimplemented\"}[$__rate_interval])) by (grpc_code) / ignoring(grpc_code) group_left sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[$__rate_interval]))",
           "hide": false,
           "interval": "",
           "intervalFactor": 4,
