@@ -23,7 +23,7 @@ check_clusteroperators() {
     for operator in $operators; do
         # need to check if the operator is available or not in a loop
         retries=0
-        max_retries=25
+        max_retries=10
         # if the operator is not available, wait 60s and check again
         while [ "$retries" -lt "$max_retries" ]; do
             available=$(kubectl get co "$operator" -o jsonpath='{.status.conditions[?(@.type=="Available")].status}')
@@ -74,7 +74,7 @@ deploy_cluster() {
     api_url="$(echo "$admin_output" | grep -oP '(?<=oc login ).*(?= --username)')"
 
     # Use the admin account to login to the cluster in a loop until the account is active.
-    max_retries=10
+    max_retries=5
     retries=0
     export KUBECONFIG="$KUBECONFIG_DIR/kubeconfig"
     while ! oc login "$api_url" --username "$admin_user" --password "$admin_pass" > /dev/null 2>&1; do
