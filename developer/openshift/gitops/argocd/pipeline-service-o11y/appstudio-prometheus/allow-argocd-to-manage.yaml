@@ -49,7 +49,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: openshift-gitops-manage-secrets
-  namespace: o11y
+  namespace: dummy-service
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 rules:
@@ -69,7 +69,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: openshift-gitops-manage-secrets
-  namespace: o11y
+  namespace: dummy-service
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 roleRef:
