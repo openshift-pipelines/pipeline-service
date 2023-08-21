@@ -7,7 +7,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
 rules:
   - apiGroups:
-      - integreatly.org
+      - grafana.integreatly.org
     resources:
       - grafanas
       - grafanadashboards
