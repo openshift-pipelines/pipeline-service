@@ -1,0 +1,192 @@
+---
+# Based on: https://github.com/redhat-appstudio/build-definitions/blob/main/task/update-infra-deployments/0.1/update-infra-deployments.yaml
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.12.1"
+    tekton.dev/tags: "appstudio, hacbs"
+  name: update-repository
+spec:
+  description: |
+    Clones a repository, runs script in 'SCRIPT' parameter, and generates a pull-request to the repository if a change is detected.
+  params:
+    - name: COMMIT_BRANCH
+      description: Name of the branch which holds the update created by the Pipeline
+    - name: TARGET_BRANCH
+      description: Name of the branch which is modified by the Pipeline
+    - name: TARGET_GH_NAME
+      description: Name of the repository which is modified by the Pipeline
+    - name: TARGET_GH_OWNER
+      description: Owner of the repository which is modified by the Pipeline
+    - name: TARGET_GH_URL
+      description: URL of github repository which is modified by the Pipeline
+    - name: SCRIPT_IMAGE
+      description: Image reference used to execute the script
+    - name: SCRIPT_PATH
+      description: Path to the script updating the repository
+    - name: SCRIPT_ARGS
+      description: Arguments to the bash script
+      type: array
+    - name: shared-secret
+      default: infra-deployments-pr-creator
+      description: secret in the namespace which contains private key for the GitHub App
+    - name: GITHUB_APP_ID
+      description: ID of Github app used for updating PR
+      default: "305606"
+    - name: GITHUB_APP_INSTALLATION_ID
+      description: Installation ID of Github app in the organization
+      default: "35269675"
+    - name: GIT_IMAGE
+      description: Image reference containing the git command
+      default: registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8:v1.8.2-8@sha256:a538c423e7a11aae6ae582a411fdb090936458075f99af4ce5add038bb6983e8
+    - name: GIT_USER
+      description: Username to appear in the commit
+      default: "Tekton CI"
+    - name: GIT_EMAIL
+      description: Email to appear in the commit
+      default: "tekton-ci@example.com"
+  volumes:
+    - name: infra-deployments-pr-creator
+      secret:
+        # 'private-key' - private key for Github app
+        secretName: $(params.shared-secret)
+  steps:
+    - name: git-clone-repository
+      image: $(params.GIT_IMAGE)
+      workingDir: $(workspaces.workdir.path)
+      env:
+        - name: TARGET_BRANCH
+          value: $(params.TARGET_BRANCH)
+        - name: TARGET_GH_NAME
+          value: $(params.TARGET_GH_NAME)
+        - name: TARGET_GH_OWNER
+          value: $(params.TARGET_GH_OWNER)
+        - name: TARGET_GH_URL
+          value: $(params.TARGET_GH_URL)
+      script: |
+        WORK_DIR="${PWD}/${TARGET_GH_OWNER}/${TARGET_GH_NAME}"
+        if [ -e "${WORK_DIR}" ]; then
+          echo "Clean checkout of '${TARGET_GH_URL}/${TARGET_BRANCH}' in '${WORK_DIR}'"
+          cd "${WORK_DIR}"
+          git clean -d --force
+          git reset --hard
+          git checkout "${TARGET_BRANCH}"
+        else
+          echo "Cloning '${TARGET_GH_URL}/${TARGET_BRANCH}' to '${WORK_DIR}'"
+          mkdir -p "$(dirname "${WORK_DIR}")"
+          cd "$(dirname "${WORK_DIR}")"
+          git clone --branch "${TARGET_BRANCH}" "${TARGET_GH_URL}" "${TARGET_GH_NAME}"
+        fi
+    - name: run-update-script
+      image: $(params.SCRIPT_IMAGE)
+      workingDir: $(workspaces.workdir.path)
+      env:
+        - name: COMMIT_BRANCH
+          value: $(params.COMMIT_BRANCH)
+        - name: GIT_EMAIL
+          value: $(params.GIT_EMAIL)
+        - name: GIT_USER
+          value: $(params.GIT_USER)
+        - name: SCRIPT_PATH
+          value: $(params.SCRIPT_PATH)
+        - name: TARGET_BRANCH
+          value: $(params.TARGET_BRANCH)
+        - name: TARGET_GH_NAME
+          value: $(params.TARGET_GH_NAME)
+        - name: TARGET_GH_OWNER
+          value: $(params.TARGET_GH_OWNER)
+      args: ["$(params.SCRIPT_ARGS[*])"]
+      script: |
+        #!/bin/bash
+        set -o errexit
+        set -o nounset
+        set -o pipefail
+
+        SCRIPT_ARGS=( "$@" )
+
+        # Go to repository directory
+        WORK_DIR="${PWD}/${TARGET_GH_OWNER}/${TARGET_GH_NAME}"
+        cd "${WORK_DIR}"
+        echo "${PWD}"
+
+        # Setup git
+        git config --global safe.directory "${PWD}"
+        git config --local user.email "$GIT_EMAIL"
+        git config --local user.name "$GIT_USER"
+
+        # Create branch
+        git branch --copy --force "$COMMIT_BRANCH"
+        git checkout "$COMMIT_BRANCH"
+
+        # Run script
+        UPSTREAM_COMMIT=$(git rev-parse HEAD)
+        "${SCRIPT_PATH}" "${SCRIPT_ARGS[@]}"
+
+        # Log changes
+        DATA=".commits.json"
+        cat << EOF > "$DATA"
+        {
+          "branch": {
+            "source": "$TARGET_BRANCH",
+            "source_sha": "$UPSTREAM_COMMIT",
+            "target": "$COMMIT_BRANCH"
+          },
+        EOF
+        echo -n '  "commits": [' >> "$DATA"
+
+        PREVIOUS_COMMIT=$UPSTREAM_COMMIT
+        HEAD=$(git rev-parse HEAD)
+        for COMMIT in $(git rev-list "$UPSTREAM_COMMIT..HEAD"); do
+            git checkout "$COMMIT"
+            if tail -1 "$DATA" | grep -q "}$" ; then
+                echo ","
+            else
+                echo
+            fi  >> "$DATA"
+            cat << EOF >> "$DATA"
+            {
+              "files": [
+        EOF
+            for FILE in $(git diff --name-only "$PREVIOUS_COMMIT..$COMMIT"); do
+                if tail -1 "$DATA" | grep -q "}$" ; then
+                    echo "," >> "$DATA"
+                fi
+                echo "        {" >> "$DATA"
+                if [ -e "$FILE" ]; then
+                    cat << EOF >> "$DATA"
+                  "content": "$(cat "$FILE" | base64 | tr -d "\n")",
+                  "mode": "$(git ls-files --format='%(objectmode)' "$FILE")",
+        EOF
+                fi
+                cat << EOF >> "$DATA"
+                  "path": "$FILE"
+        EOF
+                echo -n "        }" >> "$DATA"
+            done
+            MESSAGE=$(git log -1 --format="%B" "$COMMIT" | sed "s:$:\\\n:g" | tr -d "\n") 2>/dev/null
+            cat << EOF >> "$DATA"
+
+              ],
+              "message": "$MESSAGE"
+        EOF
+            echo -n "    }" >> "$DATA"
+        done
+        if tail -1 "$DATA" | grep -q "\[$" ; then
+            echo "],"
+        else
+            echo "
+          ],"
+        fi >> "$DATA"
+        cat << EOF >> "$DATA"
+          "user": {
+              "email": "$GIT_EMAIL",
+              "name": "$GIT_USER"
+            }
+        }
+        EOF
+  workspaces:
+    - name: workdir
+      description: Shared storage to keep a single copy of the repositories

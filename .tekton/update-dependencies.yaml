@@ -5,13 +5,16 @@ metadata:
   annotations:
     pipelinesascode.tekton.dev/on-event: "[push]"
     pipelinesascode.tekton.dev/on-target-branch: "[main]"
-    pipelinesascode.tekton.dev/task: "[git-clone, github-open-pr]"
+    pipelinesascode.tekton.dev/pipeline: "[.tekton/pipeline/update-repository.yaml]"
+    pipelinesascode.tekton.dev/task-1: "[.tekton/tasks/update-repository.yaml]"
     pipelinesascode.tekton.dev/max-keep-runs: "5"
   name: pipeline-service-update-dependencies
 spec:
   timeouts:
     pipeline: "0h20m0s"
     tasks: "0h5m0s"
+  pipelineRef:
+    name: update-repository
   params:
     - name: repo_name
       value: "{{ repo_name }}"
@@ -21,219 +24,8 @@ spec:
       value: "{{ repo_url }}"
     - name: source_branch
       value: "{{ source_branch }}"
-  pipelineSpec:
-    params:
-      - name: repo_name
-      - name: repo_owner
-      - name: repo_url
-      - name: source_branch
-    workspaces:
-      - name: source
-    tasks:
-      - name: git-clone
-        taskRef:
-          name: git-clone
-          kind: Task
-        workspaces:
-          - name: output
-            workspace: source
-        params:
-          - name: url
-            value: $(params.repo_url)
-          - name: revision
-            value: "origin/$(params.source_branch)"
-          - name: refspec
-            value: "refs/heads/$(params.source_branch)"
-      - name: git-setup
-        runAfter:
-          - git-clone
-        workspaces:
-          - name: source
-            workspace: source
-        params:
-          - name: source_branch
-            value: $(params.source_branch)
-        taskSpec:
-          params:
-            - name: source_branch
-          steps:
-            - name: setup-local-repository
-              image: quay.io/redhat-pipeline-service/dependencies-update:$(params.source_branch)
-              imagePullPolicy: Always
-              workingDir: $(workspaces.source.path)
-              command:
-                - ./developer/images/dependencies-update/hack/bin/setup-local-repository.sh
-                - --debug
-                - --branch
-                - $(params.source_branch)
-          workspaces:
-            - name: source
-      - name: update-dockerfiles
-        runAfter:
-          - git-setup
-        workspaces:
-          - name: source
-            workspace: source
-        params:
-          - name: repo_name
-            value: $(params.repo_name)
-          - name: repo_owner
-            value: $(params.repo_owner)
-          - name: source_branch
-            value: $(params.source_branch)
-          - name: target_branch
-            value: "robot/$(params.source_branch)/update_dockerfiles"
-        taskSpec:
-          params:
-            - name: repo_name
-            - name: repo_owner
-            - name: source_branch
-            - name: target_branch
-          results:
-            - name: skip-open-pr
-              description: Flag that controls whether or not to open a PR
-              type: string
-          steps:
-            - name: update-dockerfiles
-              image: quay.io/redhat-pipeline-service/dependencies-update:$(params.source_branch)
-              imagePullPolicy: Always
-              workingDir: $(workspaces.source.path)
-              command:
-                - ./developer/images/dependencies-update/hack/bin/update.sh
-                - --commit_to
-                - "$(params.target_branch)"
-                - --task
-                - update_dockerfiles_base_images_sha
-                - --workspace_dir
-                - $(workspaces.source.path)
-            - name: is-pr-skipped
-              image: quay.io/redhat-pipeline-service/dependencies-update:$(params.source_branch)
-              imagePullPolicy: Always
-              env:
-                - name: GITHUB_TOKEN
-                  valueFrom:
-                    secretKeyRef:
-                      name: github
-                      key: token
-              workingDir: $(workspaces.source.path)
-              command:
-                - ./developer/images/dependencies-update/hack/bin/is-pr-skipped.sh
-                - --debug
-                - --name
-                - $(params.repo_name)
-                - --owner
-                - $(params.repo_owner)
-                - --target_branch
-                - $(params.target_branch)
-                - --result
-                - $(results.skip-open-pr.path)
-          workspaces:
-            - name: source
-      - name: open-pr-dockerfiles
-        when:
-          - input: "$(tasks.update-dockerfiles.results.skip-open-pr)"
-            operator: in
-            values: ["no"]
-        runAfter:
-          - update-dockerfiles
-        taskRef:
-          name: github-open-pr
-          kind: Task
-        params:
-          - name: REPO_FULL_NAME
-            value: "$(params.repo_owner)/$(params.repo_name)"
-          - name: BASE
-            value: $(params.source_branch)
-          - name: HEAD
-            value: robot/$(params.source_branch)/update_dockerfiles
-          - name: BODY
-            value: Generated by developer/images/dependencies-update/hack/bin/update.sh
-          - name: TITLE
-            value: Update Dockerfiles
-      - name: update-binaries
-        runAfter:
-          - open-pr-dockerfiles
-        workspaces:
-          - name: source
-            workspace: source
-        params:
-          - name: repo_name
-            value: $(params.repo_name)
-          - name: repo_owner
-            value: $(params.repo_owner)
-          - name: source_branch
-            value: $(params.source_branch)
-          - name: target_branch
-            value: "robot/$(params.source_branch)/update_binaries"
-        taskSpec:
-          params:
-            - name: repo_name
-            - name: repo_owner
-            - name: source_branch
-            - name: target_branch
-          results:
-            - name: skip-open-pr
-              description: Flag that controls whether or not to open a PR
-              type: string
-          steps:
-            - name: update-binaries
-              image: quay.io/redhat-pipeline-service/dependencies-update:$(params.source_branch)
-              imagePullPolicy: Always
-              workingDir: $(workspaces.source.path)
-              command:
-                - ./developer/images/dependencies-update/hack/bin/update.sh
-                - --commit_to
-                - "$(params.target_branch)"
-                - --task
-                - update_binaries
-                - --workspace_dir
-                - $(workspaces.source.path)
-            - name: is-pr-skipped
-              image: quay.io/redhat-pipeline-service/dependencies-update:$(params.source_branch)
-              imagePullPolicy: Always
-              env:
-                - name: GITHUB_TOKEN
-                  valueFrom:
-                    secretKeyRef:
-                      name: github
-                      key: token
-              workingDir: $(workspaces.source.path)
-              command:
-                - ./developer/images/dependencies-update/hack/bin/is-pr-skipped.sh
-                - --debug
-                - --name
-                - $(params.repo_name)
-                - --owner
-                - $(params.repo_owner)
-                - --target_branch
-                - $(params.target_branch)
-                - --result
-                - $(results.skip-open-pr.path)
-          workspaces:
-            - name: source
-      - name: open-pr-binaries
-        when:
-          - input: "$(tasks.update-binaries.results.skip-open-pr)"
-            operator: in
-            values: ["no"]
-        runAfter:
-          - update-binaries
-        taskRef:
-          name: github-open-pr
-          kind: Task
-        params:
-          - name: REPO_FULL_NAME
-            value: "$(params.repo_owner)/$(params.repo_name)"
-          - name: BASE
-            value: $(params.source_branch)
-          - name: HEAD
-            value: robot/$(params.source_branch)/update_binaries
-          - name: BODY
-            value: Generated by developer/images/dependencies-update/hack/bin/update.sh
-          - name: TITLE
-            value: Update binaries
   workspaces:
-    - name: source
+    - name: workdir
       volumeClaimTemplate:
         spec:
           accessModes:
