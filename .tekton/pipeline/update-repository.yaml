@@ -1,0 +1,70 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: update-repository
+spec:
+  params:
+    - name: repo_name
+    - name: repo_owner
+    - name: repo_url
+    - name: source_branch
+  workspaces:
+    - name: workdir
+  tasks:
+    - name: update-binaries
+      taskRef:
+        name: update-repository
+      params:
+        - name: COMMIT_BRANCH
+          value: "robot/$(params.source_branch)/update_binaries"
+        - name: TARGET_GH_NAME
+          value: $(params.repo_name)
+        - name: TARGET_GH_OWNER
+          value: $(params.repo_owner)
+        - name: TARGET_GH_URL
+          value: $(params.repo_url)
+        - name: TARGET_BRANCH
+          value: $(params.source_branch)
+        - name: SCRIPT_IMAGE
+          value: quay.io/redhat-pipeline-service/dependencies-update:$(params.source_branch)
+        - name: SCRIPT_PATH
+          value: ./developer/images/dependencies-update/hack/bin/update.sh
+        - name: SCRIPT_ARGS
+          value:
+            - --task
+            - update_binaries
+            - --workspace_dir
+            - "."
+      workspaces:
+        - name: workdir
+          workspace: workdir
+    - name: update-images
+      runAfter:
+        - update-binaries
+      taskRef:
+        name: update-repository
+      params:
+        - name: COMMIT_BRANCH
+          value: "robot/$(params.source_branch)/update_dockerfiles"
+        - name: TARGET_GH_NAME
+          value: $(params.repo_name)
+        - name: TARGET_GH_OWNER
+          value: $(params.repo_owner)
+        - name: TARGET_GH_URL
+          value: $(params.repo_url)
+        - name: TARGET_BRANCH
+          value: $(params.source_branch)
+        - name: SCRIPT_IMAGE
+          value: quay.io/redhat-pipeline-service/dependencies-update:$(params.source_branch)
+        - name: SCRIPT_PATH
+          value: ./developer/images/dependencies-update/hack/bin/update.sh
+        - name: SCRIPT_ARGS
+          value:
+            - --task
+            - update_dockerfiles_base_images_sha
+            - --workspace_dir
+            - "."
+      workspaces:
+        - name: workdir
+          workspace: workdir
