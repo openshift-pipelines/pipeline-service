@@ -28,6 +28,7 @@ source "$SCRIPT_DIR/../task.sh"
 run_task() {
     DEPENDENCIES="$WORKSPACE_DIR/shared/config/dependencies.sh"
     echo "Update binaries" >"$COMMIT_MSG"
+    echo >"$COMMIT_MSG"
     mapfile -t BINARIES < <(
         grep --extended-regexp "^ *[^#]* *[A-Z]*_VERSION=" "$DEPENDENCIES" \
             | sed "s:export *\(.*\)_VERSION=.*:\1:" \
