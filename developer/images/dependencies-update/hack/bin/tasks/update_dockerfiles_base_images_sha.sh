@@ -27,6 +27,7 @@ source "$SCRIPT_DIR/../task.sh"
 
 run_task() {
   echo "Update base images SHA in Dockerfiles" >"$COMMIT_MSG"
+  echo >"$COMMIT_MSG"
   process_dockerfiles
 }
 
