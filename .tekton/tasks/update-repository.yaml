@@ -7,7 +7,6 @@ metadata:
     app.kubernetes.io/version: "0.1"
   annotations:
     tekton.dev/pipelines.minVersion: "0.12.1"
-    tekton.dev/tags: "appstudio, hacbs"
   name: update-repository
 spec:
   description: |
@@ -30,15 +29,6 @@ spec:
     - name: SCRIPT_ARGS
       description: Arguments to the bash script
       type: array
-    - name: shared-secret
-      default: infra-deployments-pr-creator
-      description: secret in the namespace which contains private key for the GitHub App
-    - name: GITHUB_APP_ID
-      description: ID of Github app used for updating PR
-      default: "305606"
-    - name: GITHUB_APP_INSTALLATION_ID
-      description: Installation ID of Github app in the organization
-      default: "35269675"
     - name: GIT_IMAGE
       description: Image reference containing the git command
       default: registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8:v1.8.2-8@sha256:a538c423e7a11aae6ae582a411fdb090936458075f99af4ce5add038bb6983e8
@@ -48,11 +38,6 @@ spec:
     - name: GIT_EMAIL
       description: Email to appear in the commit
       default: "tekton-ci@example.com"
-  volumes:
-    - name: infra-deployments-pr-creator
-      secret:
-        # 'private-key' - private key for Github app
-        secretName: $(params.shared-secret)
   steps:
     - name: git-clone-repository
       image: $(params.GIT_IMAGE)
@@ -67,6 +52,11 @@ spec:
         - name: TARGET_GH_URL
           value: $(params.TARGET_GH_URL)
       script: |
+        #!/bin/bash
+        set -o errexit
+        set -o nounset
+        set -o pipefail
+
         WORK_DIR="${PWD}/${TARGET_GH_OWNER}/${TARGET_GH_NAME}"
         if [ -e "${WORK_DIR}" ]; then
           echo "Clean checkout of '${TARGET_GH_URL}/${TARGET_BRANCH}' in '${WORK_DIR}'"
@@ -126,14 +116,61 @@ spec:
 
         # Run script
         "${SCRIPT_PATH}" "${SCRIPT_ARGS[@]}"
+    # Based on https://github.com/tektoncd/catalog/tree/main/task/github-app-token/0.2/
+    - name: create-pull-request
+      image: quay.io/redhat-appstudio/github-app-token@sha256:b4f2af12e9beea68055995ccdbdb86cfe1be97688c618117e5da2243dc1da18e
+      workingDir: $(workspaces.workdir.path)
+      env:
+        - name: COMMIT_BRANCH
+          value: $(params.COMMIT_BRANCH)
+        - name: GITHUB_API_URL
+          value: https://api.github.com
+        - name: TARGET_BRANCH
+          value: $(params.TARGET_BRANCH)
+        - name: TARGET_GH_NAME
+          value: $(params.TARGET_GH_NAME)
+        - name: TARGET_GH_OWNER
+          value: $(params.TARGET_GH_OWNER)
+      script: |
+        #!/bin/bash
+        set -o errexit
+        set -o nounset
+        set -o pipefail
+
+        # Go to repository directory
+        WORK_DIR="${PWD}/${TARGET_GH_OWNER}/${TARGET_GH_NAME}"
+        cd "${WORK_DIR}"
 
         # Push changes
         if ! git ls-remote --heads origin | grep -q "/$COMMIT_BRANCH$" \
           || ! git diff --quiet "origin/$COMMIT_BRANCH" ; then
           git push --force --set-upstream origin "$COMMIT_BRANCH"
+          echo "Branch pushed successfully"
         else
           echo "No changes"
+          exit 0
         fi
+
+        GITHUB_TOKEN=$(git remote get-url origin | sed "s|https\?://[^:]*:\([^@]*\)@.*|\1|")
+        echo "GITHUB_TOKEN=$GITHUB_TOKEN"
+
+        DATA=$(cat << EOF
+        {
+          "title":"$(git log -1 --format="%s" | sed 's:":\\":g')",
+          "body":"$(git log -1 --format="%b" | sed 's:":\\":g' | sed 's:$:\\n:g' | tr -d '\n')",
+          "head":"$COMMIT_BRANCH",
+          "base":"$TARGET_BRANCH"
+        }
+        EOF
+        )
+
+        curl --location \
+          --request POST \
+          --header "Accept: application/vnd.github+json" \
+          --header "Authorization: Bearer $GITHUB_TOKEN" \
+          --header "X-GitHub-Api-Version: 2022-11-28" \
+          "${GITHUB_API_URL}/repos/${TARGET_GH_OWNER}/${TARGET_GH_NAME}/pulls" \
+          --data "$DATA"
   workspaces:
     - name: workdir
       description: Shared storage to keep a single copy of the repositories
