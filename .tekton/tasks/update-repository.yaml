@@ -98,6 +98,8 @@ spec:
           value: $(params.TARGET_GH_NAME)
         - name: TARGET_GH_OWNER
           value: $(params.TARGET_GH_OWNER)
+        - name: WORKSPACE_BASIC_AUTH_DIRECTORY_PATH
+          value: $(workspaces.basic-auth.path)
       args: ["$(params.SCRIPT_ARGS[*])"]
       script: |
         #!/bin/bash
@@ -116,77 +118,22 @@ spec:
         git config --global safe.directory "${PWD}"
         git config --local user.email "$GIT_EMAIL"
         git config --local user.name "$GIT_USER"
+        git remote set-url origin "$(cat "$WORKSPACE_BASIC_AUTH_DIRECTORY_PATH/.git-credentials")"
 
         # Create branch
         git branch --copy --force "$COMMIT_BRANCH"
         git checkout "$COMMIT_BRANCH"
 
         # Run script
-        UPSTREAM_COMMIT=$(git rev-parse HEAD)
         "${SCRIPT_PATH}" "${SCRIPT_ARGS[@]}"
 
-        # Log changes
-        DATA=".commits.json"
-        cat << EOF > "$DATA"
-        {
-          "branch": {
-            "source": "$TARGET_BRANCH",
-            "source_sha": "$UPSTREAM_COMMIT",
-            "target": "$COMMIT_BRANCH"
-          },
-        EOF
-        echo -n '  "commits": [' >> "$DATA"
-
-        PREVIOUS_COMMIT=$UPSTREAM_COMMIT
-        HEAD=$(git rev-parse HEAD)
-        for COMMIT in $(git rev-list "$UPSTREAM_COMMIT..HEAD"); do
-            git checkout "$COMMIT"
-            if tail -1 "$DATA" | grep -q "}$" ; then
-                echo ","
-            else
-                echo
-            fi  >> "$DATA"
-            cat << EOF >> "$DATA"
-            {
-              "files": [
-        EOF
-            for FILE in $(git diff --name-only "$PREVIOUS_COMMIT..$COMMIT"); do
-                if tail -1 "$DATA" | grep -q "}$" ; then
-                    echo "," >> "$DATA"
-                fi
-                echo "        {" >> "$DATA"
-                if [ -e "$FILE" ]; then
-                    cat << EOF >> "$DATA"
-                  "content": "$(cat "$FILE" | base64 | tr -d "\n")",
-                  "mode": "$(git ls-files --format='%(objectmode)' "$FILE")",
-        EOF
-                fi
-                cat << EOF >> "$DATA"
-                  "path": "$FILE"
-        EOF
-                echo -n "        }" >> "$DATA"
-            done
-            MESSAGE=$(git log -1 --format="%B" "$COMMIT" | sed "s:$:\\\n:g" | tr -d "\n") 2>/dev/null
-            cat << EOF >> "$DATA"
-
-              ],
-              "message": "$MESSAGE"
-        EOF
-            echo -n "    }" >> "$DATA"
-        done
-        if tail -1 "$DATA" | grep -q "\[$" ; then
-            echo "],"
+        # Push changes
+        if ! git ls-remote --heads origin | grep -q "/$COMMIT_BRANCH$" \
+          || ! git diff --quiet "origin/$COMMIT_BRANCH" ; then
+          git push --force --set-upstream origin "$COMMIT_BRANCH"
         else
-            echo "
-          ],"
-        fi >> "$DATA"
-        cat << EOF >> "$DATA"
-          "user": {
-              "email": "$GIT_EMAIL",
-              "name": "$GIT_USER"
-            }
-        }
-        EOF
+          echo "No changes"
+        fi
   workspaces:
     - name: workdir
       description: Shared storage to keep a single copy of the repositories

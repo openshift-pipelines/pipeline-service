@@ -10,6 +10,7 @@ spec:
     - name: repo_url
     - name: source_branch
   workspaces:
+    - name: basic-auth
     - name: workdir
   tasks:
     - name: update-binaries
@@ -37,6 +38,8 @@ spec:
             - --workspace_dir
             - "."
       workspaces:
+        - name: basic-auth
+          workspace: basic-auth
         - name: workdir
           workspace: workdir
     - name: update-images
@@ -66,5 +69,7 @@ spec:
             - --workspace_dir
             - "."
       workspaces:
+        - name: basic-auth
+          workspace: basic-auth
         - name: workdir
           workspace: workdir

@@ -25,6 +25,10 @@ spec:
     - name: source_branch
       value: "{{ source_branch }}"
   workspaces:
+    - name: basic-auth
+      workspace: basic-auth
+      secret:
+        secretName: "{{ git_auth_secret }}"
     - name: workdir
       volumeClaimTemplate:
         spec:
