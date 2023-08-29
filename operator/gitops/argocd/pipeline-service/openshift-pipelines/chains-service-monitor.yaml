@@ -7,10 +7,22 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
+  jobLabel: "app.kubernetes.io/name"
   endpoints:
     - path: /metrics
       port: metrics
+      interval: 15s
       scheme: http
+      honorLabels: true
+  namespaceSelector:
+    matchNames:
+      - openshift-pipelines
   selector:
     matchLabels:
+      app.kubernetes.io/part-of: tekton-chains
+      app.kubernetes.io/component: metrics
       app: tekton-chains-controller
+  targetLabels:
+    - app
+    - app.kubernetes.io/component
+    - app.kubernetes.io/part-of
