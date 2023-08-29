@@ -4,9 +4,12 @@ kind: Service
 metadata:
   name: tekton-chains
   namespace: openshift-pipelines
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
   labels:
-    app.kubernetes.io/instance: default
     app.kubernetes.io/part-of: tekton-chains
+    app.kubernetes.io/component: metrics
+    app: tekton-chains-controller
 spec:
   ports:
     - name: metrics
@@ -14,4 +17,6 @@ spec:
       protocol: TCP
       targetPort: 9090
   selector:
-    app: tekton-chains-controller
+    app.kubernetes.io/instance: default
+    app.kubernetes.io/part-of: tekton-chains
+    app.kubernetes.io/component: controller
