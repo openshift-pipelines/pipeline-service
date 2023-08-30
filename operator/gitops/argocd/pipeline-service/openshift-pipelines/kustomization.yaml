@@ -3,6 +3,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - allow-argocd-to-manage.yaml
+  - allow-argocd-to-manage-jobs.yaml
   - appstudio-pipelines-scc.yaml
   - openshift-operator.yaml
   - tekton-config.yaml
@@ -10,3 +11,5 @@ resources:
   - chains-service-monitor.yaml
   # Manully add ConfigMap and Service until PLNSRVCE-1359 is fixed
   - chains-observability-service.yaml
+  - chains-public-key-viewer.yaml
+  - chains-secrets-config.yaml

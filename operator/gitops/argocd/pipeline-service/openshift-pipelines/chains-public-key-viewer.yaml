@@ -17,11 +17,12 @@ rules:
       - list
       - watch
 ---
+# public-key access
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: tekton-chains-public-key-viewer
-  namespace: tekton-chains
+  namespace: openshift-pipelines
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 roleRef:

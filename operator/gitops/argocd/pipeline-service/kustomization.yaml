@@ -4,7 +4,6 @@ kind: Kustomization
 
 resources:
   - openshift-pipelines
-  - tekton-chains
   - tekton-results
   - metrics-exporter
 
