@@ -237,13 +237,6 @@ uninstall_operators_and_controllers(){
       kubectl delete operator "$gitops_operator"
     fi
 
-    printf "\n  Uninstalling PAC:\n"
-    kubectl delete -k "$GITOPS_DIR/pipelines-as-code" --ignore-not-found=true
-    pac_ns=$(kubectl get ns | grep -ie "pipelines-as-code" | cut -d " " -f 1)
-    if [[ -n "$pac_ns" ]]; then
-      kubectl delete ns "$pac_ns"
-    fi
-
     printf "\n  Uninstalling tekton-results:\n"
     kubectl delete -k "$GITOPS_DIR/tekton-results" --ignore-not-found=true
     tkn_results_ns=$(kubectl get ns | grep -ie "tekton-results" | cut -d " " -f 1)
