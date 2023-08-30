@@ -157,8 +157,8 @@ tekton_chains_manifest(){
       --workdir /workspace \
       --entrypoint /usr/bin/cosign \
       "$cosign_image" generate-key-pair
-    kubectl create namespace tekton-chains --dry-run=client -o yaml > "$chains_namespace"
-    kubectl create secret generic -n tekton-chains signing-secrets --from-file="$chains_tmp_dir" --dry-run=client -o yaml | \
+    kubectl create namespace openshift-pipelines --dry-run=client -o yaml > "$chains_namespace"
+    kubectl create secret generic -n openshift-pipelines signing-secrets --from-file="$chains_tmp_dir" --dry-run=client -o yaml | \
             yq '. += {"immutable" :true}' | \
             yq "sort_keys(.)" > "$chains_secret"
     yq e -n '.resources += ["namespace.yaml", "signing-secrets.yaml"]' > "$chains_kustomize"
