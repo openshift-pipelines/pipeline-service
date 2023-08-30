@@ -32,7 +32,7 @@ spec:
             description: Reference of the image skopeo will push.
           - name: SKOPEO_IMAGE
             description: The location of the skopeo image.
-            default: quay.io/skopeo/stable:v1.9.0
+            default: quay.io/skopeo/stable:v1.13
           - name: srcTLSverify
             description: Verify the TLS on the src registry endpoint
             type: string
