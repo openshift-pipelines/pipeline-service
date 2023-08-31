@@ -158,7 +158,7 @@ cluster_setup() {
 
   # By default HTTP2 is not enabled in test openshift clusters
   echo "- Enabling HTTP2 for ingress" | indent 2
-  oc annotate ingresses.config/cluster ingress.operator.openshift.io/default-enable-http2=true | indent 6
+  oc annotate ingresses.config/cluster ingress.operator.openshift.io/default-enable-http2=true --overwrite=true| indent 6
 }
 
 install_openshift_gitops() {
