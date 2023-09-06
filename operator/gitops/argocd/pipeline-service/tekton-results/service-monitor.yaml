@@ -65,7 +65,6 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: "tekton-results-api"
-      app.kubernetes.io/component: "metrics"
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
