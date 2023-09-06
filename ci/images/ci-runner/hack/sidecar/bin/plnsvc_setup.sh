@@ -4,6 +4,9 @@ set -o nounset
 set -o pipefail
 set -x
 
+echo "[DEBUG:SIDECAR] This message must ALWAYS be seen in the PLR logs"
+echo "Current dir: $PWD"
+
 export KUBECONFIG="/kubeconfig"
 REPO_URL=$1
 REPO_REVISION=$2

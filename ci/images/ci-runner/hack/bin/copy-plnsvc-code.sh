@@ -4,6 +4,8 @@ set -o nounset
 set -o pipefail
 set -x
 
+echo "[DEBUG:PLR] This message must ALWAYS be seen in the PLR logs"
+
 echo "Copy source code of pipeline service to the ci-runner container"
 kubectl cp "./" "default/ci-runner:/workspace/source"
 

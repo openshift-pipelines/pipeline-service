@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+echo "[DEBUG:SIDECAR] This message must be seen JUST ONCE in the PLR logs"
+
 #quit if exit status of any cmd is a non-zero value
 set -euo pipefail
 
