@@ -90,7 +90,7 @@ spec:
         - name: repo_url
           value: $(params.repo_url)
         - name: revision
-          value: $(params.revision)
+          value: $(params.target_branch)
         - name: target_branch
           value: $(params.target_branch)
     - name: tests-baseline
@@ -176,7 +176,7 @@ spec:
         - name: repo_url
           value: $(params.repo_url)
         - name: revision
-          value: $(params.revision)
+          value: $(params.target_branch)
         - name: target_branch
           value: $(params.target_branch)
     - name: tests-downgrade
