@@ -9,6 +9,9 @@ metadata:
   annotations:
     openshift.io/host.generated: "true"
     haproxy.router.openshift.io/hsts_header: "max-age=63072000"
+    # https://issues.redhat.com/browse/OCPBUGS-16375
+    router.openshift.io/haproxy.health.check.interval: "86400s"
+    haproxy.router.openshift.io/timeout: "86410s"
     argocd.argoproj.io/sync-wave: "0"
 spec:
   to:
