@@ -1,4 +1,4 @@
-FROM quay.io/podman/stable:v4.5.1
+FROM quay.io/podman/stable:v4.6.1
 RUN set -x \
     && mkdir ~/.kube \
     && mkdir -p /tmp/image-build \
