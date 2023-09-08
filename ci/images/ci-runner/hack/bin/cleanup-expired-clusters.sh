@@ -11,7 +11,7 @@ SCRIPT_DIR="$(
 # shellcheck source=ci/images/ci-runner/hack/bin/utils.sh
 source "$SCRIPT_DIR/utils.sh"
 
-EXCLUDE_CLUSTER=(local-cluster newci4plnsvc)
+EXCLUDE_CLUSTER=(local-cluster sprayproxy-qe)
 
 is_cluster_expired() {
     cluster_name=$1
