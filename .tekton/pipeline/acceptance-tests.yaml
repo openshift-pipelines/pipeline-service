@@ -16,6 +16,17 @@ spec:
     - name: source
     - name: shared-workspace
   tasks:
+    - name: clone-pipeline-service-git
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: source
+      params:
+        - name: url
+          value: $(params.repo_url)
+        - name: revision
+          value: $(params.revision)
     - name: generate-cluster-name
       taskRef:
         name: generate-cluster-name
@@ -52,17 +63,6 @@ spec:
           workspace: shared-workspace
         - name: source
           workspace: source
-    - name: clone-pipeline-service-git
-      taskRef:
-        name: git-clone
-      workspaces:
-        - name: output
-          workspace: source
-      params:
-        - name: url
-          value: $(params.repo_url)
-        - name: revision
-          value: $(params.revision)
     - name: setup-ci-runner
       taskRef:
         name: setup-ci-runner-container
@@ -76,11 +76,24 @@ spec:
           workspace: shared-workspace
         - name: source
           workspace: source
+    - name: copy-plnsvc-code-to-ci-runner
+      taskRef:
+        name: copy-plnsvc-code
+      runAfter:
+        - "setup-ci-runner"
+      params:
+        - name: target_branch
+          value: $(params.target_branch)
+      workspaces:
+        - name: kubeconfig-dir
+          workspace: shared-workspace
+        - name: source
+          workspace: source
     - name: plnsvc-setup
       taskRef:
         name: pipeline-service-setup
       runAfter:
-        - "setup-ci-runner"
+        - "copy-plnsvc-code-to-ci-runner"
       workspaces:
         - name: kubeconfig-dir
           workspace: shared-workspace

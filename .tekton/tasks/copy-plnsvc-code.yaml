@@ -2,7 +2,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: setup-ci-runner-container
+  name: copy-plnsvc-code
 spec:
   params:
     - name: target_branch
@@ -11,14 +11,15 @@ spec:
       description: The kubeconfig of new cluster will be stored onto the volume backing this Workspace
     - name: source
   steps:
-    - name: create-ci-runner-container
+    - name: copy-code-to-container
       image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
       resources:
         requests:
           memory: 500Mi
           cpu: 300m
+      workingDir: "$(workspaces.source.path)"
       env:
         - name: KUBECONFIG
           value: "$(workspaces.kubeconfig-dir.path)/kubeconfig"
-      script: |
-        $(workspaces.source.path)/ci/images/ci-runner/hack/bin/create-ci-runner-container.sh
+      command:
+        - $(workspaces.source.path)/ci/images/ci-runner/hack/bin/copy-plnsvc-code.sh

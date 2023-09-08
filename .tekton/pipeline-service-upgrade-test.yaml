@@ -14,8 +14,7 @@ metadata:
     pipelinesascode.tekton.dev/task-4: "[.tekton/tasks/generate-cluster-name.yaml]"
     pipelinesascode.tekton.dev/task-5: "[.tekton/tasks/pipeline-service-setup.yaml]"
     pipelinesascode.tekton.dev/task-6: "[.tekton/tasks/pipeline-service-tests.yaml]"
-    pipelinesascode.tekton.dev/task-7: "[.tekton/tasks/pipeline-service-upgrade-setup.yaml]"
-    pipelinesascode.tekton.dev/task-8: "[git-clone]"
+    pipelinesascode.tekton.dev/task-7: "[git-clone]"
     pipelinesascode.tekton.dev/max-keep-runs: "5"
 spec:
   pipelineRef:

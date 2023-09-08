@@ -76,11 +76,24 @@ spec:
           value: $(params.repo_url)
         - name: revision
           value: $(params.target_branch)
+    - name: copy-baseline-plnsvc-code-to-ci-runner
+      taskRef:
+        name: copy-plnsvc-code
+      runAfter:
+        - "clone-pipeline-service-git-baseline"
+      params:
+        - name: target_branch
+          value: $(params.target_branch)
+      workspaces:
+        - name: kubeconfig-dir
+          workspace: upgrade-shared-workspace
+        - name: source
+          workspace: source
     - name: plnsvc-setup-baseline
       taskRef:
         name: pipeline-service-setup
       runAfter:
-        - "clone-pipeline-service-git-baseline"
+        - "copy-baseline-plnsvc-code-to-ci-runner"
       workspaces:
         - name: kubeconfig-dir
           workspace: upgrade-shared-workspace
@@ -119,11 +132,24 @@ spec:
           value: $(params.repo_url)
         - name: revision
           value: $(params.revision)
-    - name: plnsvc-setup-upgrade
+    - name: copy-upgrade-plnsvc-code-to-ci-runner
       taskRef:
-        name: pipeline-service-upgrade-setup
+        name: copy-plnsvc-code
       runAfter:
         - "clone-pipeline-service-git-upgrade"
+      params:
+        - name: target_branch
+          value: $(params.target_branch)
+      workspaces:
+        - name: kubeconfig-dir
+          workspace: upgrade-shared-workspace
+        - name: source
+          workspace: source
+    - name: plnsvc-setup-upgrade
+      taskRef:
+        name: pipeline-service-setup
+      runAfter:
+        - "copy-upgrade-plnsvc-code-to-ci-runner"
       workspaces:
         - name: kubeconfig-dir
           workspace: upgrade-shared-workspace
@@ -162,11 +188,24 @@ spec:
           value: $(params.repo_url)
         - name: revision
           value: $(params.target_branch)
-    - name: plnsvc-setup-downgrade
+    - name: copy-downgrade-plnsvc-code-to-ci-runner
       taskRef:
-        name: pipeline-service-upgrade-setup
+        name: copy-plnsvc-code
       runAfter:
         - "clone-pipeline-service-git-downgrade"
+      params:
+        - name: target_branch
+          value: $(params.target_branch)
+      workspaces:
+        - name: kubeconfig-dir
+          workspace: upgrade-shared-workspace
+        - name: source
+          workspace: source
+    - name: plnsvc-setup-downgrade
+      taskRef:
+        name: pipeline-service-setup
+      runAfter:
+        - "copy-downgrade-plnsvc-code-to-ci-runner"
       workspaces:
         - name: kubeconfig-dir
           workspace: upgrade-shared-workspace
