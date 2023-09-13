@@ -63,24 +63,11 @@ spec:
           workspace: source
         - name: kubeconfig-dir
           workspace: upgrade-shared-workspace
-    - name: clone-pipeline-service-git-baseline
-      runAfter:
-        - "setup-ci-runner"
-      taskRef:
-        name: git-clone
-      workspaces:
-        - name: output
-          workspace: source
-      params:
-        - name: url
-          value: $(params.repo_url)
-        - name: revision
-          value: $(params.target_branch)
     - name: plnsvc-setup-baseline
       taskRef:
         name: pipeline-service-setup
       runAfter:
-        - "clone-pipeline-service-git-baseline"
+        - "setup-ci-runner"
       workspaces:
         - name: kubeconfig-dir
           workspace: upgrade-shared-workspace
@@ -89,9 +76,9 @@ spec:
       params:
         - name: repo_url
           value: $(params.repo_url)
-        - name: revision
-          value: $(params.revision)
         - name: target_branch
+          value: $(params.target_branch)
+        - name: test_branch
           value: $(params.target_branch)
     - name: tests-baseline
       taskRef:
@@ -106,24 +93,11 @@ spec:
           workspace: upgrade-shared-workspace
         - name: source
           workspace: source
-    - name: clone-pipeline-service-git-upgrade
-      runAfter:
-        - "tests-baseline"
-      taskRef:
-        name: git-clone
-      workspaces:
-        - name: output
-          workspace: source
-      params:
-        - name: url
-          value: $(params.repo_url)
-        - name: revision
-          value: $(params.revision)
     - name: plnsvc-setup-upgrade
       taskRef:
-        name: pipeline-service-upgrade-setup
+        name: pipeline-service-setup
       runAfter:
-        - "clone-pipeline-service-git-upgrade"
+        - "tests-baseline"
       workspaces:
         - name: kubeconfig-dir
           workspace: upgrade-shared-workspace
@@ -132,10 +106,10 @@ spec:
       params:
         - name: repo_url
           value: $(params.repo_url)
-        - name: revision
-          value: $(params.revision)
         - name: target_branch
           value: $(params.target_branch)
+        - name: test_branch
+          value: $(params.revision)
     - name: tests-upgrade
       taskRef:
         name: pipeline-service-tests
@@ -149,24 +123,11 @@ spec:
           workspace: upgrade-shared-workspace
         - name: source
           workspace: source
-    - name: clone-pipeline-service-git-downgrade
-      runAfter:
-        - "tests-upgrade"
-      taskRef:
-        name: git-clone
-      workspaces:
-        - name: output
-          workspace: source
-      params:
-        - name: url
-          value: $(params.repo_url)
-        - name: revision
-          value: $(params.target_branch)
     - name: plnsvc-setup-downgrade
       taskRef:
-        name: pipeline-service-upgrade-setup
+        name: pipeline-service-setup
       runAfter:
-        - "clone-pipeline-service-git-downgrade"
+        - "tests-upgrade"
       workspaces:
         - name: kubeconfig-dir
           workspace: upgrade-shared-workspace
@@ -175,9 +136,9 @@ spec:
       params:
         - name: repo_url
           value: $(params.repo_url)
-        - name: revision
-          value: $(params.revision)
         - name: target_branch
+          value: $(params.target_branch)
+        - name: test_branch
           value: $(params.target_branch)
     - name: tests-downgrade
       taskRef:

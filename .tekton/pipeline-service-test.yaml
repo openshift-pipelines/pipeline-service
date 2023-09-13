@@ -7,7 +7,7 @@ metadata:
     pipelinesascode.tekton.dev/on-event: "[pull_request, push]"
     pipelinesascode.tekton.dev/on-target-branch: "[refs/heads/*]"
     pipelinesascode.tekton.dev/pipeline: "[.tekton/pipeline/acceptance-tests.yaml]"
-    pipelinesascode.tekton.dev/task: "[.tekton/tasks/ci-runner-container-setup.yaml]"
+    pipelinesascode.tekton.dev/task: "[.tekton/tasks/setup-ci-runner-container.yaml]"
     pipelinesascode.tekton.dev/task-1: "[.tekton/tasks/deploy-cluster.yaml]"
     pipelinesascode.tekton.dev/task-2: "[.tekton/tasks/destroy-cluster.yaml]"
     pipelinesascode.tekton.dev/task-3: "[.tekton/tasks/destroy-existing-cluster.yaml]"

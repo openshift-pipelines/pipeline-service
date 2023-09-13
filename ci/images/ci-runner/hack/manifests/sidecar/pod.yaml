@@ -24,7 +24,8 @@ spec:
           mountPath: "/run/user/0/containers/"
           readOnly: true
         - name: ci-runner-storage
-          mountPath: "/source"
+          mountPath: "/workspace"
+      workingDir: "/workspace/source"
   volumes:
     - name: pull-secret
       secret:
