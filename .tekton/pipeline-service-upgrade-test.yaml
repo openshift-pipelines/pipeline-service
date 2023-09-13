@@ -7,15 +7,14 @@ metadata:
     pipelinesascode.tekton.dev/on-event: "[pull_request, push]"
     pipelinesascode.tekton.dev/on-target-branch: "[refs/heads/*]"
     pipelinesascode.tekton.dev/pipeline: "[.tekton/pipeline/upgrade-tests.yaml]"
-    pipelinesascode.tekton.dev/task: "[.tekton/tasks/ci-runner-container-setup.yaml]"
+    pipelinesascode.tekton.dev/task: "[.tekton/tasks/setup-ci-runner-container.yaml]"
     pipelinesascode.tekton.dev/task-1: "[.tekton/tasks/deploy-cluster.yaml]"
     pipelinesascode.tekton.dev/task-2: "[.tekton/tasks/destroy-cluster.yaml]"
     pipelinesascode.tekton.dev/task-3: "[.tekton/tasks/destroy-existing-cluster.yaml]"
     pipelinesascode.tekton.dev/task-4: "[.tekton/tasks/generate-cluster-name.yaml]"
     pipelinesascode.tekton.dev/task-5: "[.tekton/tasks/pipeline-service-setup.yaml]"
     pipelinesascode.tekton.dev/task-6: "[.tekton/tasks/pipeline-service-tests.yaml]"
-    pipelinesascode.tekton.dev/task-7: "[.tekton/tasks/pipeline-service-upgrade-setup.yaml]"
-    pipelinesascode.tekton.dev/task-8: "[git-clone]"
+    pipelinesascode.tekton.dev/task-7: "[git-clone]"
     pipelinesascode.tekton.dev/max-keep-runs: "5"
 spec:
   pipelineRef:
