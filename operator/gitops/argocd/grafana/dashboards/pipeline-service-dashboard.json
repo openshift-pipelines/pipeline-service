@@ -3,6 +3,10 @@
     "list": [
       {
         "builtIn": 1,
+        "datasource": {
+          "type": "prometheus",
+          "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+        },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -18,15 +22,18 @@
     ]
   },
   "editable": true,
-  "gnetId": null,
+  "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 3,
-  "iteration": 1689753244988,
+  "id": 12,
   "links": [],
+  "liveNow": false,
   "panels": [
     {
       "collapsed": false,
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -35,6 +42,15 @@
       },
       "id": 4,
       "panels": [],
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "Overview",
       "type": "row"
     },
@@ -43,7 +59,10 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "Completed PipelineRuns per hour",
       "fieldConfig": {
         "defaults": {
@@ -61,7 +80,6 @@
       },
       "hiddenSeries": false,
       "id": 2,
-      "interval": null,
       "legend": {
         "alignAsTable": false,
         "avg": false,
@@ -80,7 +98,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.5.17",
+      "pluginVersion": "9.1.6",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -101,6 +119,10 @@
       "steppedLine": false,
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum by (status) (rate(tekton_pipelines_controller_pipelinerun_count[1h]))* 3600",
           "interval": "",
@@ -110,9 +132,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "PipelineRuns Per Hour",
       "tooltip": {
         "shared": true,
@@ -121,37 +141,31 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "PipelineRun success per hour",
       "fieldConfig": {
         "defaults": {
@@ -159,6 +173,8 @@
             "mode": "thresholds"
           },
           "mappings": [],
+          "max": 1,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -198,9 +214,13 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.5.17",
+      "pluginVersion": "9.1.6",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum (rate(tekton_pipelines_controller_pipelinerun_count{status=\"success\"}[1h])) / sum (rate(tekton_pipelines_controller_pipelinerun_count[1h]))",
           "format": "table",
@@ -220,7 +240,10 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "Completed TaskRuns Per Hour",
       "fieldConfig": {
         "defaults": {
@@ -255,7 +278,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.5.17",
+      "pluginVersion": "9.1.6",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -276,6 +299,10 @@
       "steppedLine": false,
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum by (status) (rate(tekton_pipelines_controller_taskrun_count[1h]))* 3600",
           "interval": "",
@@ -284,9 +311,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "TaskRuns Per Hour",
       "tooltip": {
         "shared": true,
@@ -295,37 +320,31 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "TaskRun success per hour",
       "fieldConfig": {
         "defaults": {
@@ -333,6 +352,8 @@
             "mode": "thresholds"
           },
           "mappings": [],
+          "max": 1,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -372,9 +393,13 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.5.17",
+      "pluginVersion": "9.1.6",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum (rate(tekton_pipelines_controller_taskrun_count{status=\"success\"}[1h])) / sum (rate(tekton_pipelines_controller_taskrun_count[1h]))",
           "format": "table",
@@ -391,7 +416,10 @@
     },
     {
       "collapsed": false,
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -401,18 +429,23 @@
       "id": 11,
       "panels": [],
       "repeat": "datasource",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
+          "refId": "A"
         }
-      },
+      ],
       "title": "Pipelines-Controller Resource Utlization",
       "type": "row"
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "Total average CPU usage of the Pipelines.",
       "fieldConfig": {
         "defaults": {
@@ -420,6 +453,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "cpu",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -429,7 +464,8 @@
             "hideFrom": {
               "graph": false,
               "legend": false,
-              "tooltip": false
+              "tooltip": false,
+              "viz": false
             },
             "lineInterpolation": "smooth",
             "lineStyle": {
@@ -441,7 +477,14 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": false
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
@@ -473,22 +516,21 @@
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
-        "tooltipOptions": {
-          "mode": "multi"
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
         }
       },
       "pluginVersion": "7.5.17",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"tekton-pipelines-controller-.*\", namespace=\"openshift-pipelines\", container=\"\"}[5m]))",
           "format": "table",
@@ -497,13 +539,14 @@
           "refId": "Pipelines Controller"
         }
       ],
-      "timeFrom": null,
-      "timeShift": null,
       "title": "CPU Usage",
       "type": "timeseries"
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "Working set memory usage of Pipelines Controller Containers ",
       "fieldConfig": {
         "defaults": {
@@ -511,6 +554,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "memory",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -520,7 +565,8 @@
             "hideFrom": {
               "graph": false,
               "legend": false,
-              "tooltip": false
+              "tooltip": false,
+              "viz": false
             },
             "lineInterpolation": "smooth",
             "lineWidth": 2,
@@ -529,7 +575,14 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": true
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
@@ -561,22 +614,21 @@
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
-        "tooltipOptions": {
-          "mode": "multi"
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
         }
       },
       "pluginVersion": "7.5.17",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum(container_memory_working_set_bytes{pod=~\"tekton-pipelines-controller-.*\", namespace=\"openshift-pipelines\", container=\"\"})",
           "interval": "",
@@ -584,14 +636,15 @@
           "refId": "A"
         }
       ],
-      "timeFrom": null,
-      "timeShift": null,
       "title": "Memory Utilization",
       "type": "timeseries"
     },
     {
       "collapsed": false,
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -601,18 +654,23 @@
       "id": 29,
       "panels": [],
       "repeat": "datasource",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
+          "refId": "A"
         }
-      },
+      ],
       "title": "Pipelines Controller Monitoring",
       "type": "row"
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "Number of Pipelineruns executing currently",
       "fieldConfig": {
         "defaults": {
@@ -658,16 +716,13 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.5.17",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
+      "pluginVersion": "9.1.6",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "tekton_pipelines_controller_running_pipelineruns_count{prometheus=\"openshift-user-workload-monitoring/user-workload\"}",
           "interval": "",
@@ -679,7 +734,10 @@
       "type": "stat"
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "Number of Taskruns executing currently",
       "fieldConfig": {
         "defaults": {
@@ -725,16 +783,13 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.5.17",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
+      "pluginVersion": "9.1.6",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "tekton_pipelines_controller_running_taskruns_count{prometheus=\"openshift-user-workload-monitoring/user-workload\"}",
           "interval": "",
@@ -750,12 +805,11 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
-      "description": "Frequency of Pipelines Controller restarts (This is experimental and may be removed in future)",
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
       },
+      "description": "Frequency of Pipelines Controller restarts (This is experimental and may be removed in future)",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -784,23 +838,20 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.5.17",
+      "pluginVersion": "9.1.6",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
       "seriesOverrides": [],
       "spaceLength": 10,
       "stack": false,
       "steppedLine": false,
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "rate(kube_pod_container_status_restarts_total{namespace=\"openshift-pipelines\", pod=~\"tekton-pipelines-controller-.*\"}[7d])",
           "interval": "",
@@ -809,9 +860,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Pipelines Controller Container Restarts",
       "tooltip": {
         "shared": true,
@@ -820,37 +869,31 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "The workqueue for the Tekton Pipelines Reconcilers",
       "fieldConfig": {
         "defaults": {
@@ -858,6 +901,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -867,7 +912,8 @@
             "hideFrom": {
               "graph": false,
               "legend": false,
-              "tooltip": false
+              "tooltip": false,
+              "viz": false
             },
             "lineInterpolation": "linear",
             "lineWidth": 1,
@@ -876,7 +922,14 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": true
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
@@ -908,22 +961,21 @@
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
-        "tooltipOptions": {
-          "mode": "single"
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
         }
       },
       "pluginVersion": "7.5.17",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "avg(tekton_pipelines_controller_workqueue_depth)",
           "interval": "",
@@ -939,12 +991,11 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
-      "description": "Number of taskruns executing currently whose underlying Pods or Containers are suspended by k8s because of defined ResourceQuotas",
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
       },
+      "description": "Number of taskruns executing currently whose underlying Pods or Containers are suspended by k8s because of defined ResourceQuotas",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -971,23 +1022,20 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.5.17",
+      "pluginVersion": "9.1.6",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
       "seriesOverrides": [],
       "spaceLength": 10,
       "stack": false,
       "steppedLine": false,
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "tekton_pipelines_controller_running_taskruns_throttled_by_quota_count",
           "interval": "",
@@ -996,9 +1044,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Taskruns Throttled by Quota",
       "tooltip": {
         "shared": true,
@@ -1007,37 +1053,31 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "Scheduling latency for the Taskruns pods",
       "fieldConfig": {
         "defaults": {
@@ -1045,6 +1085,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1054,7 +1096,8 @@
             "hideFrom": {
               "graph": false,
               "legend": false,
-              "tooltip": false
+              "tooltip": false,
+              "viz": false
             },
             "lineInterpolation": "linear",
             "lineWidth": 1,
@@ -1063,7 +1106,14 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": true
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
@@ -1095,22 +1145,21 @@
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
-        "tooltipOptions": {
-          "mode": "single"
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
         }
       },
       "pluginVersion": "7.5.17",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "avg(tekton_pipelines_controller_taskruns_pod_latency)",
           "interval": "",
@@ -1126,12 +1175,11 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
-      "description": "Number of taskruns executing currently whose underlying Pods or Containers are suspended by k8s because of Node level constraints",
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
       },
+      "description": "Number of taskruns executing currently whose underlying Pods or Containers are suspended by k8s because of Node level constraints",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -1158,23 +1206,20 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.5.17",
+      "pluginVersion": "9.1.6",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
       "seriesOverrides": [],
       "spaceLength": 10,
       "stack": false,
       "steppedLine": false,
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "tekton_pipelines_controller_running_taskruns_throttled_by_node_count",
           "interval": "",
@@ -1183,9 +1228,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Taskruns Throttled by Node",
       "tooltip": {
         "shared": true,
@@ -1194,37 +1237,31 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "Total number of Kubernetes API requests by Tekton Controller",
       "fieldConfig": {
         "defaults": {
@@ -1232,6 +1269,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1241,7 +1280,8 @@
             "hideFrom": {
               "graph": false,
               "legend": false,
-              "tooltip": false
+              "tooltip": false,
+              "viz": false
             },
             "lineInterpolation": "linear",
             "lineWidth": 1,
@@ -1250,7 +1290,14 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": true
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
@@ -1282,22 +1329,21 @@
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
-        "tooltipOptions": {
-          "mode": "single"
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
         }
       },
       "pluginVersion": "7.5.17",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "rate(tekton_pipelines_controller_client_results{prometheus=\"openshift-user-workload-monitoring/user-workload\"}[1h])*3600",
           "interval": "",
@@ -1310,7 +1356,10 @@
     },
     {
       "collapsed": false,
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1320,18 +1369,23 @@
       "id": 43,
       "panels": [],
       "repeat": "datasource",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
+          "refId": "A"
         }
-      },
+      ],
       "title": "Pipelines Troubleshooting",
       "type": "row"
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "Average duration of successful Pipelineruns in seconds over one hour time window grouped by namespace.",
       "fieldConfig": {
         "defaults": {
@@ -1364,6 +1418,8 @@
       "id": 45,
       "options": {
         "displayMode": "gradient",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
         "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
@@ -1375,16 +1431,13 @@
         "showUnfilled": true,
         "text": {}
       },
-      "pluginVersion": "7.5.17",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
+      "pluginVersion": "9.1.6",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum by (namespace) ((avg_over_time(tekton_pipelines_controller_pipelinerun_duration_seconds_sum{status=\"success\"}[1h]) / avg_over_time(tekton_pipelines_controller_pipelinerun_duration_seconds_count{status=\"success\"}[1h])))",
           "interval": "",
@@ -1396,7 +1449,10 @@
       "type": "bargauge"
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "Average scheduling duration per PipelineRun in seconds for each namespace over the last 1 hour",
       "fieldConfig": {
         "defaults": {
@@ -1429,6 +1485,8 @@
       "id": 47,
       "options": {
         "displayMode": "gradient",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
         "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
@@ -1440,16 +1498,13 @@
         "showUnfilled": true,
         "text": {}
       },
-      "pluginVersion": "7.5.17",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
+      "pluginVersion": "9.1.6",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum by (namespace) ((avg_over_time(pipelinerun_duration_scheduled_seconds_sum[1h]) / avg_over_time(pipelinerun_duration_scheduled_seconds_count[1h])))",
           "interval": "",
@@ -1462,7 +1517,10 @@
     },
     {
       "collapsed": false,
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1472,13 +1530,15 @@
       "id": 17,
       "panels": [],
       "repeat": "datasource",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
+          "refId": "A"
         }
-      },
+      ],
       "title": "Pipelines-as-code Monitoring",
       "type": "row"
     },
@@ -1487,12 +1547,11 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
-      "description": "Total average CPU usage of the Pipelines-as-code watcher and controller pods over the past hour.",
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
       },
+      "description": "Total average CPU usage of the Pipelines-as-code watcher and controller pods over the past hour.",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -1520,23 +1579,20 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.5.17",
+      "pluginVersion": "9.1.6",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
       "seriesOverrides": [],
       "spaceLength": 10,
       "stack": false,
       "steppedLine": false,
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{pod=~\"pipelines-as-code-(watcher|controller)-.*\", namespace=\"openshift-pipelines\", container=\"\"}[5m]))*100",
           "interval": "",
@@ -1545,9 +1601,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "CPU Usage",
       "tooltip": {
         "shared": true,
@@ -1556,9 +1610,7 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
@@ -1566,25 +1618,18 @@
         {
           "$$hashKey": "object:171",
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         },
         {
           "$$hashKey": "object:172",
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
@@ -1592,12 +1637,11 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
-      "description": "Working set memory usage of Pipelines-as-code watcher and controller pods over the past hour.",
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
       },
+      "description": "Working set memory usage of Pipelines-as-code watcher and controller pods over the past hour.",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -1625,23 +1669,20 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.5.17",
+      "pluginVersion": "9.1.6",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
       "seriesOverrides": [],
       "spaceLength": 10,
       "stack": false,
       "steppedLine": false,
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum by (pod) (container_memory_working_set_bytes{pod=~\"pipelines-as-code-(watcher|controller)-.*\", namespace=\"openshift-pipelines\", container=\"\"})",
           "interval": "",
@@ -1650,9 +1691,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Memory Utilization",
       "tooltip": {
         "shared": true,
@@ -1661,9 +1700,7 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
@@ -1671,25 +1708,18 @@
         {
           "$$hashKey": "object:80",
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         },
         {
           "$$hashKey": "object:81",
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
@@ -1697,12 +1727,11 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
-      "description": "Number of Pipelineruns watched on pull_request and push events",
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
       },
+      "description": "Number of Pipelineruns watched on pull_request and push events",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -1730,23 +1759,20 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.5.17",
+      "pluginVersion": "9.1.6",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
       "seriesOverrides": [],
       "spaceLength": 10,
       "stack": false,
       "steppedLine": false,
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum by (event_type) (rate(pac_watcher_pipelines_as_code_pipelinerun_count{prometheus=\"openshift-user-workload-monitoring/user-workload\"}[1h]))*3600",
           "interval": "",
@@ -1755,9 +1781,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "PipelineRuns Watched Per Hour",
       "tooltip": {
         "shared": true,
@@ -1766,9 +1790,7 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
@@ -1776,25 +1798,18 @@
         {
           "$$hashKey": "object:440",
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         },
         {
           "$$hashKey": "object:441",
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
@@ -1802,12 +1817,11 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
-      "description": "The workqueue depth for the Pipelines-as-code Reconcilers",
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
       },
+      "description": "The workqueue depth for the Pipelines-as-code Reconcilers",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -1834,23 +1848,20 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.5.17",
+      "pluginVersion": "9.1.6",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
       "seriesOverrides": [],
       "spaceLength": 10,
       "stack": false,
       "steppedLine": false,
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "avg(pac_watcher_workqueue_depth)",
           "interval": "",
@@ -1859,9 +1870,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Watcher Workqueue Depth",
       "tooltip": {
         "shared": true,
@@ -1870,9 +1879,7 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
@@ -1880,25 +1887,18 @@
         {
           "$$hashKey": "object:351",
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         },
         {
           "$$hashKey": "object:352",
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
@@ -1906,12 +1906,11 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
-      "description": "Total number of kubernetes api request for pipelines-as-code watcher",
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
       },
+      "description": "Total number of kubernetes api request for pipelines-as-code watcher",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -1938,23 +1937,20 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.5.17",
+      "pluginVersion": "9.1.6",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
       "seriesOverrides": [],
       "spaceLength": 10,
       "stack": false,
       "steppedLine": false,
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "rate(pac_watcher_client_results{prometheus=\"openshift-user-workload-monitoring/user-workload\"}[1h])*3600",
           "interval": "",
@@ -1963,9 +1959,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Watcher Client Results",
       "tooltip": {
         "shared": true,
@@ -1974,9 +1968,7 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
@@ -1984,30 +1976,26 @@
         {
           "$$hashKey": "object:262",
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         },
         {
           "$$hashKey": "object:263",
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
       "collapsed": false,
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -2016,6 +2004,15 @@
       },
       "id": 49,
       "panels": [],
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "Metrics Exporter Monitoring",
       "type": "row"
     },
@@ -2024,10 +2021,9 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
       },
       "fill": 1,
       "fillGradient": 0,
@@ -2055,7 +2051,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.5.17",
+      "pluginVersion": "9.1.6",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -2065,6 +2061,10 @@
       "steppedLine": false,
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "workqueue_depth{namespace='openshift-pipelines',pod=~'pipeline-metrics-exporter.+'}",
           "interval": "",
@@ -2073,9 +2073,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Workqueue Depth",
       "tooltip": {
         "shared": true,
@@ -2084,33 +2082,24 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
@@ -2118,10 +2107,9 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
       },
       "fill": 1,
       "fillGradient": 0,
@@ -2149,7 +2137,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.5.17",
+      "pluginVersion": "9.1.6",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -2159,6 +2147,10 @@
       "steppedLine": false,
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum(rate(container_cpu_usage_seconds_total{namespace='openshift-pipelines',pod=~'pipeline-metrics-exporter-.*', container=\"\"}[5m]))",
           "interval": "",
@@ -2167,9 +2159,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "CPU Utilization",
       "tooltip": {
         "shared": true,
@@ -2178,33 +2168,24 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
@@ -2212,10 +2193,9 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
       },
       "fill": 1,
       "fillGradient": 0,
@@ -2243,7 +2223,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.5.17",
+      "pluginVersion": "9.1.6",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -2253,6 +2233,10 @@
       "steppedLine": false,
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum(container_memory_working_set_bytes{namespace='openshift-pipelines',pod=~'pipeline-metrics-exporter-.*', container=\"\"})",
           "interval": "",
@@ -2261,9 +2245,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Memory Utilization",
       "tooltip": {
         "shared": true,
@@ -2272,38 +2254,32 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
       "collapsed": false,
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -2313,18 +2289,23 @@
       "id": 60,
       "panels": [],
       "repeat": "datasource",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
+          "refId": "A"
         }
-      },
+      ],
       "title": "Tekton Results",
       "type": "row"
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "Status of API and Watcher",
       "fieldConfig": {
         "defaults": {
@@ -2333,22 +2314,19 @@
           },
           "mappings": [
             {
-              "from": "",
-              "id": 1,
-              "text": "OK",
-              "to": "",
-              "type": 1,
-              "value": "1"
-            },
-            {
-              "from": "",
-              "id": 2,
-              "text": "Down",
-              "to": "",
-              "type": 1,
-              "value": "0"
+              "options": {
+                "0": {
+                  "text": "Down"
+                },
+                "1": {
+                  "text": "OK"
+                }
+              },
+              "type": "value"
             }
           ],
+          "max": 1,
+          "min": 0,
           "noValue": "No Data",
           "thresholds": {
             "mode": "percentage",
@@ -2389,16 +2367,13 @@
         "text": {},
         "textMode": "value_and_name"
       },
-      "pluginVersion": "7.5.17",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
+      "pluginVersion": "9.1.6",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum(up{job=\"tekton-results-api\"})",
           "format": "time_series",
@@ -2409,6 +2384,10 @@
           "refId": "api up"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum(up{job=\"tekton-results-watcher\"})",
           "format": "time_series",
@@ -2418,14 +2397,15 @@
           "refId": "watcher up"
         }
       ],
-      "timeFrom": null,
-      "timeShift": null,
       "title": "Deployment Status",
       "transformations": [],
       "type": "stat"
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "Request success rate",
       "fieldConfig": {
         "defaults": {
@@ -2433,6 +2413,8 @@
             "mode": "continuous-RdYlGr"
           },
           "mappings": [],
+          "max": 1,
+          "min": 0,
           "noValue": "No Data",
           "thresholds": {
             "mode": "percentage",
@@ -2470,16 +2452,13 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.5.17",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
+      "pluginVersion": "9.1.6",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "1 - ((sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code=~\"Internal|Unavailable|Unknown|Unimplemented\"}[$__rate_interval]))) / sum(rate(grpc_server_started_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval])))\n",
           "interval": "",
@@ -2488,13 +2467,14 @@
           "refId": "request success rate"
         }
       ],
-      "timeFrom": null,
-      "timeShift": null,
       "title": "API Success Rate",
       "type": "stat"
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "Watcher work queue depth",
       "fieldConfig": {
         "defaults": {
@@ -2524,7 +2504,6 @@
         "y": 121
       },
       "id": 63,
-      "interval": null,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -2540,16 +2519,13 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.5.17",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
+      "pluginVersion": "9.1.6",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum(watcher_workqueue_depth{job=\"tekton-results-watcher\"})",
           "interval": "",
@@ -2562,7 +2538,10 @@
       "type": "stat"
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "Requests/Second",
       "fieldConfig": {
         "defaults": {
@@ -2607,16 +2586,13 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.5.17",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
+      "pluginVersion": "9.1.6",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum(rate(grpc_server_started_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval]))",
           "interval": "",
@@ -2629,7 +2605,10 @@
       "type": "stat"
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "Request latency 99%-tile",
       "fieldConfig": {
         "defaults": {
@@ -2675,16 +2654,13 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.5.17",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
+      "pluginVersion": "9.1.6",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "histogram_quantile(0.99, sum(rate(grpc_server_handling_seconds_bucket{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval])) by (le) )",
           "interval": "",
@@ -2697,7 +2673,10 @@
       "type": "stat"
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "Reconcile latency 99%-tile - \nLatency of reconcile operations.",
       "fieldConfig": {
         "defaults": {
@@ -2743,16 +2722,13 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.5.17",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
+      "pluginVersion": "9.1.6",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "histogram_quantile(0.99, sum(rate(watcher_reconcile_latency_bucket{job=\"tekton-results-watcher\"}[$__rate_interval])) by (le) )",
           "interval": "",
@@ -2765,7 +2741,10 @@
       "type": "stat"
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "Pod CPU utilisation ",
       "fieldConfig": {
         "defaults": {
@@ -2773,6 +2752,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "CPU",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -2782,7 +2763,8 @@
             "hideFrom": {
               "graph": false,
               "legend": false,
-              "tooltip": false
+              "tooltip": false,
+              "viz": false
             },
             "lineInterpolation": "smooth",
             "lineWidth": 2,
@@ -2791,7 +2773,14 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": true
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
@@ -2820,22 +2809,21 @@
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
-        "tooltipOptions": {
-          "mode": "multi"
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
         }
       },
       "pluginVersion": "7.5.17",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"tekton-results-api-.*\", namespace=\"tekton-results\", container=\"\"}[$__rate_interval]))",
           "instant": false,
@@ -2845,6 +2833,10 @@
           "refId": "api"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"tekton-results-watcher-.*\", namespace=\"tekton-results\", container=\"\"}[$__rate_interval]))",
           "hide": false,
@@ -2858,7 +2850,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "Pod memory utilisation",
       "fieldConfig": {
         "defaults": {
@@ -2866,6 +2861,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "Size",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -2875,7 +2872,8 @@
             "hideFrom": {
               "graph": false,
               "legend": false,
-              "tooltip": false
+              "tooltip": false,
+              "viz": false
             },
             "lineInterpolation": "smooth",
             "lineWidth": 2,
@@ -2884,7 +2882,14 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": true
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
@@ -2917,22 +2922,21 @@
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
-        "tooltipOptions": {
-          "mode": "multi"
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
         }
       },
       "pluginVersion": "7.5.17",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum(container_memory_working_set_bytes{pod=~\"tekton-results-api-.*\",namespace=\"tekton-results\", container=\"\"})",
           "format": "time_series",
@@ -2942,6 +2946,10 @@
           "refId": "api"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum(container_memory_working_set_bytes{pod=~\"tekton-results-watcher-.*\",namespace=\"tekton-results\", container=\"\"})",
           "hide": false,
@@ -2955,7 +2963,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "RPC execution rate",
       "fieldConfig": {
         "defaults": {
@@ -2963,6 +2974,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "Response Rate",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -2972,7 +2985,8 @@
             "hideFrom": {
               "graph": false,
               "legend": false,
-              "tooltip": false
+              "tooltip": false,
+              "viz": false
             },
             "lineInterpolation": "smooth",
             "lineWidth": 2,
@@ -2981,7 +2995,14 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": true
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
@@ -3012,22 +3033,21 @@
             "mean"
           ],
           "displayMode": "table",
-          "placement": "right"
+          "placement": "right",
+          "showLegend": true
         },
-        "tooltipOptions": {
-          "mode": "single"
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
         }
       },
       "pluginVersion": "7.5.17",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval])) by (grpc_method)",
           "interval": "",
@@ -3052,10 +3072,24 @@
         "mode": "spectrum"
       },
       "dataFormat": "tsbuckets",
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "Latency Distribution",
       "fieldConfig": {
-        "defaults": {},
+        "defaults": {
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "scaleDistribution": {
+              "type": "linear"
+            }
+          }
+        },
         "overrides": []
       },
       "gridPos": {
@@ -3072,17 +3106,53 @@
       "legend": {
         "show": true
       },
-      "pluginVersion": "7.5.17",
-      "reverseYBuckets": false,
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
+      "options": {
+        "calculate": false,
+        "calculation": {},
+        "cellGap": 2,
+        "cellRadius": 2,
+        "cellValues": {},
+        "color": {
+          "exponent": 0.5,
+          "fill": "#73BF69",
+          "mode": "scheme",
+          "reverse": false,
+          "scale": "exponential",
+          "scheme": "Spectral",
+          "steps": 128
+        },
+        "exemplars": {
+          "color": "rgba(255,0,255,0.7)"
+        },
+        "filterValues": {
+          "le": 1e-9
+        },
+        "legend": {
+          "show": true
+        },
+        "rowsFrame": {
+          "layout": "auto"
+        },
+        "showValue": "never",
+        "tooltip": {
+          "show": true,
+          "yHistogram": true
+        },
+        "yAxis": {
+          "axisPlacement": "left",
+          "decimals": 0,
+          "reverse": false,
+          "unit": "s"
         }
       },
+      "pluginVersion": "9.1.6",
+      "reverseYBuckets": false,
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum(increase(grpc_server_handling_seconds_bucket{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval])) by (le)",
           "interval": "",
@@ -3100,23 +3170,19 @@
       "xAxis": {
         "show": true
       },
-      "xBucketNumber": null,
-      "xBucketSize": null,
       "yAxis": {
         "decimals": 0,
         "format": "s",
         "logBase": 1,
-        "max": null,
-        "min": null,
-        "show": true,
-        "splitFactor": null
+        "show": true
       },
-      "yBucketBound": "auto",
-      "yBucketNumber": null,
-      "yBucketSize": null
+      "yBucketBound": "auto"
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "Server error distribution across gRPC methods.               \nStatus Codes:\nInternal, Unavailable, Unknown, Unimplemented",
       "fieldConfig": {
         "defaults": {
@@ -3124,6 +3190,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "Request Rate",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -3133,7 +3201,8 @@
             "hideFrom": {
               "graph": false,
               "legend": false,
-              "tooltip": false
+              "tooltip": false,
+              "viz": false
             },
             "lineInterpolation": "smooth",
             "lineWidth": 2,
@@ -3142,7 +3211,14 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": true
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
@@ -3193,23 +3269,22 @@
           "calcs": [
             "mean"
           ],
-          "displayMode": "hidden",
-          "placement": "right"
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": false
         },
-        "tooltipOptions": {
-          "mode": "single"
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
         }
       },
       "pluginVersion": "7.5.17",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[$__rate_interval])) by (grpc_method)",
           "interval": "",
@@ -3218,6 +3293,10 @@
           "refId": "error methods"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code=~\"Internal|Unavailable|Unknown|Unimplemented\"}[$__rate_interval])) by (grpc_code) / ignoring(grpc_code) group_left sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[$__rate_interval]))",
           "hide": false,
@@ -3231,7 +3310,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "Other error distribution across gRPC methods.           \nStatus Codes Except:\nInternal, Unavailable, Unknown, Unimplemented",
       "fieldConfig": {
         "defaults": {
@@ -3239,6 +3321,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "Request Rate",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -3248,7 +3332,8 @@
             "hideFrom": {
               "graph": false,
               "legend": false,
-              "tooltip": false
+              "tooltip": false,
+              "viz": false
             },
             "lineInterpolation": "smooth",
             "lineWidth": 2,
@@ -3257,7 +3342,14 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": true
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
@@ -3308,23 +3400,22 @@
           "calcs": [
             "mean"
           ],
-          "displayMode": "hidden",
-          "placement": "right"
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": false
         },
-        "tooltipOptions": {
-          "mode": "single"
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
         }
       },
       "pluginVersion": "7.5.17",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[$__rate_interval])) by (grpc_method)",
           "interval": "",
@@ -3333,6 +3424,10 @@
           "refId": "error methods"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!~\"Internal|Unavailable|Unknown|Unimplemented\"}[$__rate_interval])) by (grpc_code) / ignoring(grpc_code) group_left sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[$__rate_interval]))",
           "hide": false,
@@ -3346,7 +3441,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "Number of reconcile operations",
       "fieldConfig": {
         "defaults": {
@@ -3354,6 +3452,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "Reconcile Rate",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -3363,7 +3463,8 @@
             "hideFrom": {
               "graph": false,
               "legend": false,
-              "tooltip": false
+              "tooltip": false,
+              "viz": false
             },
             "lineInterpolation": "smooth",
             "lineWidth": 2,
@@ -3372,7 +3473,14 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": true
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
@@ -3432,22 +3540,21 @@
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
-        "tooltipOptions": {
-          "mode": "multi"
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
         }
       },
       "pluginVersion": "7.5.17",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum(rate(watcher_reconcile_count{job=\"tekton-results-watcher\"}[$__rate_interval])) by (success)",
           "format": "time_series",
@@ -3477,7 +3584,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "description": "Work queue latency at queue depth",
       "fieldConfig": {
         "defaults": {
@@ -3485,6 +3595,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "Latency",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -3494,7 +3606,8 @@
             "hideFrom": {
               "graph": false,
               "legend": false,
-              "tooltip": false
+              "tooltip": false,
+              "viz": false
             },
             "lineInterpolation": "smooth",
             "lineWidth": 2,
@@ -3503,7 +3616,14 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": true
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
@@ -3571,22 +3691,21 @@
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
-        "tooltipOptions": {
-          "mode": "single"
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
         }
       },
       "pluginVersion": "7.5.17",
-      "scopedVars": {
-        "datasource": {
-          "selected": true,
-          "text": "prometheus-appstudio-ds",
-          "value": "prometheus-appstudio-ds"
-        }
-      },
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum(rate(watcher_workqueue_queue_latency_seconds_count{job=\"tekton-results-watcher\"}[$__rate_interval]))",
           "hide": false,
@@ -3596,6 +3715,10 @@
           "refId": "work queue latency"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum(rate(watcher_reconcile_latency_count{job=\"tekton-results-watcher\"}[$__rate_interval]))",
           "hide": false,
@@ -3605,6 +3728,10 @@
           "refId": "reconcile latency"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "exemplar": true,
           "expr": "sum(watcher_work_queue_depth{job=\"tekton-results-watcher\"})",
           "format": "time_series",
@@ -3614,13 +3741,15 @@
           "refId": "work queue depth"
         }
       ],
-      "timeFrom": null,
-      "timeShift": null,
       "title": "Watcher Latency",
       "type": "timeseries"
     },
     {
       "collapsed": false,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -3631,11 +3760,23 @@
       "panels": [],
       "repeat": "datasource",
       "repeatDirection": "h",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "Tekton Chains",
       "type": "row"
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -3709,7 +3850,10 @@
       },
       "targets": [
         {
-          "datasource": null,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "editorMode": "builder",
           "expr": "rate(watcher_go_gc_cpu_fraction{app=\"tekton-chains-controller\"}[5m])",
           "legendFormat": "__auto",
@@ -3721,7 +3865,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -3795,7 +3942,10 @@
       },
       "targets": [
         {
-          "datasource": null,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
           "editorMode": "builder",
           "expr": "rate(watcher_workqueue_longest_running_processor_seconds_count{app=\"tekton-chains-controller\"}[5m])",
           "legendFormat": "__auto",
@@ -3805,25 +3955,290 @@
       ],
       "title": "Tekton Chains Workqueue Rate",
       "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 188
+      },
+      "id": 85,
+      "panels": [],
+      "title": "Sprayproxy",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 189
+      },
+      "id": 87,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
+          "editorMode": "code",
+          "expr": "rate(sprayproxy_http_inbound_requests_total{namespace=\"sprayproxy\"}[5m]) * 300",
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Incoming Requests",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
+      "description": "Forwarded attempts to backend server(s)",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 189
+      },
+      "id": 89,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
+          "editorMode": "code",
+          "expr": "rate(sprayproxy_http_forwarded_requests_total[5m]) * 300",
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Forwarded Requests",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+      },
+      "description": "Forwarded request duration in seconds",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 197
+      },
+      "id": 91,
+      "options": {
+        "displayMode": "gradient",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true
+      },
+      "pluginVersion": "9.1.6",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "rate(sprayproxy_http_response_time_duration_seconds_bucket[5m]) * 300",
+          "format": "heatmap",
+          "instant": false,
+          "interval": "",
+          "legendFormat": "{{le}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Response Time Duration",
+      "type": "bargauge"
     }
   ],
   "refresh": "10s",
-  "schemaVersion": 27,
+  "schemaVersion": 37,
   "style": "dark",
   "tags": [],
   "templating": {
     "list": [
       {
         "current": {
-          "selected": false,
+          "selected": true,
           "text": "prometheus-appstudio-ds",
           "value": "prometheus-appstudio-ds"
         },
-        "description": null,
-        "error": null,
         "hide": 0,
         "includeAll": false,
-        "label": null,
         "multi": false,
         "name": "datasource",
         "options": [],
@@ -3844,5 +4259,6 @@
   "timezone": "",
   "title": "Pipeline Service",
   "uid": "02ebfdefeeed166624895c36b0c1af4ed3006c5d",
-  "version": 3
+  "version": 1,
+  "weekStart": ""
 }
