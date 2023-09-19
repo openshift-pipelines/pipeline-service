@@ -20,16 +20,10 @@ spec:
       securityContext:
         privileged: true
       volumeMounts:
-        - name: pull-secret
-          mountPath: "/run/user/0/containers/"
-          readOnly: true
         - name: ci-runner-storage
           mountPath: "/workspace"
       workingDir: "/workspace/source"
   volumes:
-    - name: pull-secret
-      secret:
-        secretName: pull-secret
     - name: ci-runner-storage
       persistentVolumeClaim:
         claimName: ci-runner-pvc
