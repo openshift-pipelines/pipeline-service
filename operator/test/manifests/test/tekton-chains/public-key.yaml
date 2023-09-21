@@ -19,5 +19,10 @@ spec:
                 set -o pipefail
                 set -x
                 PUBLIC_KEY=$(oc get secret public-key -n openshift-pipelines -o jsonpath='{.data.cosign\.pub}')
+                if [[ -z "$PUBLIC_KEY" ]]; then
+                  echo "[ERROR] Public key is empty."
+                  exit 1
+                fi
+                echo "Public key exists."
                 echo "$PUBLIC_KEY" | base64 -d
   serviceAccountName: chains-test
