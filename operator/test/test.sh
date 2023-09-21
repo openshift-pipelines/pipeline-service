@@ -150,6 +150,19 @@ test_chains() {
     sleep 5
   done
 
+  echo -n "  - Signing secret: "
+  if ! kubectl get secret signing-secrets -n openshift-pipelines >/dev/null 2>&1; then
+    echo "Failed"
+    echo "[ERROR] Secret does not exist" >&2
+    exit 1
+  fi
+  if [ "$(kubectl get secret signing-secrets -n openshift-pipelines -o jsonpath='{.immutable}')" != "true" ]; then
+    echo "Failed"
+    echo "[ERROR] Secret is not immutable" >&2
+    exit 1
+  fi
+  echo "OK"
+
   # Trigger the pipeline
   echo -n "  - Run pipeline: "
   image_src="quay.io/aptible/alpine:latest"
@@ -205,12 +218,6 @@ test_chains() {
   echo -n "  - Public key: "
   pipeline_name=$(kubectl create -f "$SCRIPT_DIR/manifests/test/tekton-chains/public-key.yaml" -n "$NAMESPACE" | cut -d' ' -f1)
   wait_for_pipeline "$pipeline_name" "$NAMESPACE"
-
-#  debug
-  exact_pr_name=$(echo "$pipeline_name" | cut -d'/' -f2)
-  tkn pr logs -n "$NAMESPACE" "$exact_pr_name"
-  kubectl describe "$pipeline_name" -n "$NAMESPACE"
-
   if [ "$(kubectl get "$pipeline_name" -n "$NAMESPACE" \
     -o 'jsonpath={.status.conditions[0].reason}')" = "Succeeded" ]; then
     echo "OK"
