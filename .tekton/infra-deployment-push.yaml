@@ -18,16 +18,20 @@ spec:
         sed -i -E 's/[0-9a-f]{40}/{{ revision }}/g' components/pipeline-service/development/kustomization.yaml
         sed -i -E 's/[0-9a-f]{40}/{{ revision }}/g' components/pipeline-service/staging/base/kustomization.yaml
         sed -i -E 's/[0-9a-f]{40}/{{ revision }}/g' components/monitoring/grafana/base/dashboards/pipeline-service/kustomization.yaml
+    - name: slack-webhook-notification-team
+      value: pipeline
   pipelineSpec:
     params:
-      - description: 'Source Repository URL'
+      - description: "Source Repository URL"
         name: git-url
         type: string
-      - description: 'Revision of the Source Repository'
+      - description: "Revision of the Source Repository"
         name: revision
         type: string
       - default: ""
         name: infra-deployment-update-script
+      - default: ""
+        name: slack-webhook-notification-team
     tasks:
       - name: update-infra-repo
         params:
@@ -40,3 +44,20 @@ spec:
         taskRef:
           bundle: quay.io/redhat-appstudio-tekton-catalog/task-update-infra-deployments:0.1
           name: update-infra-deployments
+    finally:
+      - name: slack-webhook-notification
+        when:
+          - input: $(params.slack-webhook-notification-team)
+            operator: notin
+            values: [""]
+          - input: $(tasks.status)
+            operator: in
+            values: ["Failed"]
+        params:
+          - name: message
+            value: Tekton pipelineRun $(context.pipelineRun.name) failed
+          - name: key-name
+            value: $(params.slack-webhook-notification-team)
+        taskRef:
+          bundle: quay.io/redhat-appstudio-tekton-catalog/task-slack-webhook-notification:0.1
+          name: slack-webhook-notification
