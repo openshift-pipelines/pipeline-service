@@ -25,7 +25,7 @@ spec:
       - name: revision
       - name: target_branch
     workspaces:
-      - name: source
+      - name: shared-workspace
     tasks:
       - name: fetch-repository
         taskRef:
@@ -33,18 +33,20 @@ spec:
           kind: ClusterTask
         workspaces:
           - name: output
-            workspace: source
+            workspace: shared-workspace
         params:
           - name: url
             value: $(params.repo_url)
           - name: revision
             value: $(params.revision)
+          - name: subdirectory
+            value: source
       - name: shellcheck
         runAfter:
           - fetch-repository
         workspaces:
-          - name: source
-            workspace: source
+          - name: workdir
+            workspace: shared-workspace
         params:
           - name: target_branch
             value: $(params.target_branch)
@@ -55,17 +57,19 @@ spec:
             - name: run-shellcheck
               image: quay.io/redhat-pipeline-service/static-checks:$(params.target_branch)
               imagePullPolicy: Always
+              workingDir: $(workspaces.workdir.path)/source
               script: |
                 #!/usr/bin/env bash
-                $(workspaces.source.path)/ci/images/static-checks/content/bin/shellcheck.sh --workspace_dir $(workspaces.source.path)
+                ci/images/static-checks/content/bin/shellcheck.sh \
+                  --workspace_dir .
           workspaces:
-            - name: source
+            - name: workdir
       - name: yamllint
         runAfter:
           - fetch-repository
         workspaces:
-          - name: source
-            workspace: source
+          - name: workdir
+            workspace: shared-workspace
         params:
           - name: target_branch
             value: $(params.target_branch)
@@ -76,17 +80,20 @@ spec:
             - name: run-yamllint
               image: quay.io/redhat-pipeline-service/static-checks:$(params.target_branch)
               imagePullPolicy: Always
+              workingDir: $(workspaces.workdir.path)/source
               script: |
                 #!/usr/bin/env bash
-                $(workspaces.source.path)/ci/images/static-checks/content/bin/yamllint.sh --config-file $(workspaces.source.path)/ci/images/static-checks/content/config/yamllint.yaml --workspace_dir $(workspaces.source.path)
+                ci/images/static-checks/content/bin/yamllint.sh \
+                  --config-file ./ci/images/static-checks/content/config/yamllint.yaml \
+                  --workspace_dir .
           workspaces:
-            - name: source
+            - name: workdir
       - name: hadolint
         runAfter:
           - fetch-repository
         workspaces:
-          - name: source
-            workspace: source
+          - name: workdir
+            workspace: shared-workspace
         params:
           - name: target_branch
             value: $(params.target_branch)
@@ -96,17 +103,20 @@ spec:
           steps:
             - name: run-hadolint
               image: quay.io/redhat-pipeline-service/static-checks:$(params.target_branch)
+              workingDir: $(workspaces.workdir.path)/source
               script: |
                 #!/usr/bin/env bash
-                $(workspaces.source.path)/ci/images/static-checks/content/bin/hadolint.sh --config-file $(workspaces.source.path)/ci/images/static-checks/content/config/hadolint.yaml --workspace_dir $(workspaces.source.path)
+                ci/images/static-checks/content/bin/hadolint.sh \
+                  --config-file ./ci/images/static-checks/content/config/hadolint.yaml \
+                  --workspace_dir .
           workspaces:
-            - name: source
+            - name: workdir
       - name: checkov
         runAfter:
           - fetch-repository
         workspaces:
-          - name: source
-            workspace: source
+          - name: workdir
+            workspace: shared-workspace
         params:
           - name: target_branch
             value: $(params.target_branch)
@@ -116,13 +126,16 @@ spec:
           steps:
             - name: run-checkov
               image: quay.io/redhat-pipeline-service/static-checks:$(params.target_branch)
+              workingDir: $(workspaces.workdir.path)/source
               script: |
                 #!/usr/bin/env bash
-                $(workspaces.source.path)/ci/images/static-checks/content/bin/checkov.sh --workspace_dir $(workspaces.source.path) --config-file $(workspaces.source.path)/ci/images/static-checks/content/config/checkov.yaml
+                ci/images/static-checks/content/bin/checkov.sh \
+                  --config-file ./ci/images/static-checks/content/config/checkov.yaml \
+                  --workspace_dir .
           workspaces:
-            - name: source
+            - name: workdir
   workspaces:
-    - name: source
+    - name: shared-workspace
       volumeClaimTemplate:
         spec:
           accessModes:

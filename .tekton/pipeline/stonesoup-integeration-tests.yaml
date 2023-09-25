@@ -14,15 +14,14 @@ spec:
     - name: repo_owner
     - name: target_branch
   workspaces:
-    - name: source
-    - name: shared-workspace
+    - name: workdir
   tasks:
     - name: fetch-repository
       taskRef:
         name: git-clone
       workspaces:
         - name: output
-          workspace: source
+          workspace: workdir
       params:
         - name: url
           value: $(params.repo_url)
@@ -48,18 +47,14 @@ spec:
       workspaces:
         - name: output
           workspace: shared-workspace
-        - name: source
-          workspace: source
       taskRef:
         name: deploy-cluster
     - name: stonesoupe-e2e-test
       runAfter:
         - "deploy-cluster"
       workspaces:
-        - name: kubeconfig-dir
+        - name: workdir
           workspace: shared-workspace
-        - name: source
-          workspace: source
       params:
         - name: repo_url
           value: $(params.repo_url)
@@ -87,7 +82,5 @@ spec:
         - name: region
           value: $(params.aws_region)
       workspaces:
-        - name: output
+        - name: workdir
           workspace: shared-workspace
-        - name: source
-          workspace: source

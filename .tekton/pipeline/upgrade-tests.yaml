@@ -13,20 +13,21 @@ spec:
   timeouts:
     finally: "0h30m0s"
   workspaces:
-    - name: source
-    - name: upgrade-shared-workspace
+    - name: shared-workspace
   tasks:
     - name: clone-pipeline-service-git
       taskRef:
         name: git-clone
       workspaces:
         - name: output
-          workspace: source
+          workspace: shared-workspace
       params:
         - name: url
           value: $(params.repo_url)
         - name: revision
           value: $(params.revision)
+        - name: subdirectory
+          value: source
     - name: generate-cluster-name
       taskRef:
         name: generate-cluster-name
@@ -37,19 +38,17 @@ spec:
         - "generate-cluster-name"
         - "clone-pipeline-service-git"
       params:
+        - name: cluster-name
+          value: "$(tasks.generate-cluster-name.results.cluster-name)"
         - name: ocp_version
           value: $(params.ocp_version)
         - name: region
           value: $(params.aws_region)
-        - name: cluster-name
-          value: "$(tasks.generate-cluster-name.results.cluster-name)"
         - name: target_branch
           value: $(params.target_branch)
       workspaces:
-        - name: output
-          workspace: upgrade-shared-workspace
-        - name: source
-          workspace: source
+        - name: workdir
+          workspace: shared-workspace
     - name: setup-ci-runner
       taskRef:
         name: setup-ci-runner-container
@@ -59,20 +58,16 @@ spec:
         - name: target_branch
           value: $(params.target_branch)
       workspaces:
-        - name: source
-          workspace: source
-        - name: kubeconfig-dir
-          workspace: upgrade-shared-workspace
+        - name: workdir
+          workspace: shared-workspace
     - name: plnsvc-setup-baseline
       taskRef:
         name: pipeline-service-setup
       runAfter:
         - "setup-ci-runner"
       workspaces:
-        - name: kubeconfig-dir
-          workspace: upgrade-shared-workspace
-        - name: source
-          workspace: source
+        - name: workdir
+          workspace: shared-workspace
       params:
         - name: repo_url
           value: $(params.repo_url)
@@ -89,20 +84,16 @@ spec:
         - name: target_branch
           value: $(params.target_branch)
       workspaces:
-        - name: kubeconfig-dir
-          workspace: upgrade-shared-workspace
-        - name: source
-          workspace: source
+        - name: workdir
+          workspace: shared-workspace
     - name: plnsvc-setup-upgrade
       taskRef:
         name: pipeline-service-setup
       runAfter:
         - "tests-baseline"
       workspaces:
-        - name: kubeconfig-dir
-          workspace: upgrade-shared-workspace
-        - name: source
-          workspace: source
+        - name: workdir
+          workspace: shared-workspace
       params:
         - name: repo_url
           value: $(params.repo_url)
@@ -119,20 +110,16 @@ spec:
         - name: target_branch
           value: $(params.target_branch)
       workspaces:
-        - name: kubeconfig-dir
-          workspace: upgrade-shared-workspace
-        - name: source
-          workspace: source
+        - name: workdir
+          workspace: shared-workspace
     - name: plnsvc-setup-downgrade
       taskRef:
         name: pipeline-service-setup
       runAfter:
         - "tests-upgrade"
       workspaces:
-        - name: kubeconfig-dir
-          workspace: upgrade-shared-workspace
-        - name: source
-          workspace: source
+        - name: workdir
+          workspace: shared-workspace
       params:
         - name: repo_url
           value: $(params.repo_url)
@@ -149,10 +136,8 @@ spec:
         - name: target_branch
           value: $(params.target_branch)
       workspaces:
-        - name: kubeconfig-dir
-          workspace: upgrade-shared-workspace
-        - name: source
-          workspace: source
+        - name: workdir
+          workspace: shared-workspace
   finally:
     - name: destroy-cluster
       taskRef:
@@ -164,12 +149,10 @@ spec:
       params:
         - name: cluster-name
           value: "$(tasks.generate-cluster-name.results.cluster-name)"
-        - name: target_branch
-          value: $(params.target_branch)
         - name: region
           value: $(params.aws_region)
+        - name: target_branch
+          value: $(params.target_branch)
       workspaces:
-        - name: output
-          workspace: upgrade-shared-workspace
-        - name: source
-          workspace: source
+        - name: workdir
+          workspace: shared-workspace

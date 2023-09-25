@@ -76,7 +76,7 @@ deploy_cluster() {
     # Use the admin account to login to the cluster in a loop until the account is active.
     max_retries=10
     retries=0
-    export KUBECONFIG="$KUBECONFIG_DIR/kubeconfig"
+    export KUBECONFIG="$KUBECONFIG_DIR/config"
     while ! oc login "$api_url" --username "$admin_user" --password "$admin_pass" > /dev/null 2>&1; do
         if [ "$retries" -eq "$max_retries" ]; then
             echo "[ERROR] Failed to login the cluster." >&2

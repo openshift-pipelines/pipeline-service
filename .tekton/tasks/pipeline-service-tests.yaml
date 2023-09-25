@@ -7,8 +7,7 @@ spec:
   params:
     - name: target_branch
   workspaces:
-    - name: kubeconfig-dir
-    - name: source
+    - name: workdir
   steps:
     - name: run-tests
       image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
@@ -16,9 +15,9 @@ spec:
         requests:
           memory: 500Mi
           cpu: 300m
-      workingDir: "$(workspaces.source.path)"
+      workingDir: "$(workspaces.workdir.path)/source"
       env:
         - name: KUBECONFIG
-          value: "$(workspaces.kubeconfig-dir.path)/kubeconfig"
+          value: "$(workspaces.workdir.path)/.kube/config"
       command:
         - ci/images/ci-runner/hack/bin/run-plnsvc-test.sh

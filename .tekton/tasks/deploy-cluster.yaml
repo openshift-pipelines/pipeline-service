@@ -12,8 +12,7 @@ spec:
     - name: cluster-name
     - name: target_branch
   workspaces:
-    - name: source
-    - name: output
+    - name: workdir
   steps:
     - name: install-cluster
       image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
@@ -22,7 +21,7 @@ spec:
         - name: CLUSTER_NAME
           value: "$(params.cluster-name)"
         - name: KUBECONFIG_DIR
-          value: "$(workspaces.output.path)"
+          value: "$(workspaces.workdir.path)/.kube"
         - name: REGION
           value: "$(params.region)"
         - name: OCP_VERSION
@@ -42,5 +41,6 @@ spec:
             secretKeyRef:
               name: plnsvc-ci-secret
               key: "PLNSVC_AWS_KEY"
+      workingDir: "$(workspaces.workdir.path)/source"
       command:
-        - $(workspaces.source.path)/ci/images/ci-runner/hack/bin/deploy-cluster.sh
+        - ci/images/ci-runner/hack/bin/deploy-cluster.sh

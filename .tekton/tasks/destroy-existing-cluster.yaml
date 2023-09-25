@@ -9,7 +9,7 @@ spec:
     - name: region
       description: ocp cluster region where you want to provision
   workspaces:
-    - name: source
+    - name: workdir
   steps:
     - name: destroy
       image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
@@ -31,5 +31,6 @@ spec:
               key: "PLNSVC_AWS_KEY"
         - name: REGION
           value: "$(params.region)"
+      workingDir: "$(workspaces.workdir.path)/source"
       command:
-        - $(workspaces.source.path)/ci/images/ci-runner/hack/bin/cleanup-expired-clusters.sh
+        - ci/images/ci-runner/hack/bin/cleanup-expired-clusters.sh

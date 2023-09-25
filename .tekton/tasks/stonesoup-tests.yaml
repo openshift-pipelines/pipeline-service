@@ -5,8 +5,7 @@ metadata:
   name: stonesoup-tests
 spec:
   workspaces:
-    - name: kubeconfig-dir
-    - name: source
+    - name: workdir
   params:
     - name: repo_url
     - name: revision
@@ -22,10 +21,9 @@ spec:
         requests:
           memory: 500Mi
           cpu: 300m
-      workingDir: "$(workspaces.source.path)"
       env:
         - name: KUBECONFIG
-          value: "$(workspaces.kubeconfig-dir.path)/kubeconfig"
+          value: "$(workspaces.workdir.path)/kubeconfig"
         - name: PIPELINE_PR_OWNER
           value: $(params.repo_owner)
         - name: PIPELINE_PR_SHA
@@ -45,5 +43,6 @@ spec:
             secretKeyRef:
               name: hypershift-bitwarden
               key: "BW_PASSWORD"
+      workingDir: "$(workspaces.workdir.path)/source"
       command:
         - ci/images/e2e-test-runner/run-e2e-test.sh

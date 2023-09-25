@@ -20,10 +20,10 @@ spec:
   pipelineRef:
     name: upgrade-tests
   params:
-    - name: ocp_version
-      value: "4.12.26"
     - name: aws_region
       value: "us-east-1"
+    - name: ocp_version
+      value: "4.12.26"
     - name: repo_url
       value: "{{ repo_url }}"
     - name: revision
@@ -33,7 +33,7 @@ spec:
   timeouts:
     pipeline: "1h30m0s"
   workspaces:
-    - name: source
+    - name: shared-workspace
       volumeClaimTemplate:
         spec:
           accessModes:
@@ -41,11 +41,3 @@ spec:
           resources:
             requests:
               storage: 3Gi
-    - name: upgrade-shared-workspace
-      volumeClaimTemplate:
-        spec:
-          accessModes:
-            - ReadWriteOnce
-          resources:
-            requests:
-              storage: 50Mi

@@ -10,8 +10,7 @@ spec:
       description: ocp cluster region where you want to provision
     - name: target_branch
   workspaces:
-    - name: source
-    - name: output
+    - name: workdir
   steps:
     - name: destroy
       image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
@@ -34,9 +33,9 @@ spec:
               name: plnsvc-ci-secret
               key: "PLNSVC_AWS_KEY"
         - name: KUBECONFIG_DIR
-          value: "$(workspaces.output.path)"
+          value: "$(workspaces.workdir.path)/.kube"
         - name: REGION
           value: "$(params.region)"
-      workingDir: "$(workspaces.source.path)"
+      workingDir: "$(workspaces.workdir.path)/source"
       command:
-        - $(workspaces.source.path)/ci/images/ci-runner/hack/bin/destroy-cluster.sh
+        - ci/images/ci-runner/hack/bin/destroy-cluster.sh
