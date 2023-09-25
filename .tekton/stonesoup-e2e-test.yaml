@@ -32,14 +32,6 @@ spec:
   timeouts:
     pipeline: "1h30m0s"
   workspaces:
-    - name: source
-      volumeClaimTemplate:
-        spec:
-          accessModes:
-            - ReadWriteOnce
-          resources:
-            requests:
-              storage: 3Gi
     - name: shared-workspace
       volumeClaimTemplate:
         spec:
@@ -47,4 +39,4 @@ spec:
             - ReadWriteOnce
           resources:
             requests:
-              storage: 50Mi
+              storage: 3Gi

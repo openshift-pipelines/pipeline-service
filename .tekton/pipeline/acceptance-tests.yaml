@@ -6,16 +6,28 @@ metadata:
 spec:
   params:
     - name: aws_region
+    - name: ocp_version
     - name: repo_url
     - name: revision
     - name: target_branch
-    - name: ocp_version
   timeouts:
     finally: "0h30m0s"
   workspaces:
-    - name: source
     - name: shared-workspace
   tasks:
+    - name: clone-pipeline-service-git
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+      params:
+        - name: url
+          value: $(params.repo_url)
+        - name: revision
+          value: $(params.revision)
+        - name: subdirectory
+          value: source
     - name: generate-cluster-name
       taskRef:
         name: generate-cluster-name
@@ -30,8 +42,8 @@ spec:
         - name: target_branch
           value: $(params.target_branch)
       workspaces:
-        - name: source
-          workspace: source
+        - name: workdir
+          workspace: shared-workspace
     - name: deploy-cluster
       taskRef:
         name: deploy-cluster
@@ -48,21 +60,8 @@ spec:
         - name: target_branch
           value: $(params.target_branch)
       workspaces:
-        - name: output
+        - name: workdir
           workspace: shared-workspace
-        - name: source
-          workspace: source
-    - name: clone-pipeline-service-git
-      taskRef:
-        name: git-clone
-      workspaces:
-        - name: output
-          workspace: source
-      params:
-        - name: url
-          value: $(params.repo_url)
-        - name: revision
-          value: $(params.revision)
     - name: setup-ci-runner
       taskRef:
         name: setup-ci-runner-container
@@ -72,20 +71,16 @@ spec:
         - name: target_branch
           value: $(params.target_branch)
       workspaces:
-        - name: kubeconfig-dir
+        - name: workdir
           workspace: shared-workspace
-        - name: source
-          workspace: source
     - name: plnsvc-setup
       taskRef:
         name: pipeline-service-setup
       runAfter:
         - "setup-ci-runner"
       workspaces:
-        - name: kubeconfig-dir
+        - name: workdir
           workspace: shared-workspace
-        - name: source
-          workspace: source
       params:
         - name: repo_url
           value: $(params.repo_url)
@@ -102,10 +97,8 @@ spec:
         - name: target_branch
           value: $(params.target_branch)
       workspaces:
-        - name: kubeconfig-dir
+        - name: workdir
           workspace: shared-workspace
-        - name: source
-          workspace: source
   finally:
     - name: destroy-cluster
       taskRef:
@@ -122,7 +115,5 @@ spec:
         - name: target_branch
           value: $(params.target_branch)
       workspaces:
-        - name: output
+        - name: workdir
           workspace: shared-workspace
-        - name: source
-          workspace: source

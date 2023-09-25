@@ -7,9 +7,7 @@ spec:
   params:
     - name: target_branch
   workspaces:
-    - name: kubeconfig-dir
-      description: The kubeconfig of new cluster will be stored onto the volume backing this Workspace
-    - name: source
+    - name: workdir
   steps:
     - name: create-ci-runner-container
       image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
@@ -19,18 +17,19 @@ spec:
           cpu: 300m
       env:
         - name: KUBECONFIG
-          value: "$(workspaces.kubeconfig-dir.path)/kubeconfig"
-      script: |
-        $(workspaces.source.path)/ci/images/ci-runner/hack/bin/create-ci-runner-container.sh
+          value: "$(workspaces.workdir.path)/.kube/config"
+      workingDir: "$(workspaces.workdir.path)/source"
+      command:
+        - ci/images/ci-runner/hack/bin/create-ci-runner-container.sh
     - name: copy-plnsvc-code
       image: quay.io/redhat-pipeline-service/ci-runner:$(params.target_branch)
       resources:
         requests:
           memory: 500Mi
           cpu: 300m
-      workingDir: "$(workspaces.source.path)"
       env:
         - name: KUBECONFIG
-          value: "$(workspaces.kubeconfig-dir.path)/kubeconfig"
+          value: "$(workspaces.workdir.path)/.kube/config"
+      workingDir: "$(workspaces.workdir.path)/source"
       command:
-        - $(workspaces.source.path)/ci/images/ci-runner/hack/bin/copy-plnsvc-code.sh
+        - ci/images/ci-runner/hack/bin/copy-plnsvc-code.sh

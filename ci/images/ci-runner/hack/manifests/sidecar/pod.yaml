@@ -25,5 +25,4 @@ spec:
       workingDir: "/workspace/source"
   volumes:
     - name: ci-runner-storage
-      persistentVolumeClaim:
-        claimName: ci-runner-pvc
+      emptyDir: {}

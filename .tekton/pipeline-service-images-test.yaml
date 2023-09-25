@@ -21,28 +21,30 @@ spec:
       - name: repo_url
       - name: revision
     workspaces:
-      - name: source
+      - name: shared-workspace
     tasks:
       - name: fetch-repository
         taskRef:
           name: git-clone
         workspaces:
           - name: output
-            workspace: source
+            workspace: shared-workspace
         params:
           - name: url
             value: $(params.repo_url)
           - name: revision
             value: $(params.revision)
+          - name: subdirectory
+            value: source
       - name: build-images
         runAfter:
           - fetch-repository
         workspaces:
-          - name: source
-            workspace: source
+          - name: workdir
+            workspace: shared-workspace
         taskSpec:
           workspaces:
-            - name: source
+            - name: workdir
           volumes:
             - emptyDir: {}
               name: varlibcontainers
@@ -57,11 +59,11 @@ spec:
               volumeMounts:
                 - mountPath: /var/lib/containers
                   name: varlibcontainers
-              workingDir: $(workspaces.source.path)
+              workingDir: $(workspaces.workdir.path)/source
               script: |
                 developer/hack/build-images-buildah.sh
   workspaces:
-    - name: source
+    - name: shared-workspace
       volumeClaimTemplate:
         spec:
           accessModes:

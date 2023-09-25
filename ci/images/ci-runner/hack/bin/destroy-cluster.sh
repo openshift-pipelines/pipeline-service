@@ -17,7 +17,7 @@ if [ -e "$failure_file" ]; then
     echo "Delete '$failure_file' within 15 minutes to keep the cluster alive for investigation."
     echo
     echo "KUBECONFIG:"
-    cat "$KUBECONFIG_DIR/kubeconfig"
+    cat "$KUBECONFIG_DIR/config"
     echo
     echo "Connect to the ci-runner with: kubectl exec -n default --stdin --tty ci-runner -- bash"
     echo
