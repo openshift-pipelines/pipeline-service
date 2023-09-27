@@ -14,7 +14,9 @@ metadata:
     pipelinesascode.tekton.dev/task-4: "[.tekton/tasks/generate-cluster-name.yaml]"
     pipelinesascode.tekton.dev/task-5: "[.tekton/tasks/pipeline-service-setup.yaml]"
     pipelinesascode.tekton.dev/task-6: "[.tekton/tasks/pipeline-service-tests.yaml]"
-    pipelinesascode.tekton.dev/task-7: "[git-clone]"
+    pipelinesascode.tekton.dev/task-7: "[.tekton/tasks/tekton-results-fetch-sha.yaml]"
+    pipelinesascode.tekton.dev/task-8: "[.tekton/tasks/tekton-results-upstream-e2e.yaml]"
+    pipelinesascode.tekton.dev/task-9: "[git-clone]"
     pipelinesascode.tekton.dev/max-keep-runs: "5"
 spec:
   pipelineRef:
@@ -30,6 +32,8 @@ spec:
       value: "{{ revision }}"
     - name: target_branch
       value: "{{ target_branch }}"
+    - name: results_url
+      value: "https://github.com/openshift-pipelines/tektoncd-results"
   timeouts:
     pipeline: "1h30m0s"
   workspaces:
@@ -49,3 +53,11 @@ spec:
           resources:
             requests:
               storage: 50Mi
+    - name: tekton-results-source
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 3Gi

@@ -1,0 +1,20 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: tekton-results-fetch-sha
+spec:
+  workspaces:
+    - name: source
+  params:
+    - name: target_branch
+  results:
+    - name: tekton-results-downstream-sha
+      description: Tekton Results updated SHA in Pipeline Service
+  steps:
+    - name: fetch-results-sha
+      workingDir: $(workspaces.source.path)
+      image: quay.io/openshift-pipeline/ci:latest
+      script: |
+        #! /usr/bin/env bash
+        echo -n "$(yq '.images[0].newTag' $(workspaces.source.path)/operator/gitops/argocd/pipeline-service/tekton-results/kustomization.yaml)" | tee $(results.tekton-results-downstream-sha.path)
