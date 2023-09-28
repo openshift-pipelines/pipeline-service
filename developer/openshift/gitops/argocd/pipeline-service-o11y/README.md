@@ -18,7 +18,8 @@ To iterate on your dashboard (deploying with `--use-current-branch`):
 3. Click the "Share" icon to save the dashboard to JSON.
 4. Copy the JSON into the pipeline-service-dashboard.json file, located in
    `operator/gitops/argocd/grafana/dashboards`.
-5. Commit the updated JSON, push to your branch, and verify the dashboard is
+5. Remove any `datasource` references with `uid` entries.  Those `uid` entries will not work on staging or prod.  And if you are editing the JSON file form staging or prod, those `uid` entries will become stale.
+6. Commit the updated JSON, push to your branch, and verify the dashboard is
    updated once ArgoCD syncs your repository.
 
 ## Components
