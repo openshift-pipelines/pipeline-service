@@ -3,10 +3,6 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": {
-          "type": "prometheus",
-          "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-        },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -30,10 +26,6 @@
   "panels": [
     {
       "collapsed": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -44,10 +36,6 @@
       "panels": [],
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "refId": "A"
         }
       ],
@@ -59,10 +47,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Completed PipelineRuns per hour",
       "fieldConfig": {
         "defaults": {
@@ -119,10 +103,6 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum by (status) (rate(tekton_pipelines_controller_pipelinerun_count[1h]))* 3600",
           "interval": "",
@@ -162,10 +142,6 @@
       }
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "PipelineRun success per hour",
       "fieldConfig": {
         "defaults": {
@@ -217,10 +193,6 @@
       "pluginVersion": "9.1.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum (rate(tekton_pipelines_controller_pipelinerun_count{status=\"success\"}[1h])) / sum (rate(tekton_pipelines_controller_pipelinerun_count[1h]))",
           "format": "table",
@@ -240,10 +212,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Completed TaskRuns Per Hour",
       "fieldConfig": {
         "defaults": {
@@ -299,10 +267,6 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum by (status) (rate(tekton_pipelines_controller_taskrun_count[1h]))* 3600",
           "interval": "",
@@ -341,10 +305,6 @@
       }
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "TaskRun success per hour",
       "fieldConfig": {
         "defaults": {
@@ -396,10 +356,6 @@
       "pluginVersion": "9.1.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum (rate(tekton_pipelines_controller_taskrun_count{status=\"success\"}[1h])) / sum (rate(tekton_pipelines_controller_taskrun_count[1h]))",
           "format": "table",
@@ -416,10 +372,6 @@
     },
     {
       "collapsed": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -431,10 +383,6 @@
       "repeat": "datasource",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "refId": "A"
         }
       ],
@@ -442,10 +390,6 @@
       "type": "row"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Total average CPU usage of the Pipelines.",
       "fieldConfig": {
         "defaults": {
@@ -527,10 +471,6 @@
       "pluginVersion": "7.5.17",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"tekton-pipelines-controller-.*\", namespace=\"openshift-pipelines\", container=\"\"}[5m]))",
           "format": "table",
@@ -543,10 +483,6 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Working set memory usage of Pipelines Controller Containers ",
       "fieldConfig": {
         "defaults": {
@@ -625,10 +561,6 @@
       "pluginVersion": "7.5.17",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum(container_memory_working_set_bytes{pod=~\"tekton-pipelines-controller-.*\", namespace=\"openshift-pipelines\", container=\"\"})",
           "interval": "",
@@ -641,10 +573,6 @@
     },
     {
       "collapsed": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -656,10 +584,6 @@
       "repeat": "datasource",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "refId": "A"
         }
       ],
@@ -667,10 +591,6 @@
       "type": "row"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Number of Pipelineruns executing currently",
       "fieldConfig": {
         "defaults": {
@@ -719,10 +639,6 @@
       "pluginVersion": "9.1.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "tekton_pipelines_controller_running_pipelineruns_count{prometheus=\"openshift-user-workload-monitoring/user-workload\"}",
           "interval": "",
@@ -734,10 +650,6 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Number of Taskruns executing currently",
       "fieldConfig": {
         "defaults": {
@@ -786,10 +698,6 @@
       "pluginVersion": "9.1.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "tekton_pipelines_controller_running_taskruns_count{prometheus=\"openshift-user-workload-monitoring/user-workload\"}",
           "interval": "",
@@ -805,10 +713,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Frequency of Pipelines Controller restarts (This is experimental and may be removed in future)",
       "fill": 1,
       "fillGradient": 0,
@@ -848,10 +752,6 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "rate(kube_pod_container_status_restarts_total{namespace=\"openshift-pipelines\", pod=~\"tekton-pipelines-controller-.*\"}[7d])",
           "interval": "",
@@ -890,10 +790,6 @@
       }
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "The workqueue for the Tekton Pipelines Reconcilers",
       "fieldConfig": {
         "defaults": {
@@ -972,10 +868,6 @@
       "pluginVersion": "7.5.17",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "avg(tekton_pipelines_controller_workqueue_depth)",
           "interval": "",
@@ -991,10 +883,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Number of taskruns executing currently whose underlying Pods or Containers are suspended by k8s because of defined ResourceQuotas",
       "fill": 1,
       "fillGradient": 0,
@@ -1032,10 +920,6 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "tekton_pipelines_controller_running_taskruns_throttled_by_quota_count",
           "interval": "",
@@ -1074,10 +958,6 @@
       }
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Scheduling latency for the Taskruns pods",
       "fieldConfig": {
         "defaults": {
@@ -1156,10 +1036,6 @@
       "pluginVersion": "7.5.17",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "avg(tekton_pipelines_controller_taskruns_pod_latency)",
           "interval": "",
@@ -1175,10 +1051,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Number of taskruns executing currently whose underlying Pods or Containers are suspended by k8s because of Node level constraints",
       "fill": 1,
       "fillGradient": 0,
@@ -1216,10 +1088,6 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "tekton_pipelines_controller_running_taskruns_throttled_by_node_count",
           "interval": "",
@@ -1258,10 +1126,6 @@
       }
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Total number of Kubernetes API requests by Tekton Controller",
       "fieldConfig": {
         "defaults": {
@@ -1340,10 +1204,6 @@
       "pluginVersion": "7.5.17",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "rate(tekton_pipelines_controller_client_results{prometheus=\"openshift-user-workload-monitoring/user-workload\"}[1h])*3600",
           "interval": "",
@@ -1356,10 +1216,6 @@
     },
     {
       "collapsed": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1371,10 +1227,6 @@
       "repeat": "datasource",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "refId": "A"
         }
       ],
@@ -1382,10 +1234,6 @@
       "type": "row"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Average duration of successful Pipelineruns in seconds over one hour time window grouped by namespace.",
       "fieldConfig": {
         "defaults": {
@@ -1434,10 +1282,6 @@
       "pluginVersion": "9.1.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum by (namespace) ((avg_over_time(tekton_pipelines_controller_pipelinerun_duration_seconds_sum{status=\"success\"}[1h]) / avg_over_time(tekton_pipelines_controller_pipelinerun_duration_seconds_count{status=\"success\"}[1h])))",
           "interval": "",
@@ -1449,10 +1293,6 @@
       "type": "bargauge"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Average scheduling duration per PipelineRun in seconds for each namespace over the last 1 hour",
       "fieldConfig": {
         "defaults": {
@@ -1501,10 +1341,6 @@
       "pluginVersion": "9.1.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum by (namespace) ((avg_over_time(pipelinerun_duration_scheduled_seconds_sum[1h]) / avg_over_time(pipelinerun_duration_scheduled_seconds_count[1h])))",
           "interval": "",
@@ -1517,10 +1353,6 @@
     },
     {
       "collapsed": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1532,10 +1364,6 @@
       "repeat": "datasource",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "refId": "A"
         }
       ],
@@ -1547,10 +1375,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Total average CPU usage of the Pipelines-as-code watcher and controller pods over the past hour.",
       "fill": 1,
       "fillGradient": 0,
@@ -1589,10 +1413,6 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{pod=~\"pipelines-as-code-(watcher|controller)-.*\", namespace=\"openshift-pipelines\", container=\"\"}[5m]))*100",
           "interval": "",
@@ -1637,10 +1457,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Working set memory usage of Pipelines-as-code watcher and controller pods over the past hour.",
       "fill": 1,
       "fillGradient": 0,
@@ -1679,10 +1495,6 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum by (pod) (container_memory_working_set_bytes{pod=~\"pipelines-as-code-(watcher|controller)-.*\", namespace=\"openshift-pipelines\", container=\"\"})",
           "interval": "",
@@ -1727,10 +1539,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Number of Pipelineruns watched on pull_request and push events",
       "fill": 1,
       "fillGradient": 0,
@@ -1769,10 +1577,6 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum by (event_type) (rate(pac_watcher_pipelines_as_code_pipelinerun_count{prometheus=\"openshift-user-workload-monitoring/user-workload\"}[1h]))*3600",
           "interval": "",
@@ -1817,10 +1621,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "The workqueue depth for the Pipelines-as-code Reconcilers",
       "fill": 1,
       "fillGradient": 0,
@@ -1858,10 +1658,6 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "avg(pac_watcher_workqueue_depth)",
           "interval": "",
@@ -1906,10 +1702,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Total number of kubernetes api request for pipelines-as-code watcher",
       "fill": 1,
       "fillGradient": 0,
@@ -1947,10 +1739,6 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "rate(pac_watcher_client_results{prometheus=\"openshift-user-workload-monitoring/user-workload\"}[1h])*3600",
           "interval": "",
@@ -1992,10 +1780,6 @@
     },
     {
       "collapsed": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -2006,10 +1790,6 @@
       "panels": [],
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "refId": "A"
         }
       ],
@@ -2021,10 +1801,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -2061,10 +1837,6 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "workqueue_depth{namespace='openshift-pipelines',pod=~'pipeline-metrics-exporter.+'}",
           "interval": "",
@@ -2107,10 +1879,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -2147,10 +1915,6 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum(rate(container_cpu_usage_seconds_total{namespace='openshift-pipelines',pod=~'pipeline-metrics-exporter-.*', container=\"\"}[5m]))",
           "interval": "",
@@ -2193,10 +1957,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -2233,10 +1993,6 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum(container_memory_working_set_bytes{namespace='openshift-pipelines',pod=~'pipeline-metrics-exporter-.*', container=\"\"})",
           "interval": "",
@@ -2276,10 +2032,6 @@
     },
     {
       "collapsed": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -2291,10 +2043,6 @@
       "repeat": "datasource",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "refId": "A"
         }
       ],
@@ -2302,10 +2050,6 @@
       "type": "row"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Status of API and Watcher",
       "fieldConfig": {
         "defaults": {
@@ -2370,10 +2114,6 @@
       "pluginVersion": "9.1.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum(up{job=\"tekton-results-api\"})",
           "format": "time_series",
@@ -2384,10 +2124,6 @@
           "refId": "api up"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum(up{job=\"tekton-results-watcher\"})",
           "format": "time_series",
@@ -2402,10 +2138,6 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Request success rate",
       "fieldConfig": {
         "defaults": {
@@ -2455,10 +2187,6 @@
       "pluginVersion": "9.1.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "1 - ((sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code=~\"Internal|Unavailable|Unknown|Unimplemented\"}[$__rate_interval]))) / sum(rate(grpc_server_started_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval])))\n",
           "interval": "",
@@ -2471,10 +2199,6 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Watcher work queue depth",
       "fieldConfig": {
         "defaults": {
@@ -2522,10 +2246,6 @@
       "pluginVersion": "9.1.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum(watcher_workqueue_depth{job=\"tekton-results-watcher\"})",
           "interval": "",
@@ -2538,10 +2258,6 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Requests/Second",
       "fieldConfig": {
         "defaults": {
@@ -2589,10 +2305,6 @@
       "pluginVersion": "9.1.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum(rate(grpc_server_started_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval]))",
           "interval": "",
@@ -2605,10 +2317,6 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Request latency 99%-tile",
       "fieldConfig": {
         "defaults": {
@@ -2657,10 +2365,6 @@
       "pluginVersion": "9.1.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "histogram_quantile(0.99, sum(rate(grpc_server_handling_seconds_bucket{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval])) by (le) )",
           "interval": "",
@@ -2673,10 +2377,6 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Reconcile latency 99%-tile - \nLatency of reconcile operations.",
       "fieldConfig": {
         "defaults": {
@@ -2725,10 +2425,6 @@
       "pluginVersion": "9.1.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "histogram_quantile(0.99, sum(rate(watcher_reconcile_latency_bucket{job=\"tekton-results-watcher\"}[$__rate_interval])) by (le) )",
           "interval": "",
@@ -2741,10 +2437,6 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Pod CPU utilisation ",
       "fieldConfig": {
         "defaults": {
@@ -2820,10 +2512,6 @@
       "pluginVersion": "7.5.17",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"tekton-results-api-.*\", namespace=\"tekton-results\", container=\"\"}[$__rate_interval]))",
           "instant": false,
@@ -2833,10 +2521,6 @@
           "refId": "api"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"tekton-results-watcher-.*\", namespace=\"tekton-results\", container=\"\"}[$__rate_interval]))",
           "hide": false,
@@ -2850,10 +2534,6 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Pod memory utilisation",
       "fieldConfig": {
         "defaults": {
@@ -2933,10 +2613,6 @@
       "pluginVersion": "7.5.17",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum(container_memory_working_set_bytes{pod=~\"tekton-results-api-.*\",namespace=\"tekton-results\", container=\"\"})",
           "format": "time_series",
@@ -2946,10 +2622,6 @@
           "refId": "api"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum(container_memory_working_set_bytes{pod=~\"tekton-results-watcher-.*\",namespace=\"tekton-results\", container=\"\"})",
           "hide": false,
@@ -2963,10 +2635,6 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "RPC execution rate",
       "fieldConfig": {
         "defaults": {
@@ -3044,10 +2712,6 @@
       "pluginVersion": "7.5.17",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval])) by (grpc_method)",
           "interval": "",
@@ -3072,10 +2736,6 @@
         "mode": "spectrum"
       },
       "dataFormat": "tsbuckets",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Latency Distribution",
       "fieldConfig": {
         "defaults": {
@@ -3149,10 +2809,6 @@
       "reverseYBuckets": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum(increase(grpc_server_handling_seconds_bucket{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval])) by (le)",
           "interval": "",
@@ -3179,10 +2835,6 @@
       "yBucketBound": "auto"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Server error distribution across gRPC methods.               \nStatus Codes:\nInternal, Unavailable, Unknown, Unimplemented",
       "fieldConfig": {
         "defaults": {
@@ -3281,10 +2933,6 @@
       "pluginVersion": "7.5.17",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[$__rate_interval])) by (grpc_method)",
           "interval": "",
@@ -3293,10 +2941,6 @@
           "refId": "error methods"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code=~\"Internal|Unavailable|Unknown|Unimplemented\"}[$__rate_interval])) by (grpc_code) / ignoring(grpc_code) group_left sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[$__rate_interval]))",
           "hide": false,
@@ -3310,10 +2954,6 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Other error distribution across gRPC methods.           \nStatus Codes Except:\nInternal, Unavailable, Unknown, Unimplemented",
       "fieldConfig": {
         "defaults": {
@@ -3412,10 +3052,6 @@
       "pluginVersion": "7.5.17",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[$__rate_interval])) by (grpc_method)",
           "interval": "",
@@ -3424,10 +3060,6 @@
           "refId": "error methods"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!~\"Internal|Unavailable|Unknown|Unimplemented\"}[$__rate_interval])) by (grpc_code) / ignoring(grpc_code) group_left sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[$__rate_interval]))",
           "hide": false,
@@ -3441,10 +3073,6 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Number of reconcile operations",
       "fieldConfig": {
         "defaults": {
@@ -3551,10 +3179,6 @@
       "pluginVersion": "7.5.17",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum(rate(watcher_reconcile_count{job=\"tekton-results-watcher\"}[$__rate_interval])) by (success)",
           "format": "time_series",
@@ -3584,10 +3208,6 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Work queue latency at queue depth",
       "fieldConfig": {
         "defaults": {
@@ -3702,10 +3322,6 @@
       "pluginVersion": "7.5.17",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum(rate(watcher_workqueue_queue_latency_seconds_count{job=\"tekton-results-watcher\"}[$__rate_interval]))",
           "hide": false,
@@ -3715,10 +3331,6 @@
           "refId": "work queue latency"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum(rate(watcher_reconcile_latency_count{job=\"tekton-results-watcher\"}[$__rate_interval]))",
           "hide": false,
@@ -3728,10 +3340,6 @@
           "refId": "reconcile latency"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "exemplar": true,
           "expr": "sum(watcher_work_queue_depth{job=\"tekton-results-watcher\"})",
           "format": "time_series",
@@ -3746,10 +3354,6 @@
     },
     {
       "collapsed": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -3762,10 +3366,6 @@
       "repeatDirection": "h",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "refId": "A"
         }
       ],
@@ -3773,10 +3373,6 @@
       "type": "row"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -3850,10 +3446,6 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "editorMode": "builder",
           "expr": "rate(watcher_go_gc_cpu_fraction{app=\"tekton-chains-controller\"}[5m])",
           "legendFormat": "__auto",
@@ -3865,10 +3457,6 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -3942,10 +3530,6 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "editorMode": "builder",
           "expr": "rate(watcher_workqueue_longest_running_processor_seconds_count{app=\"tekton-chains-controller\"}[5m])",
           "legendFormat": "__auto",
@@ -3970,10 +3554,6 @@
       "type": "row"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -4047,10 +3627,6 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "editorMode": "code",
           "expr": "rate(sprayproxy_http_inbound_requests_total{namespace=\"sprayproxy\"}[5m]) * 300",
           "legendFormat": "__auto",
@@ -4062,10 +3638,6 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Forwarded attempts to backend server(s)",
       "fieldConfig": {
         "defaults": {
@@ -4140,10 +3712,6 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "editorMode": "code",
           "expr": "rate(sprayproxy_http_forwarded_requests_total[5m]) * 300",
           "legendFormat": "__auto",
@@ -4155,10 +3723,6 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-      },
       "description": "Forwarded request duration in seconds",
       "fieldConfig": {
         "defaults": {
@@ -4206,10 +3770,6 @@
       "pluginVersion": "9.1.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "32051aa6-371c-493a-a7b0-54eea21501a1"
-          },
           "editorMode": "code",
           "exemplar": false,
           "expr": "rate(sprayproxy_http_response_time_duration_seconds_bucket[5m]) * 300",
