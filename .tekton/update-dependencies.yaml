@@ -8,7 +8,7 @@ metadata:
     pipelinesascode.tekton.dev/pipeline: "[.tekton/pipeline/update-repository.yaml]"
     pipelinesascode.tekton.dev/task-1: "[.tekton/tasks/update-repository.yaml]"
     pipelinesascode.tekton.dev/max-keep-runs: "5"
-  name: pipeline-service-update-dependencies
+  name: update-pipeline-service-dependencies
 spec:
   timeouts:
     pipeline: "0h20m0s"

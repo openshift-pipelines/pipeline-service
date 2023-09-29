@@ -2,39 +2,54 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: stonesoup-integeration-tests
+  name: test-pipeline-service-deployment
 spec:
-  timeouts:
-    finally: "0h30m0s"
   params:
     - name: aws_region
     - name: ocp_version
     - name: repo_url
     - name: revision
-    - name: repo_owner
     - name: target_branch
+  timeouts:
+    finally: "0h30m0s"
   workspaces:
-    - name: workdir
+    - name: shared-workspace
   tasks:
-    - name: fetch-repository
+    - name: clone-pipeline-service-repository
       taskRef:
         name: git-clone
       workspaces:
         - name: output
-          workspace: workdir
+          workspace: shared-workspace
       params:
         - name: url
           value: $(params.repo_url)
         - name: revision
           value: $(params.revision)
+        - name: subdirectory
+          value: source
     - name: generate-cluster-name
-      runAfter:
-        - "fetch-repository"
       taskRef:
         name: generate-cluster-name
+    - name: destroy-existing-cluster
+      taskRef:
+        name: destroy-existing-cluster
+      runAfter:
+        - "clone-pipeline-service-repository"
+      params:
+        - name: region
+          value: $(params.aws_region)
+        - name: target_branch
+          value: $(params.target_branch)
+      workspaces:
+        - name: workdir
+          workspace: shared-workspace
     - name: deploy-cluster
+      taskRef:
+        name: deploy-cluster
       runAfter:
         - "generate-cluster-name"
+        - "clone-pipeline-service-repository"
       params:
         - name: cluster-name
           value: "$(tasks.generate-cluster-name.results.cluster-name)"
@@ -45,27 +60,45 @@ spec:
         - name: target_branch
           value: $(params.target_branch)
       workspaces:
-        - name: output
+        - name: workdir
           workspace: shared-workspace
+    - name: setup-ci-runner-container
       taskRef:
-        name: deploy-cluster
-    - name: stonesoupe-e2e-test
+        name: setup-ci-runner-container
       runAfter:
         - "deploy-cluster"
+      params:
+        - name: target_branch
+          value: $(params.target_branch)
+      workspaces:
+        - name: workdir
+          workspace: shared-workspace
+    - name: deploy-pipeline-service
+      taskRef:
+        name: deploy-pipeline-service
+      runAfter:
+        - "setup-ci-runner-container"
       workspaces:
         - name: workdir
           workspace: shared-workspace
       params:
         - name: repo_url
           value: $(params.repo_url)
-        - name: revision
-          value: $(params.revision)
-        - name: repo_owner
-          value: $(params.repo_owner)
         - name: target_branch
           value: $(params.target_branch)
+        - name: test_branch
+          value: $(params.revision)
+    - name: test-pipeline-service
       taskRef:
-        name: stonesoup-tests
+        name: test-pipeline-service
+      runAfter:
+        - "deploy-pipeline-service"
+      params:
+        - name: target_branch
+          value: $(params.target_branch)
+      workspaces:
+        - name: workdir
+          workspace: shared-workspace
   finally:
     - name: destroy-cluster
       taskRef:
@@ -73,14 +106,14 @@ spec:
       when:
         - input: "$(tasks.deploy-cluster.status)"
           operator: notin
-          values: ["None"]
+          values: ["None", "Failed"]
       params:
         - name: cluster-name
           value: "$(tasks.generate-cluster-name.results.cluster-name)"
-        - name: target_branch
-          value: $(params.target_branch)
         - name: region
           value: $(params.aws_region)
+        - name: target_branch
+          value: $(params.target_branch)
       workspaces:
         - name: workdir
           workspace: shared-workspace

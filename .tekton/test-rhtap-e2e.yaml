@@ -2,20 +2,20 @@
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  name: stonesoup-e2e-test
+  name: test-rhtap-e2e
   annotations:
     pipelinesascode.tekton.dev/on-event: "[push]"
     pipelinesascode.tekton.dev/on-target-branch: "main"
-    pipelinesascode.tekton.dev/pipeline: "[.tekton/pipeline/stonesoup-integeration-tests.yaml]"
+    pipelinesascode.tekton.dev/pipeline: "[.tekton/pipeline/test-rhtap-e2e.yaml]"
     pipelinesascode.tekton.dev/task-1: "[.tekton/tasks/deploy-cluster.yaml]"
     pipelinesascode.tekton.dev/task-2: "[.tekton/tasks/destroy-cluster.yaml]"
     pipelinesascode.tekton.dev/task-3: "[.tekton/tasks/generate-cluster-name.yaml]"
-    pipelinesascode.tekton.dev/task-4: "[.tekton/tasks/stonesoup-tests.yaml]"
+    pipelinesascode.tekton.dev/task-4: "[.tekton/tasks/run-rhtap-e2e.yaml]"
     pipelinesascode.tekton.dev/task-5: "[git-clone]"
     pipelinesascode.tekton.dev/max-keep-runs: "5"
 spec:
   pipelineRef:
-    name: stonesoup-integeration-tests
+    name: test-rhtap-e2e
   params:
     - name: aws_region
       value: "us-east-1"

@@ -2,7 +2,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: pipeline-service-setup
+  name: deploy-pipeline-service
 spec:
   params:
     - name: repo_url

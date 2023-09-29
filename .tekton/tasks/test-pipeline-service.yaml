@@ -2,7 +2,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: pipeline-service-tests
+  name: test-pipeline-service
 spec:
   params:
     - name: target_branch
