@@ -17,6 +17,6 @@ RUN set -x \
     && dnf clean all \
     && sed -i -e "s:podman:root:" /etc/subuid /etc/subgid 
 COPY shared /tmp/image-build/shared
-RUN /tmp/image-build/shared/hack/install.sh --debug --bin argocd,bitwarden,checkov,hadolint,jq,kind,kubectl,oc,shellcheck,tkn,yamllint,yq \
+RUN /tmp/image-build/shared/hack/install.sh --debug --bin argocd,bitwarden,checkov,hadolint,jq,kubectl,oc,shellcheck,tkn,yamllint,yq \
     && rm -rf /tmp/image-build
 WORKDIR "/workspace"
