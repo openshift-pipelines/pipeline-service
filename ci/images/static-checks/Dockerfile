@@ -25,7 +25,7 @@ RUN microdnf install -y findutils-4.8.0 python3-3.9.16 python3-pip-21.2.3 tar-1.
 COPY shared /tmp/image-build/shared
 WORKDIR /tmp/image-build/shared/hack
 RUN set -x && \
-    ./install.sh --bin checkov,hadolint,shellcheck,yamllint && \
+    ./install.sh --bin checkov,hadolint,jq,shellcheck,yamllint && \
     rm -rf /tmp/image-build
 
 COPY ci/images/static-checks/content /opt/static-checks
