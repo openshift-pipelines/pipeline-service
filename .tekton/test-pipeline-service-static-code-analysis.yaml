@@ -134,6 +134,29 @@ spec:
                   --workspace_dir .
           workspaces:
             - name: workdir
+      - name: grafana-dashboards
+        runAfter:
+          - fetch-repository
+        workspaces:
+          - name: workdir
+            workspace: shared-workspace
+        params:
+          - name: target_branch
+            value: $(params.target_branch)
+        taskSpec:
+          params:
+            - name: target_branch
+          steps:
+            - name: run-grafana-dashboards
+              image: quay.io/redhat-pipeline-service/static-checks:$(params.target_branch)
+              imagePullPolicy: Always
+              workingDir: $(workspaces.workdir.path)/source
+              script: |
+                #!/usr/bin/env bash
+                ci/images/static-checks/content/bin/grafana-dashboards.sh
+                  --workspace_dir ./operator/gitops/argocd/grafana/dashboards
+          workspaces:
+            - name: workdir
   workspaces:
     - name: shared-workspace
       volumeClaimTemplate:
