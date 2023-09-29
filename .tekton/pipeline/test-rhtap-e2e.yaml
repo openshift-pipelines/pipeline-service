@@ -2,54 +2,39 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: acceptance-tests
+  name: test-rhtap-e2e
 spec:
+  timeouts:
+    finally: "0h30m0s"
   params:
     - name: aws_region
     - name: ocp_version
     - name: repo_url
     - name: revision
+    - name: repo_owner
     - name: target_branch
-  timeouts:
-    finally: "0h30m0s"
   workspaces:
-    - name: shared-workspace
+    - name: workdir
   tasks:
-    - name: clone-pipeline-service-git
+    - name: clone-pipeline-service-repository
       taskRef:
         name: git-clone
       workspaces:
         - name: output
-          workspace: shared-workspace
+          workspace: workdir
       params:
         - name: url
           value: $(params.repo_url)
         - name: revision
           value: $(params.revision)
-        - name: subdirectory
-          value: source
     - name: generate-cluster-name
+      runAfter:
+        - "clone-pipeline-service-repository"
       taskRef:
         name: generate-cluster-name
-    - name: destroy-existing-cluster
-      taskRef:
-        name: destroy-existing-cluster
-      runAfter:
-        - "clone-pipeline-service-git"
-      params:
-        - name: region
-          value: $(params.aws_region)
-        - name: target_branch
-          value: $(params.target_branch)
-      workspaces:
-        - name: workdir
-          workspace: shared-workspace
     - name: deploy-cluster
-      taskRef:
-        name: deploy-cluster
       runAfter:
         - "generate-cluster-name"
-        - "clone-pipeline-service-git"
       params:
         - name: cluster-name
           value: "$(tasks.generate-cluster-name.results.cluster-name)"
@@ -60,45 +45,27 @@ spec:
         - name: target_branch
           value: $(params.target_branch)
       workspaces:
-        - name: workdir
+        - name: output
           workspace: shared-workspace
-    - name: setup-ci-runner
       taskRef:
-        name: setup-ci-runner-container
+        name: deploy-cluster
+    - name: run-rhtap-e2e
       runAfter:
         - "deploy-cluster"
-      params:
-        - name: target_branch
-          value: $(params.target_branch)
-      workspaces:
-        - name: workdir
-          workspace: shared-workspace
-    - name: plnsvc-setup
-      taskRef:
-        name: pipeline-service-setup
-      runAfter:
-        - "setup-ci-runner"
       workspaces:
         - name: workdir
           workspace: shared-workspace
       params:
         - name: repo_url
           value: $(params.repo_url)
-        - name: target_branch
-          value: $(params.target_branch)
-        - name: test_branch
+        - name: revision
           value: $(params.revision)
-    - name: pipeline-service-tests
-      taskRef:
-        name: pipeline-service-tests
-      runAfter:
-        - "plnsvc-setup"
-      params:
+        - name: repo_owner
+          value: $(params.repo_owner)
         - name: target_branch
           value: $(params.target_branch)
-      workspaces:
-        - name: workdir
-          workspace: shared-workspace
+      taskRef:
+        name: run-rhtap-e2e
   finally:
     - name: destroy-cluster
       taskRef:
@@ -106,14 +73,14 @@ spec:
       when:
         - input: "$(tasks.deploy-cluster.status)"
           operator: notin
-          values: ["None", "Failed"]
+          values: ["None"]
       params:
         - name: cluster-name
           value: "$(tasks.generate-cluster-name.results.cluster-name)"
-        - name: region
-          value: $(params.aws_region)
         - name: target_branch
           value: $(params.target_branch)
+        - name: region
+          value: $(params.aws_region)
       workspaces:
         - name: workdir
           workspace: shared-workspace

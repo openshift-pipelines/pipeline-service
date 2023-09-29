@@ -39,7 +39,7 @@ spec:
       description: Email to appear in the commit
       default: "tekton-ci@example.com"
   steps:
-    - name: git-clone-repository
+    - name: clone-git-repository
       image: $(params.GIT_IMAGE)
       workingDir: $(workspaces.workdir.path)
       env:

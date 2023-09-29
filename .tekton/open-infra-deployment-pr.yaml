@@ -2,7 +2,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  name: pipeline-service-infra-deployment-update
+  name: open-infra-deployment-pr
   annotations:
     pipelinesascode.tekton.dev/on-event: "push"
     pipelinesascode.tekton.dev/on-target-branch: "main"
@@ -45,7 +45,7 @@ spec:
           bundle: quay.io/redhat-appstudio-tekton-catalog/task-update-infra-deployments:0.1
           name: update-infra-deployments
     finally:
-      - name: slack-webhook-notification
+      - name: send-slack-webhook-notification
         when:
           - input: $(params.slack-webhook-notification-team)
             operator: notin

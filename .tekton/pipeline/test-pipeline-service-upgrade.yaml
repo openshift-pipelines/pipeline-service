@@ -2,7 +2,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: upgrade-tests
+  name: test-pipeline-service-upgrade
 spec:
   params:
     - name: aws_region
@@ -15,7 +15,7 @@ spec:
   workspaces:
     - name: shared-workspace
   tasks:
-    - name: clone-pipeline-service-git
+    - name: clone-pipeline-service-repository
       taskRef:
         name: git-clone
       workspaces:
@@ -36,7 +36,7 @@ spec:
         name: deploy-cluster
       runAfter:
         - "generate-cluster-name"
-        - "clone-pipeline-service-git"
+        - "clone-pipeline-service-repository"
       params:
         - name: cluster-name
           value: "$(tasks.generate-cluster-name.results.cluster-name)"
@@ -49,7 +49,7 @@ spec:
       workspaces:
         - name: workdir
           workspace: shared-workspace
-    - name: setup-ci-runner
+    - name: setup-ci-runner-container
       taskRef:
         name: setup-ci-runner-container
       runAfter:
@@ -60,11 +60,11 @@ spec:
       workspaces:
         - name: workdir
           workspace: shared-workspace
-    - name: plnsvc-setup-baseline
+    - name: deploy-pipeline-service-baseline
       taskRef:
-        name: pipeline-service-setup
+        name: deploy-pipeline-service
       runAfter:
-        - "setup-ci-runner"
+        - "setup-ci-runner-container"
       workspaces:
         - name: workdir
           workspace: shared-workspace
@@ -75,22 +75,22 @@ spec:
           value: $(params.target_branch)
         - name: test_branch
           value: $(params.target_branch)
-    - name: tests-baseline
+    - name: test-baseline
       taskRef:
-        name: pipeline-service-tests
+        name: test-pipeline-service
       runAfter:
-        - "plnsvc-setup-baseline"
+        - "deploy-pipeline-service-baseline"
       params:
         - name: target_branch
           value: $(params.target_branch)
       workspaces:
         - name: workdir
           workspace: shared-workspace
-    - name: plnsvc-setup-upgrade
+    - name: upgrade-pipeline-service
       taskRef:
-        name: pipeline-service-setup
+        name: deploy-pipeline-service
       runAfter:
-        - "tests-baseline"
+        - "test-baseline"
       workspaces:
         - name: workdir
           workspace: shared-workspace
@@ -101,22 +101,22 @@ spec:
           value: $(params.target_branch)
         - name: test_branch
           value: $(params.revision)
-    - name: tests-upgrade
+    - name: test-upgrade
       taskRef:
-        name: pipeline-service-tests
+        name: test-pipeline-service
       runAfter:
-        - "plnsvc-setup-upgrade"
+        - "upgrade-pipeline-service"
       params:
         - name: target_branch
           value: $(params.target_branch)
       workspaces:
         - name: workdir
           workspace: shared-workspace
-    - name: plnsvc-setup-downgrade
+    - name: downgrade-pipeline-service
       taskRef:
-        name: pipeline-service-setup
+        name: deploy-pipeline-service
       runAfter:
-        - "tests-upgrade"
+        - "test-upgrade"
       workspaces:
         - name: workdir
           workspace: shared-workspace
@@ -127,11 +127,11 @@ spec:
           value: $(params.target_branch)
         - name: test_branch
           value: $(params.target_branch)
-    - name: tests-downgrade
+    - name: test-downgrade
       taskRef:
-        name: pipeline-service-tests
+        name: test-pipeline-service
       runAfter:
-        - "plnsvc-setup-downgrade"
+        - "downgrade-pipeline-service"
       params:
         - name: target_branch
           value: $(params.target_branch)

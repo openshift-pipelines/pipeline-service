@@ -2,23 +2,23 @@
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  name: pipeline-service-upgrade-test
+  name: test-pipeline-service-upgrade
   annotations:
     pipelinesascode.tekton.dev/on-event: "[pull_request, push]"
     pipelinesascode.tekton.dev/on-target-branch: "[refs/heads/*]"
-    pipelinesascode.tekton.dev/pipeline: "[.tekton/pipeline/upgrade-tests.yaml]"
+    pipelinesascode.tekton.dev/pipeline: "[.tekton/pipeline/test-pipeline-service-upgrade.yaml]"
     pipelinesascode.tekton.dev/task: "[.tekton/tasks/setup-ci-runner-container.yaml]"
     pipelinesascode.tekton.dev/task-1: "[.tekton/tasks/deploy-cluster.yaml]"
     pipelinesascode.tekton.dev/task-2: "[.tekton/tasks/destroy-cluster.yaml]"
     pipelinesascode.tekton.dev/task-3: "[.tekton/tasks/destroy-existing-cluster.yaml]"
     pipelinesascode.tekton.dev/task-4: "[.tekton/tasks/generate-cluster-name.yaml]"
-    pipelinesascode.tekton.dev/task-5: "[.tekton/tasks/pipeline-service-setup.yaml]"
-    pipelinesascode.tekton.dev/task-6: "[.tekton/tasks/pipeline-service-tests.yaml]"
+    pipelinesascode.tekton.dev/task-5: "[.tekton/tasks/deploy-pipeline-service.yaml]"
+    pipelinesascode.tekton.dev/task-6: "[.tekton/tasks/test-pipeline-service.yaml]"
     pipelinesascode.tekton.dev/task-7: "[git-clone]"
     pipelinesascode.tekton.dev/max-keep-runs: "5"
 spec:
   pipelineRef:
-    name: upgrade-tests
+    name: test-pipeline-service-upgrade
   params:
     - name: aws_region
       value: "us-east-1"
