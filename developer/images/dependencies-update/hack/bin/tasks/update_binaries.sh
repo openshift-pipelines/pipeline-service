@@ -90,10 +90,6 @@ get_jq_version() {
     get_github_release "https://github.com/stedolan/jq" "jq-"
 }
 
-get_kind_version() {
-    get_github_release "https://github.com/kubernetes-sigs/kind"
-}
-
 get_kubectl_version() {
     get_github_release "https://github.com/kubernetes/kubectl.git" "kubernetes-"
     VERSION="v$VERSION"

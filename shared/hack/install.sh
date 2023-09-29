@@ -171,12 +171,6 @@ install_jq() {
     jq --version
 }
 
-install_kind() {
-    curl "${CURL_OPTS[@]}" -o "$TMPBIN/kind" "https://github.com/kubernetes-sigs/kind/releases/download/${KIND_VERSION}/kind-linux-amd64"
-    move_bin
-    kind --version
-}
-
 install_kubectl() {
     curl "${CURL_OPTS[@]}" -o "$TMPBIN/kubectl" "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
     move_bin
