@@ -2,7 +2,7 @@
 apiVersion: minio.min.io/v2
 kind: Tenant
 metadata:
-  name: storage
+  name: minio
   namespace: tekton-results
   labels:
     app: minio
@@ -13,60 +13,35 @@ metadata:
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
     argocd.argoproj.io/sync-wave: "0"
 spec:
+  image: quay.io/minio/minio:latest
+  requestAutoCert: false
+  podManagementPolicy: Parallel
+  configuration:
+    name: minio-configuration
   exposeServices:
     minio: true
   features:
     bucketDNS: false
-    domains: {}
-  # This desired part doesn't work. Issues:
-  # https://github.com/minio/operator/issues/1345
-  # https://github.com/minio/operator/issues/1346
-  # users:
-  #   - name: storage-user
-  # buckets:
-  #   - name: "tekton-results"
-  #     region: "us-east-1"
-  #     objectLock: true
-  certConfig: {}
-  podManagementPolicy: Parallel
-  configuration:
-    name: minio-storage-configuration
-  env: []
-  serviceMetadata:
-    minioServiceLabels: {}
-    minioServiceAnnotations: {}
-    consoleServiceLabels: {}
-    consoleServiceAnnotations: {}
-  priorityClassName: ""
-  externalCaCertSecret: []
-  externalCertSecret: []
-  externalClientCertSecrets: []
-  image: quay.io/minio/minio:RELEASE.2022-09-17T00-09-45Z
-  imagePullSecret: {}
-  mountPath: /export
-  subPath: ""
+  users:
+    - name: minio-user
+  buckets:
+    - name: tekton-results
+      region: not-applicable
+      objectLock: true
   pools:
     - servers: 1
       name: pool-0
       volumesPerServer: 2
-      nodeSelector: {}
-      tolerations: []
-      affinity:
-        nodeAffinity: {}
-        podAffinity: {}
-        podAntiAffinity: {}
-      resources: {}
       volumeClaimTemplate:
         apiVersion: v1
         kind: persistentvolumeclaims
-        metadata: {}
         spec:
           accessModes:
             - ReadWriteOnce
           resources:
             requests:
               storage: 1Gi
-        status: {}
-      securityContext: {}
-      containerSecurityContext: {}
-  requestAutoCert: true
+      securityContext:
+        runAsNonRoot: true
+      containerSecurityContext:
+        runAsNonRoot: true

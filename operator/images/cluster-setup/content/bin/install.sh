@@ -139,7 +139,7 @@ install_clusters() {
     check_deployments "openshift-pipelines" "${tektonDeployments[@]}" | indent 4
     resultsDeployments=("tekton-results-api" "tekton-results-watcher")
     check_deployments "tekton-results" "${resultsDeployments[@]}" | indent 4
-    resultsStatefulsets=("postgres-postgresql" "storage-pool-0")
+    resultsStatefulsets=("postgres-postgresql" "minio-pool-0")
     check_statefulsets "tekton-results" "${resultsStatefulsets[@]}" | indent 4
 
     printf -- "- Checking pods status for controlplane namespaces\n"

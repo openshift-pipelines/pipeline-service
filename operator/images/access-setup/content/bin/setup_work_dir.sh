@@ -172,23 +172,11 @@ tekton_chains_manifest(){
 }
 
 tekton_results_manifest(){
-  miniosecret="$(kubectl get secrets minio-storage-configuration -o name -n tekton-results --ignore-not-found)"
-  if [ -z "$miniosecret" ]; then
-    printf "Need to create tekton results manifests for DB and S3 \n"
-  else
-    printf "Tekton results secrets already in place, returning from tekton_results_manifest \n"
-    # create minimal kustomization.yaml so calling function does not need to check for the secret as well
-    mkdir -p "$manifests_dir/compute/tekton-results"
-    kubectl create namespace tekton-results --dry-run=client -o yaml > "$manifests_dir/compute/tekton-results/namespace.yaml"
-    yq e -n '.resources += ["namespace.yaml"]' > "$manifests_dir/compute/tekton-results/kustomization.yaml"
-    printf "OK\n"
-    return
-  fi
-
   results_kustomize="$manifests_dir/compute/tekton-results/kustomization.yaml"
   results_namespace="$manifests_dir/compute/tekton-results/namespace.yaml"
   results_db_secret="$manifests_dir/compute/tekton-results/tekton-results-db-secret.yaml"
   results_s3_secret="$manifests_dir/compute/tekton-results/tekton-results-s3-secret.yaml"
+  results_minio_user="$manifests_dir/compute/tekton-results/tekton-results-minio-user.yaml"
   results_minio_config="$manifests_dir/compute/tekton-results/tekton-results-minio-config.yaml"
   if [ ! -e "$results_kustomize" ]; then
     results_dir="$(dirname "$results_kustomize")"
@@ -207,38 +195,52 @@ tekton_results_manifest(){
     fi
 
     kubectl create namespace tekton-results --dry-run=client -o yaml > "$results_namespace"
+    yq -n '.resources += ["namespace.yaml"]' > "$results_kustomize"
 
-    kubectl create secret generic -n tekton-results tekton-results-database \
+    db_secret="$(kubectl get secret tekton-results-database -n tekton-results -o name --ignore-not-found)"
+    if [ -z "$db_secret" ]; then
+      echo 'Tekton Results database secrets not found, new secrets will be created'
+      kubectl create secret generic -n tekton-results tekton-results-database \
       --from-literal=db.user="$TEKTON_RESULTS_DATABASE_USER" \
       --from-literal=db.password="$TEKTON_RESULTS_DATABASE_PASSWORD" \
       --from-literal=db.host="postgres-postgresql.tekton-results.svc.cluster.local" \
       --from-literal=db.name="tekton_results" \
       --dry-run=client -o yaml > "$results_db_secret"
+      yq -i '.resources += ["tekton-results-db-secret.yaml"]' "$results_kustomize"
+    fi
 
-    kubectl create secret generic -n tekton-results tekton-results-s3 \
-    --from-literal=aws_access_key_id="$TEKTON_RESULTS_S3_USER" \
-    --from-literal=aws_secret_access_key="$TEKTON_RESULTS_S3_PASSWORD" \
-    --from-literal=aws_region='not-applicable' \
-    --from-literal=bucket=tekton-results \
-    --from-literal=endpoint='https://minio.tekton-results.svc.cluster.local' \
-    -n tekton-results --dry-run=client -o yaml > "$results_s3_secret"
+    s3_secret="$(kubectl get secret tekton-results-s3 -n tekton-results -o name --ignore-not-found)"
+    if [ -z "$s3_secret" ]; then
+      echo 'Tekton Results S3 secrets not found, new secrets will be created'
+      kubectl create secret generic -n tekton-results tekton-results-s3 \
+      --from-literal=aws_access_key_id="$TEKTON_RESULTS_S3_USER" \
+      --from-literal=aws_secret_access_key="$TEKTON_RESULTS_S3_PASSWORD" \
+      --from-literal=aws_region='not-applicable' \
+      --from-literal=bucket=tekton-results \
+      --from-literal=endpoint='http://minio.tekton-results.svc.cluster.local' \
+      -n tekton-results --dry-run=client -o yaml > "$results_s3_secret"
 
-    cat <<EOF | kubectl apply -f - --dry-run=client -o yaml > "$results_minio_config"
+      kubectl create secret generic -n tekton-results minio-user \
+      --from-literal=CONSOLE_ACCESS_KEY="$TEKTON_RESULTS_S3_USER" \
+      --from-literal=CONSOLE_SECRET_KEY="$TEKTON_RESULTS_S3_PASSWORD" \
+      -n tekton-results --dry-run=client -o yaml > "$results_minio_user"
+
+      cat <<EOF | kubectl apply -f - --dry-run=client -o yaml > "$results_minio_config"
 apiVersion: v1
 kind: Secret
 metadata:
-  name: minio-storage-configuration
+  name: minio-configuration
   namespace: tekton-results
 type: Opaque
 stringData:
   config.env: |-
-    export MINIO_ROOT_USER="$TEKTON_RESULTS_S3_USER"
-    export MINIO_ROOT_PASSWORD="$TEKTON_RESULTS_S3_PASSWORD"
-    export MINIO_STORAGE_CLASS_STANDARD="EC:2"
+    export MINIO_ROOT_USER="minio"
+    export MINIO_ROOT_PASSWORD="$(openssl rand -base64 20)"
+    export MINIO_STORAGE_CLASS_STANDARD="EC:1"
     export MINIO_BROWSER="on"
 EOF
-
-    yq e -n '.resources += ["namespace.yaml", "tekton-results-db-secret.yaml", "tekton-results-s3-secret.yaml", "tekton-results-minio-config.yaml"]' > "$results_kustomize"
+      yq -i '.resources += ["tekton-results-s3-secret.yaml", "tekton-results-minio-user.yaml", "tekton-results-minio-config.yaml"]' "$results_kustomize"
+    fi
   fi
   printf "OK\n"
 }

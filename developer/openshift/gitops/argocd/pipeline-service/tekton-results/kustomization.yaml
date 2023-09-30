@@ -5,5 +5,4 @@ resources:
   - ../../../../../../operator/gitops/argocd/pipeline-service/tekton-results
 
 patches:
-  - path: minio-create-bucket.yaml
   - path: minio-tls.yaml
