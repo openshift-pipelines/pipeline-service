@@ -31,7 +31,6 @@ jobs:
             "e2e-test-runner"
             "quay-upload"
             "static-checks"
-            "update-pipeline-service"
             "vulnerability-scan"
             )
           quay_url: "https://quay.io/api/v1/repository/redhat-pipeline-service"
