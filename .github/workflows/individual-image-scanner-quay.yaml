@@ -30,7 +30,6 @@ jobs:
       devenv-output: ${{ steps.devenv-scan.outputs.VULNERABILITIES_EXIST }}
       quay-upload-output: ${{ steps.quay-upload-scan.outputs.VULNERABILITIES_EXIST }}
       static-checks-output: ${{ steps.static-checks-scan.outputs.VULNERABILITIES_EXIST }}
-      update-pipeline-service-output: ${{ steps.update-pipeline-service-scan.outputs.VULNERABILITIES_EXIST }}
       vulnerability-scan-output: ${{ steps.vulnerability-scan.outputs.VULNERABILITIES_EXIST }}
     steps:
       - uses: actions/checkout@v2
@@ -62,9 +61,6 @@ jobs:
               - 'ci/quay-upload/**'
             static-checks:
               - 'ci/images/static-checks/**'
-              - 'shared/**'
-            update-pipeline-service:
-              - 'operator/images/update-pipeline-service/**'
               - 'shared/**'
             vulnerability:
               - 'ci/images/vulnerability-scan/**'
@@ -138,16 +134,6 @@ jobs:
           echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
         env:
           IMAGE_NAME: static-checks
-
-      - name: update-pipeline-service scan
-        continue-on-error: true
-        id: update-pipeline-service-scan
-        if: steps.filter.outputs.update-pipeline-service == 'true'
-        run: |
-          ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
-          echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
-        env:
-          IMAGE_NAME: update-pipeline-service
 
       - name: vulnerability scan
         continue-on-error: true
@@ -260,19 +246,6 @@ jobs:
           res=${res:=0}
           if [[ $res != 0 ]]; then
             echo "Vulnerabilities found with static-checks image. Please check scans job for more details."
-            exit 1
-          else
-            echo "No vulnerabilities found"
-          fi
-
-      - name: Check update-pipeline-service results
-        id: check-update-pipeline-service-results
-        if: always()
-        run: |
-          res=${{ needs.scans.outputs.update-pipeline-service-output }}
-          res=${res:=0}
-          if [[ $res != 0 ]]; then
-            echo "Vulnerabilities found with update-pipeline-service image. Please check scans job for more details."
             exit 1
           else
             echo "No vulnerabilities found"

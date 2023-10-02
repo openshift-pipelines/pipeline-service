@@ -53,10 +53,6 @@ jobs:
               - '.github/workflows/build-push-images.yaml'
               - 'ci/images/static-checks/**'
               - 'shared/**'
-            update-pipeline-service:
-              - '.github/workflows/build-push-images.yaml'
-              - 'operator/images/update-pipeline-service/**'
-              - 'shared/**'
             vulnerability:
               - '.github/workflows/build-push-images.yaml'
               - 'ci/images/vulnerability-scan/**'
@@ -199,42 +195,6 @@ jobs:
         if: steps.filter.outputs.quay-upload != 'true'
         env:
           image: quay-upload
-          registry: quay.io/redhat-pipeline-service
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_TOKEN }}
-        run: |
-          ./ci/images/quay-upload/image-upload.sh --debug
-
-      # Build and push update-pipeline-service image, tagged with latest and the commit SHA.
-      - name: Build update-pipeline-service Image
-        id: build-image-update-pipeline-service
-        if: steps.filter.outputs.update-pipeline-service == 'true'
-        uses: redhat-actions/buildah-build@v2
-        with:
-          image: update-pipeline-service
-          context: .
-          tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
-          containerfiles: |
-            ./operator/images/update-pipeline-service/Dockerfile
-      - name: Push to quay.io
-        id: push-to-quay-update-pipeline-service
-        if: steps.filter.outputs.update-pipeline-service == 'true'
-        uses: redhat-actions/push-to-registry@v2
-        with:
-          image: ${{ steps.build-image-update-pipeline-service.outputs.image }}
-          tags: ${{ steps.build-image-update-pipeline-service.outputs.tags }} ${{ github.ref_name }}
-          registry: quay.io/redhat-pipeline-service
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_TOKEN }}
-      - name: Print image url
-        if: steps.filter.outputs.update-pipeline-service == 'true'
-        run: |
-          echo "Image pushed to ${{ steps.push-to-quay-update-pipeline-service.outputs.registry-paths }}"
-      - name: Tag latest commit ID to quay.io
-        id: tag-commit-quay-update-pipeline-service
-        if: steps.filter.outputs.update-pipeline-service != 'true'
-        env:
-          image: update-pipeline-service
           registry: quay.io/redhat-pipeline-service
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
