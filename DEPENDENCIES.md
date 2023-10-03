@@ -20,10 +20,10 @@
 
 ### **Operators**
 
-| **Component**                | **Version**                            | **Purpose** | **Comments** |
-|------------------------------|----------------------------------------|-------------|--------------|
-| OpenShift Pipelines Operator | openshift-pipelines-operator-rh.v1.8.0 |             |              |
-| OpenShift GitOps Operator    | openshift-gitops-operator.v1.5.6       |             |              |
+| **Component**                | **Version**                             | **Purpose** | **Comments** |
+|------------------------------|-----------------------------------------|-------------|--------------|
+| OpenShift Pipelines Operator | openshift-pipelines-operator-rh.v1.12.0 |             |              |
+| OpenShift GitOps Operator    | openshift-gitops-operator.v1.5.6        |             |              |
 
 ### **Tools**
 
