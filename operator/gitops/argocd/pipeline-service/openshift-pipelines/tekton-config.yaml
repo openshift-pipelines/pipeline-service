@@ -46,9 +46,4 @@ spec:
       kube-api-qps: 50
       kube-api-burst: 50
   pruner:
-    keep: 10
-    resources:
-      - pipelinerun
-    schedule: 0/2 * * * *
-  profile: all
-  targetNamespace: openshift-pipelines
+    disabled: true
