@@ -1,0 +1,15 @@
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: custom-operators
+  namespace: openshift-marketplace
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  sourceType: grpc
+  image: quay.io/openshift-pipeline/openshift-pipelines-pipelines-operator-bundle-container-index:v4.14-v5.0-28
+  displayName: custom-operators
+  updateStrategy:
+    registryPoll:
+      interval: 30m

@@ -5,6 +5,7 @@ resources:
   - allow-argocd-to-manage.yaml
   - allow-argocd-to-manage-jobs.yaml
   - appstudio-pipelines-scc.yaml
+  - osp-nightly-catalog-source.yaml
   - openshift-operator.yaml
   - tekton-config.yaml
   - config-logging.yaml
