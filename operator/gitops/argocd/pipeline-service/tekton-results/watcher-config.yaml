@@ -18,6 +18,8 @@ spec:
               "tekton-results-api-service.tekton-results.svc.cluster.local:8080",
               "-auth_mode",
               "token",
+              "-completed_run_grace_period",
+              "10m",
             ]
           securityContext:
             readOnlyRootFilesystem: true
