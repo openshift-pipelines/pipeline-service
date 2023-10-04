@@ -15,11 +15,10 @@ To iterate on your dashboard (deploying with `--use-current-branch`):
 
 1. Navigate to the Pipeline Service dashboard in Grafana.
 2. Add the panels and/or rows for your metrics as desired.
-3. Click the "Share" icon to save the dashboard to JSON.
+3. Click the "Share" icon to save the dashboard to JSON.  You use the "Export" tab.  Be sure and check "Export for sharing externally"; otherwise, the `datasource` references will have the `uid` entries specific to your cluster, which are not portable to staging or prod long term.  NOTE: pipeline-service PR checks should prevent you from checking in dashboard JSON with those refs.
 4. Copy the JSON into the pipeline-service-dashboard.json file, located in
    `operator/gitops/argocd/grafana/dashboards`.
-5. Remove any `datasource` references with `uid` entries.  Those `uid` entries will not work on staging or prod.  And if you are editing the JSON file form staging or prod, those `uid` entries will become stale.
-6. Commit the updated JSON, push to your branch, and verify the dashboard is
+5. Commit the updated JSON, push to your branch, and verify the dashboard is
    updated once ArgoCD syncs your repository.
 
 ## Components
