@@ -2,29 +2,27 @@
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  name: test-rhtap-e2e
+  name: test-pipeline-service-upgrade-ocp-412
   annotations:
-    pipelinesascode.tekton.dev/on-event: "[push]"
-    pipelinesascode.tekton.dev/on-target-branch: "main"
-    pipelinesascode.tekton.dev/pipeline: "[.tekton/pipeline/test-rhtap-e2e.yaml]"
+    pipelinesascode.tekton.dev/on-event: "[pull_request, push]"
+    pipelinesascode.tekton.dev/on-target-branch: "[refs/heads/*]"
+    pipelinesascode.tekton.dev/pipeline: "[.tekton/pipeline/test-pipeline-service-upgrade.yaml]"
+    pipelinesascode.tekton.dev/task: "[.tekton/tasks/setup-ci-runner-container.yaml]"
     pipelinesascode.tekton.dev/task-1: "[.tekton/tasks/deploy-cluster.yaml]"
     pipelinesascode.tekton.dev/task-2: "[.tekton/tasks/destroy-cluster.yaml]"
     pipelinesascode.tekton.dev/task-3: "[.tekton/tasks/generate-cluster-name.yaml]"
-    pipelinesascode.tekton.dev/task-4: "[.tekton/tasks/run-rhtap-e2e.yaml]"
-    pipelinesascode.tekton.dev/task-5: "[git-clone]"
+    pipelinesascode.tekton.dev/task-4: "[.tekton/tasks/deploy-pipeline-service.yaml]"
+    pipelinesascode.tekton.dev/task-5: "[.tekton/tasks/test-pipeline-service.yaml]"
+    pipelinesascode.tekton.dev/task-6: "[git-clone]"
     pipelinesascode.tekton.dev/max-keep-runs: "5"
 spec:
   pipelineRef:
-    name: test-rhtap-e2e
+    name: test-pipeline-service-upgrade
   params:
-    - name: ocp_version
-      value: "4.12.26"
     - name: repo_url
       value: "{{ repo_url }}"
     - name: revision
       value: "{{ revision }}"
-    - name: repo_owner
-      value: "{{ repo_owner }}"
     - name: target_branch
       value: "{{ target_branch }}"
   timeouts:

@@ -1,0 +1,63 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: cleanup-existing-clusters
+  annotations:
+    pipelinesascode.tekton.dev/on-event: "[pull_request, push]"
+    pipelinesascode.tekton.dev/on-target-branch: "[refs/heads/*]"
+    pipelinesascode.tekton.dev/task: "[git-clone]"
+    pipelinesascode.tekton.dev/task-1: "[.tekton/tasks/destroy-existing-cluster.yaml]"
+    pipelinesascode.tekton.dev/max-keep-runs: "5"
+spec:
+  timeouts:
+    pipeline: "1h0m0s"
+  params:
+    - name: repo_url
+      value: "{{ repo_url }}"
+    - name: revision
+      value: "{{ revision }}"
+    - name: target_branch
+      value: "{{ target_branch }}"
+  pipelineSpec:
+    params:
+      - name: repo_url
+      - name: revision
+      - name: target_branch
+    workspaces:
+      - name: shared-workspace
+    tasks:
+      - name: fetch-repository
+        taskRef:
+          name: git-clone
+          kind: ClusterTask
+        workspaces:
+          - name: output
+            workspace: shared-workspace
+        params:
+          - name: url
+            value: $(params.repo_url)
+          - name: revision
+            value: $(params.revision)
+          - name: subdirectory
+            value: source
+      - name: destroy-existing-clusters
+        taskRef:
+          name: destroy-existing-cluster
+        runAfter:
+          - "fetch-repository"
+        params:
+          - name: target_branch
+            value: $(params.target_branch)
+        workspaces:
+          - name: workdir
+            workspace: shared-workspace
+  workspaces:
+    - name: shared-workspace
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi

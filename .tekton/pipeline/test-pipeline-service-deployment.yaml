@@ -5,7 +5,6 @@ metadata:
   name: test-pipeline-service-deployment
 spec:
   params:
-    - name: aws_region
     - name: ocp_version
     - name: repo_url
     - name: revision
@@ -31,19 +30,6 @@ spec:
     - name: generate-cluster-name
       taskRef:
         name: generate-cluster-name
-    - name: destroy-existing-cluster
-      taskRef:
-        name: destroy-existing-cluster
-      runAfter:
-        - "clone-pipeline-service-repository"
-      params:
-        - name: region
-          value: $(params.aws_region)
-        - name: target_branch
-          value: $(params.target_branch)
-      workspaces:
-        - name: workdir
-          workspace: shared-workspace
     - name: deploy-cluster
       taskRef:
         name: deploy-cluster
@@ -53,12 +39,10 @@ spec:
       params:
         - name: cluster-name
           value: "$(tasks.generate-cluster-name.results.cluster-name)"
-        - name: ocp_version
-          value: $(params.ocp_version)
-        - name: region
-          value: $(params.aws_region)
         - name: target_branch
           value: $(params.target_branch)
+        - name: oc_version
+          value: $(params.ocp_version)
       workspaces:
         - name: workdir
           workspace: shared-workspace
@@ -110,8 +94,6 @@ spec:
       params:
         - name: cluster-name
           value: "$(tasks.generate-cluster-name.results.cluster-name)"
-        - name: region
-          value: $(params.aws_region)
         - name: target_branch
           value: $(params.target_branch)
       workspaces:

@@ -7,8 +7,6 @@ spec:
   timeouts:
     finally: "0h30m0s"
   params:
-    - name: aws_region
-    - name: ocp_version
     - name: repo_url
     - name: revision
     - name: repo_owner
@@ -38,10 +36,6 @@ spec:
       params:
         - name: cluster-name
           value: "$(tasks.generate-cluster-name.results.cluster-name)"
-        - name: ocp_version
-          value: $(params.ocp_version)
-        - name: region
-          value: $(params.aws_region)
         - name: target_branch
           value: $(params.target_branch)
       workspaces:
@@ -79,8 +73,6 @@ spec:
           value: "$(tasks.generate-cluster-name.results.cluster-name)"
         - name: target_branch
           value: $(params.target_branch)
-        - name: region
-          value: $(params.aws_region)
       workspaces:
         - name: workdir
           workspace: shared-workspace
