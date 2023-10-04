@@ -5,8 +5,6 @@ metadata:
   name: test-pipeline-service-upgrade
 spec:
   params:
-    - name: aws_region
-    - name: ocp_version
     - name: repo_url
     - name: revision
     - name: target_branch
@@ -40,10 +38,6 @@ spec:
       params:
         - name: cluster-name
           value: "$(tasks.generate-cluster-name.results.cluster-name)"
-        - name: ocp_version
-          value: $(params.ocp_version)
-        - name: region
-          value: $(params.aws_region)
         - name: target_branch
           value: $(params.target_branch)
       workspaces:
@@ -149,8 +143,6 @@ spec:
       params:
         - name: cluster-name
           value: "$(tasks.generate-cluster-name.results.cluster-name)"
-        - name: region
-          value: $(params.aws_region)
         - name: target_branch
           value: $(params.target_branch)
       workspaces:
