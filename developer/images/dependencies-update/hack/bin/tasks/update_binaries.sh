@@ -141,9 +141,9 @@ get_github_release() {
     VERSION=$(
         git ls-remote --tags "$URL" \
             | grep -E "$PREFIX" \
-            | grep -E "[0-9]+\.[0-9]+" \
-            | grep -vE "[0-9]-*alpha|[0-9]-*beta|[0-9]-*pre|[0-9]-*rc|\^\{\}" \
             | sed "s:^.*refs/tags/$PREFIX::" \
+            | grep -E "[0-9]+\.[0-9]+" \
+            | grep -vE "[0-9][-_]*alpha|[0-9][-_]*beta|[0-9][-_]*pre|[0-9][-_]*rc|\^\{\}" \
             | sort -V \
             | tail -1
     )
