@@ -104,6 +104,7 @@
           "mappings": [],
           "max": 1,
           "min": 0,
+          "noValue": "No data",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -161,7 +162,7 @@
           "refId": "pipelinerun-success"
         }
       ],
-      "title": "Scheduling",
+      "title": "Tekton Scheduling Overhead",
       "transformations": [],
       "type": "stat"
     },
