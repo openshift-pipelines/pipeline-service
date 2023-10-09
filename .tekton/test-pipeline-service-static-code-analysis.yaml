@@ -154,7 +154,7 @@ spec:
               script: |
                 #!/usr/bin/env bash
                 ci/images/static-checks/content/bin/grafana-dashboards.sh \
-                  --workspace_dir ./operator/gitops/argocd/grafana/dashboards
+                  --workspace_dir .
           workspaces:
             - name: workdir
   workspaces:

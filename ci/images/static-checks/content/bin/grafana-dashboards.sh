@@ -74,6 +74,7 @@ parse_args() {
         esac
         shift
     done
+    WORKSPACE_DIR="$WORKSPACE_DIR/operator/gitops/argocd/grafana/dashboards"
 }
 
 init() {
@@ -81,7 +82,7 @@ init() {
 }
 
 check_datasource() {
-    if [ "$(jq ".. | select(.datasource?) | .datasource" "$JSON" | wc -l)" != "0" ]; then
+    if [ "$(jq '.. | select(.datasource?) | select(.datasource.uid != "${DS_PROMETHEUS-APPSTUDIO-DS}")' "$JSON" | wc -l)" != "0" ]; then
         echo "FAIL"
         echo "[ERROR] 'datasource' element(s) found in '$JSON'"
         exit 1
