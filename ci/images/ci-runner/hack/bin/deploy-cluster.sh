@@ -8,7 +8,7 @@ SCRIPT_DIR="$(
   pwd
 )"
 
-AWS_OIDC_CONFIG_ID="26mo8fa481kctu0oag5ubd7l0kctk9ut"
+AWS_OIDC_CONFIG_ID="26mtb00runrs415ihu93vq2bl9rh3oue"
 
 # shellcheck source=ci/images/ci-runner/hack/bin/utils.sh
 source "$SCRIPT_DIR/utils.sh"
@@ -59,7 +59,7 @@ deploy_cluster() {
     printf "Provision ROSA with HCP cluster...\n" | indent 2
     rosa create cluster --cluster-name "$CLUSTER_NAME" \
         --sts --mode=auto --oidc-config-id "$AWS_OIDC_CONFIG_ID" \
-        --operator-roles-prefix plnsvc-ci --region "$REGION" --version "$OCP_VERSION" \
+        --operator-roles-prefix plnsvc-ci-09-2023 --region "$REGION" --version "$OCP_VERSION" \
         --compute-machine-type m5.2xlarge \
         --subnet-ids="subnet-001487732ebdd14f4,subnet-0718fb663f4b97f38,subnet-0fe426997da62662c" \
         --hosted-cp -y
