@@ -13,7 +13,7 @@ git config --global --add safe.directory "$PWD"
 
 # Checkout the branch we want to setup
 git fetch origin "$REPO_REVISION"
-git checkout "$REPO_REVISION"
+git checkout --force "$REPO_REVISION"
 
 OPENSHIFT_DIR=$(find "$PWD" -type f -name dev_setup.sh -exec dirname {} +)
 CONFIG="$OPENSHIFT_DIR/../config.yaml"

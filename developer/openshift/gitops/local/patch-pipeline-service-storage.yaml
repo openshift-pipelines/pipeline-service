@@ -1,0 +1,10 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pipeline-service-storage
+  namespace: openshift-gitops
+spec:
+  source:
+    repoURL: https://github.com/Roming22/pipeline-service.git
+    targetRevision: main
