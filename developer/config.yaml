@@ -14,7 +14,7 @@ git_ref: main
 # Applications to be deployed on the cluster
 apps:
   - openshift-gitops # openshift-gitops is a pre-requisite for Pipeline Service
-  - pipeline_service # pipeline_service sets up Pipeline Service on the cluster.
+  - pipeline-service # pipeline-service sets up Pipeline Service on the cluster.
 
 # Tekton results database credentials
 tekton_results_db:
