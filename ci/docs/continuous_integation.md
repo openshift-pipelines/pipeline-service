@@ -19,17 +19,58 @@ ROSA with HCP official [Documentation Guide](https://docs.openshift.com/rosa/ros
 - Install [terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli) cli
 
 ### ROSA with HCP Prerequisites
-To create a ROSA with HCP cluster, you can create the following items by running the [rosa_hcp_setup.sh](../hack/rosa_hcp_setup.sh) script.
+To create a ROSA with HCP cluster, you have to create the following items. This is a one-time setup.
 
-* A configured virtual private cloud (VPC)
+#### A configured virtual private cloud (VPC)
 
-* Account-wide roles
+```
+$ mkdir hypershift-tf
+$ cd hypershift-tf
+$ curl -s -o setup-vpc.tf https://raw.githubusercontent.com/openshift-cs/OpenShift-Troubleshooting-Templates/master/rosa-hcp-terraform/setup-vpc.tf
+$ terraform init
+$ terraform plan -out rosa.tfplan -var aws_region=us-east-1 -var cluster_name=plnsvc-ci
+$ terraform apply rosa.tfplan
+```
 
-* An OIDC configuration
+#### Account-wide roles
+Log in to your RedHat account
 
-* Operator roles
+```
+$ rosa login --token="<your-rosa-token,find this token at https://console.redhat.com/openshift/token/rosa >"
+```
 
-After that, you need to add a Secret for storing the Bitwarden credentials(BW_CLIENTID,BW_CLIENTSECRET and BW_PASSWORD). 
+Create the account-wide STS roles and policies
+
+```
+% rosa create account-roles --prefix <prefix-name> --mode auto -y --version 4.13
+```
+
+#### An OIDC configuration
+
+```
+% rosa create oidc-config --mode auto --managed --yes
+```
+
+#### Operator roles
+
+```
+% rosa create operator-roles --prefix <prefix-name> --oidc-config-id <oidc provider id>  --installer-role-arn <Installer-Role arn>  --hosted-cp --mode auto -y
+```
+
+After that, you need to add a Secret `plnsvc-ci-secret` for storing the following items in vault server.
+
+```
+PLNSVC_ROSA_TOKEN=<your-rosa-token>
+PLNSVC_AWS_KEY_ID=<aws_access_key_id>
+PLNSVC_AWS_KEY=<aws_secret_access_key>
+```
+
+### Provisioning ROSA HCP Cluster
+When the above prerequisites are ready, you can maually execute the following command to provisioning clusters, they will share the same resources created in the above steps.
+
+```
+% rosa create cluster --cluster-name <cluster name> --sts --mode=auto --oidc-config-id <oidc provider id> --operator-roles-prefix <prefix-name> --region us-east-1 --version <ocp version , eg: 4.12.16> --compute-machine-type m5.xlarge --subnet-ids=<subnet ids, eg: subnet-001487732ebdd14f4,subnet-0718fb663f4b97f38,subnet-0fe426997da62662c> --hosted-cp -y
+```
 
 ## Debugging an issue during the CI execution
 The CI will destroy the test cluster at the end of the pipeline by default.
