@@ -22,9 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     outputs:
-      access-setup-output: ${{ steps.access-setup-scan.outputs.VULNERABILITIES_EXIST }}
       ci-runner-output: ${{ steps.ci-runner-scan.outputs.VULNERABILITIES_EXIST }}
-      cluster-setup-output: ${{ steps.cluster-setup-scan.outputs.VULNERABILITIES_EXIST }}
       dependencies-update-output: ${{ steps.dependencies-update-scan.outputs.VULNERABILITIES_EXIST }}
       e2e-test-runner-output: ${{ steps.e2e-test-runner-scan.outputs.VULNERABILITIES_EXIST }}
       devenv-output: ${{ steps.devenv-scan.outputs.VULNERABILITIES_EXIST }}
@@ -38,14 +36,8 @@ jobs:
         id: filter
         with:
           filters: |
-            access-setup:
-              - 'operator/images/access-setup/**'
-              - 'shared/**'
             ci-runner:
               - 'ci/images/ci-runner/**'
-              - 'shared/**'
-            cluster-setup:
-              - 'operator/images/cluster-setup/**'
               - 'shared/**'
             dependencies-update:
               - '.github/workflows/build-push-images.yaml'
@@ -65,16 +57,6 @@ jobs:
             vulnerability:
               - 'ci/images/vulnerability-scan/**'
 
-      - name: access-setup scan
-        continue-on-error: true
-        id: access-setup-scan
-        if: steps.filter.outputs.access-setup == 'true'
-        run: |
-          ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
-          echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
-        env:
-          IMAGE_NAME: access-setup
-
       - name: ci-runner scan
         continue-on-error: true
         id: ci-runner-scan
@@ -84,16 +66,6 @@ jobs:
           echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
         env:
           IMAGE_NAME: ci-runner
-
-      - name: cluster-setup scan
-        continue-on-error: true
-        id: cluster-setup-scan
-        if: steps.filter.outputs.cluster-setup == 'true'
-        run: |
-          ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
-          echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
-        env:
-          IMAGE_NAME: cluster-setup
 
       - name: dependencies-update scan
         continue-on-error: true
@@ -160,18 +132,6 @@ jobs:
     needs: scans
     if: always()
     steps:
-      - name: Check access-setup results
-        id: check-access-setup-results
-        if: always()
-        run: |
-          res=${{ needs.scans.outputs.access-setup-output }}
-          res=${res:=0}
-          if [[ $res != 0 ]]; then
-            echo "Vulnerabilities found with access-setup image. Please check scans job for more details."
-            exit 1
-          else
-            echo "No vulnerabilities found"
-          fi
 
       - name: Check ci-runner results
         id: check-ci-runner-results
@@ -181,19 +141,6 @@ jobs:
           res=${res:=0}
           if [[ $res != 0 ]]; then
             echo "Vulnerabilities found with ci-runner image. Please check scans job for more details."
-            exit 1
-          else
-            echo "No vulnerabilities found"
-          fi
-
-      - name: Check cluster-setup results
-        id: check-cluster-setup-results
-        if: always()
-        run: |
-          res=${{ needs.scans.outputs.cluster-setup-output }}
-          res=${res:=0}
-          if [[ $res != 0 ]]; then
-            echo "Vulnerabilities found with cluster-setup image. Please check scans job for more details."
             exit 1
           else
             echo "No vulnerabilities found"

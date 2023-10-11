@@ -117,7 +117,7 @@ check_crashlooping_pods() {
   local ns="$1"
   local crashlooping_pods
 
-  printf -- "- Checking for crashlooping pods in namespace %s: " "$ns"
+  printf -- "- Check for crashlooping pods in namespace %s: " "$ns"
   crashlooping_pods=$(kubectl get pods -n "$ns" --field-selector=status.phase!=Running -o jsonpath='{range .items[?(@.status.containerStatuses[*].state.waiting.reason=="CrashLoopBackOff")]}{.metadata.name}{","}{end}' 2>/dev/null)
 
   # Check if the any crashlooping pods found
@@ -165,83 +165,7 @@ check_statefulsets() {
   done
 }
 
-fetch_bitwarden_secrets() {
-  CREDENTIALS_DIR="$WORKSPACE_DIR/credentials"
-  BITWARDEN_CRED="$CREDENTIALS_DIR/secrets/bitwarden.yaml"
-
-  setx_off
-  BW_CLIENTID="${BW_CLIENTID:-}"
-  BW_CLIENTSECRET="${BW_CLIENTSECRET:-}"
-  BW_PASSWORD="${BW_PASSWORD:-}"
-  setx_on
-
-  if [ ! -e "$BITWARDEN_CRED" ]; then
-    echo "- No Bitwarden secrets"
-    return
-  fi
-
-  printf "[Bitwarden]:\n"
-  printf "bitwarden config file found at '%s'.\n" "$BITWARDEN_CRED" | indent 2
-  setx_off
-  if [ -z "$BW_CLIENTID" ]; then
-      printf "Error: BW_CLIENTID is unset.\n" >&2 | indent 2
-      exit 1
-  fi
-  if [ -z "$BW_PASSWORD" ]; then
-      printf "Error: BW_PASSWORD is unset.\n" >&2 | indent 2
-      exit 1
-  fi
-  setx_on
-
-  printf "bitwarden credentials: OK\n" | indent 2
-  if [ "$(bw logout >/dev/null 2>&1)$?" -eq 0 ]; then
-    printf "Logout successful.\n" >/dev/null
-  fi
-  if (setx_off; BW_CLIENTID="$BW_CLIENTID" BW_CLIENTSECRET="$BW_CLIENTSECRET" bw login --apikey >/dev/null 2>&1); then
-    printf "Login successful.\n" >/dev/null
-  fi
-
-  login_status=$(bw login --check 2>&1)
-  if [ "$login_status" = "You are not logged in." ]; then
-    printf "Error while logging into Bitwarden.\n" >&2 | indent 2
-    return
-  fi
-
-  setx_off
-  session=$(BW_PASSWORD="$BW_PASSWORD" bw unlock --passwordenv BW_PASSWORD --raw)
-  setx_on
-
-  # process id/path pairs from bitwarden.yaml
-  secret_count=$(yq '.credentials | length' "$BITWARDEN_CRED")
-  for i in $(seq 0 "$((secret_count-1))"); do
-    id="$(yq ".credentials[$i].id" "$BITWARDEN_CRED")"
-    cred_path="$WORKSPACE_DIR/$(yq ".credentials[$i].path" "$BITWARDEN_CRED")"
-
-    if ! mkdir -p "$(dirname "$cred_path")"; then
-      printf "Unable to create '%s'.\n" "$(dirname "$cred_path")" >&2 | indent 2
-      exit 1
-    fi
-    if ! (setx_off; bw get password "$id" --session "$session" | base64 -d > "$cred_path" ); then
-      printf "Unable to copy the contents of '%s' to '%s'. Exiting.\n" "$id" "$cred_path" >&2 | indent 2
-      exit 1
-    fi
-    printf "Extracted secret with the ID '%s' to '%s'.\n" "$id" "$cred_path" | indent 2
-  done
-  printf "Extraction completed.\n" | indent 2
-}
-
 indent () {
-  sed "s/^/$(printf "%$1s")/"
-}
-
-# turns off tracing even with set -x mode enabled across the script to prevent secrets leaking
-setx_off() {
-  set +x
-}
-
-# turns on tracing
-setx_on() {
-  if [ -n "$DEBUG" ]; then
-    set -x
-  fi
+  offset="${1:-2}"
+  sed "s/^/$(printf "%${offset}s")/"
 }
