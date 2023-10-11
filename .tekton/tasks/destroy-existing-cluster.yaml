@@ -8,6 +8,7 @@ spec:
     - name: target_branch
     - name: region
       description: ocp cluster region where you want to provision
+      default: us-east-1
   workspaces:
     - name: workdir
   steps:
