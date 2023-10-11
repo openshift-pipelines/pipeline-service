@@ -82,7 +82,7 @@ init() {
 }
 
 check_datasource() {
-    if [ "$(jq '.. | select(.datasource?) | select(.datasource.uid != "${DS_PROMETHEUS-APPSTUDIO-DS}")' "$JSON" | wc -l)" != "0" ]; then
+    if [ "$(jq '.. | select(.datasource?) | .datasource | select(.uid != "${DS_PROMETHEUS-APPSTUDIO-DS}")' "$JSON" | grep -v "{}" -c)" != "0" ]; then
         echo "FAIL"
         echo "[ERROR] 'datasource' element(s) found in '$JSON'"
         exit 1
