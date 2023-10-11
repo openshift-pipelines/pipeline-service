@@ -87,14 +87,11 @@
         "y": 0
       },
       "id": 93,
+      "repeat": "datasource",
       "title": "Alerts",
       "type": "row"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS-APPSTUDIO-DS}"
-      },
       "description": "The ratio of time needed for the Tekton controller to start processing a PipelineRun after its creation vs. the time needed to execute successful PipelineRuns",
       "fieldConfig": {
         "defaults": {
@@ -147,10 +144,6 @@
       "pluginVersion": "9.1.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-APPSTUDIO-DS}"
-          },
           "editorMode": "code",
           "exemplar": true,
           "expr": " (sum(pipelinerun_duration_scheduled_seconds_sum) - sum(pipelinerun_duration_scheduled_seconds_sum offset 30m)) / (sum(pipelinerun_duration_scheduled_seconds_count) - sum(pipelinerun_duration_scheduled_seconds_count offset 30m)) / (sum(tekton_pipelines_controller_pipelinerun_duration_seconds_sum{status='success'}) - sum(tekton_pipelines_controller_pipelinerun_duration_seconds_sum{status='success'} offset 30m)) / (sum(tekton_pipelines_controller_pipelinerun_duration_seconds_count{status='success'}) - sum(tekton_pipelines_controller_pipelinerun_duration_seconds_count{status='success'} offset 30m))",
@@ -167,10 +160,6 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS-APPSTUDIO-DS}"
-      },
       "description": "Time gaps between TaskRuns relative to the overall duration of successful PipelineRuns",
       "fieldConfig": {
         "defaults": {
@@ -222,10 +211,6 @@
       "pluginVersion": "9.1.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-APPSTUDIO-DS}"
-          },
           "editorMode": "code",
           "expr": "(\n  (sum(pipelinerun_gap_between_taskruns_milliseconds_sum{status='succeded'})/1000 - sum(pipelinerun_gap_between_taskruns_milliseconds_sum{status='succeded'} offset 30m)/1000)\n  / \n  (sum(pipelinerun_gap_between_taskruns_milliseconds_count{status='succeded'}) - sum(pipelinerun_gap_between_taskruns_milliseconds_count{status='succeded'} offset 30m))\n) \n/ \n(\n  (sum(tekton_pipelines_controller_pipelinerun_duration_seconds_sum{status='success'}) - sum(tekton_pipelines_controller_pipelinerun_duration_seconds_sum{status='success'} offset 30m))\n  / \n  (sum(tekton_pipelines_controller_pipelinerun_duration_seconds_count{status='success'}) - sum(tekton_pipelines_controller_pipelinerun_duration_seconds_count{status='success'}offset 30m))\n)",
           "legendFormat": "__auto",
@@ -1068,85 +1053,6 @@
           "type": "timeseries"
         },
         {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "description": "Number of taskruns executing currently whose underlying Pods or Containers are suspended by k8s because of defined ResourceQuotas",
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 22
-          },
-          "hiddenSeries": false,
-          "id": 76,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "alertThreshold": true
-          },
-          "percentage": false,
-          "pluginVersion": "9.1.6",
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "exemplar": true,
-              "expr": "tekton_pipelines_controller_running_taskruns_throttled_by_quota_count",
-              "interval": "",
-              "legendFormat": "",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeRegions": [],
-          "title": "Taskruns Throttled by Quota",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "mode": "time",
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "logBase": 1,
-              "show": true
-            },
-            {
-              "format": "short",
-              "logBase": 1,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false
-          }
-        },
-        {
           "description": "Scheduling latency for the Taskruns pods",
           "fieldConfig": {
             "defaults": {
@@ -1432,7 +1338,7 @@
                   },
                   {
                     "color": "red",
-                    "value": 80
+                    "value": 600
                   }
                 ]
               }
@@ -1475,7 +1381,7 @@
           "type": "bargauge"
         },
         {
-          "description": "Average scheduling duration per PipelineRun in seconds for each namespace over the last 1 hour",
+          "description": "Average time for learning of pipelinerun creation in seconds for each namespace over the last 1 hour",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1529,12 +1435,481 @@
               "refId": "A"
             }
           ],
-          "title": "Average scheduling duration",
+          "title": "Average time for learning of pipelinerun creation",
           "type": "bargauge"
+        },
+        {
+          "description": "Average duration of the pods ultimately launched from PipelineRuns, using a descending sort and grouped by namespace.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "red",
+                    "value": 600
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 14
+          },
+          "id": 451,
+          "options": {
+            "displayMode": "gradient",
+            "minVizHeight": 10,
+            "minVizWidth": 0,
+            "orientation": "horizontal",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showUnfilled": true,
+            "text": {}
+          },
+          "pluginVersion": "9.1.6",
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "sort_desc((sum by (namespace) (tekton_pods_create_to_complete_seconds_sum / tekton_pods_create_to_complete_seconds_count)) / (sum by (namespace) (tekton_pipelines_controller_pipelinerun_duration_seconds_count)))",
+              "interval": "",
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ],
+          "title": "Average duration of pipelinerunpods",
+          "type": "bargauge"
+        },
+        {
+          "description": "Average time for the kubelet to mark pipelinerun pods schedulable, using a descending sort and grouped by namespace.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 14
+          },
+          "id": 471,
+          "options": {
+            "displayMode": "gradient",
+            "minVizHeight": 10,
+            "minVizWidth": 0,
+            "orientation": "horizontal",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showUnfilled": true,
+            "text": {}
+          },
+          "pluginVersion": "9.1.6",
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "sort_desc((sum by (namespace) (taskrun_pod_duration_kubelet_acknowledged_milliseconds_sum / taskrun_pod_duration_kubelet_acknowledged_milliseconds_count / 1000)) / (sum by (namespace) (tekton_pipelines_controller_pipelinerun_duration_seconds_count)))",
+              "interval": "",
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ],
+          "title": "Average time for the kubelet to mark pipelinerun pods schedulable",
+          "type": "bargauge"
+        },
+        {
+          "description": "Average time for the kubelet's pulling of images and starting pipelinerun containers, using a descending sort and grouped by namespace.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "red",
+                    "value": 600
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 14
+          },
+          "id": 452,
+          "options": {
+            "displayMode": "gradient",
+            "minVizHeight": 10,
+            "minVizWidth": 0,
+            "orientation": "horizontal",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showUnfilled": true,
+            "text": {}
+          },
+          "pluginVersion": "9.1.6",
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "sort_desc((sum by (namespace) (taskrun_pod_duration_kubelet_to_container_start_milliseconds_sum / taskrun_pod_duration_kubelet_to_container_start_milliseconds_count / 1000)) / (sum by (namespace) (tekton_pipelines_controller_pipelinerun_duration_seconds_count)))",
+              "interval": "",
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ],
+          "title": "Average time for the kubelet's pulling of images and starting pipelinerun containers",
+          "type": "bargauge"
+        },
+        {
+          "description": "Average pipelinerun pod durations by task, namespace, using a descending sort and grouped by task and namespace.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "red",
+                    "value": 600
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 14
+          },
+          "id": 473,
+          "options": {
+            "displayMode": "gradient",
+            "minVizHeight": 10,
+            "minVizWidth": 0,
+            "orientation": "horizontal",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showUnfilled": true,
+            "text": {}
+          },
+          "pluginVersion": "9.1.6",
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "sort_desc((avg by (taskname,namespace) (tekton_pods_create_to_complete_seconds_sum / tekton_pods_create_to_complete_seconds_count)))",
+              "interval": "",
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ],
+          "title": "Average pipelinerun pod durations by task, namespace",
+          "type": "bargauge"
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "description": "Number of taskruns executing currently whose underlying Pods or Containers are suspended by k8s because of defined ResourceQuotas",
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 14
+          },
+          "hiddenSeries": false,
+          "id": 76,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "9.1.6",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "tekton_pipelines_controller_running_taskruns_throttled_by_quota_count",
+              "interval": "",
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Taskruns Throttled by Quota",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            },
+            {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "description": "Number of taskruns executing currently whose underlying Pods or Containers are suspended by k8s because of Node level constraints",
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 30
+          },
+          "hiddenSeries": false,
+          "id": 77,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "9.1.6",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "tekton_pipelines_controller_running_taskruns_throttled_by_node_count",
+              "interval": "",
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Taskruns Throttled by Node",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            },
+            {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "description": "Number of pipelineruns whose pods could not be started because of PVC quotas.",
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 14
+          },
+          "hiddenSeries": false,
+          "id": 76,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "9.1.6",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "pipelinerun_failed_by_pvc_quota_count",
+              "interval": "",
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "PIpelineruns failed by PVC Quota",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            },
+            {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
         }
       ],
       "repeat": "datasource",
-      "title": "Pipelines Troubleshooting",
+      "title": "Pipelines Performance Analysis",
       "type": "row"
     },
     {
