@@ -4,6 +4,7 @@
 set -o errexit
 set -o nounset
 set -o pipefail
+set -x
 
 usage() {
   echo "
@@ -145,92 +146,79 @@ test_metrics() {
 
 test_chains() {
   kubectl apply -k "$SCRIPT_DIR/manifests/test/tekton-chains" -n "$NAMESPACE" >"$DEBUG_OUTPUT"
-  while ! kubectl get pipelines -n "$NAMESPACE" -o name 2>/dev/null | grep -q "pipeline.tekton.dev/simple-copy"; do
-    echo -n "."
-    sleep 5
-  done
+  exit 1
+  # while ! kubectl get pipelines -n "$NAMESPACE" -o name 2>/dev/null | grep -q "pipeline.tekton.dev/simple-copy"; do
+  #   echo -n "."
+  #   sleep 5
+  # done
 
-  echo -n "  - Signing secret: "
-  if ! kubectl get secret signing-secrets -n openshift-pipelines >/dev/null 2>&1; then
-    echo "Failed"
-    echo "[ERROR] Secret does not exist" >&2
-    exit 1
-  fi
-  if [ "$(kubectl get secret signing-secrets -n openshift-pipelines -o jsonpath='{.immutable}')" != "true" ]; then
-    echo "Failed"
-    echo "[ERROR] Secret is not immutable" >&2
-    exit 1
-  fi
-  echo "OK"
+  # echo -n "  - Signing secret: "
+  # if ! kubectl get secret signing-secrets -n openshift-pipelines >/dev/null 2>&1; then
+  #   echo "Failed"
+  #   echo "[ERROR] Secret does not exist" >&2
+  #   exit 1
+  # fi
+  # if [ "$(kubectl get secret signing-secrets -n openshift-pipelines -o jsonpath='{.immutable}')" != "true" ]; then
+  #   echo "Failed"
+  #   echo "[ERROR] Secret is not immutable" >&2
+  #   exit 1
+  # fi
+  # echo "OK"
 
-  # Trigger the pipeline
-  echo -n "  - Run pipeline: "
-  image_src="quay.io/aptible/alpine:latest"
-  image_name="$(basename "$image_src")"
-  image_dst="image-registry.openshift-image-registry.svc:5000/$NAMESPACE/$image_name"
-  pipeline_name="$(
-    tkn -n "$NAMESPACE" pipeline start simple-copy \
-      --param image-src="$image_src" \
-      --param image-dst="$image_dst" \
-      --serviceaccount "chains-test" \
-      --workspace name=shared,pvc,claimName="tekton-build" |
-      head -1 | sed "s:.* ::"
-  )"
-  wait_for_pipeline "pipelineruns/$pipeline_name" "$NAMESPACE"
-  echo "OK"
+  # # Trigger the pipeline
+  # echo -n "  - Run pipeline: "
+  # image_src="quay.io/aptible/alpine:latest"
+  # image_name="$(basename "$image_src")"
+  # image_dst="image-registry.openshift-image-registry.svc:5000/$NAMESPACE/$image_name"
+  # pipeline_name="$(
+  #   tkn -n "$NAMESPACE" pipeline start simple-copy \
+  #     --param image-src="$image_src" \
+  #     --param image-dst="$image_dst" \
+  #     --serviceaccount "chains-test" \
+  #     --workspace name=shared,pvc,claimName="tekton-build" |
+  #     head -1 | sed "s:.* ::"
+  # )"
+  # wait_for_pipeline "pipelineruns/$pipeline_name" "$NAMESPACE"
+  # echo "OK"
 
-  echo -n "  - Pipeline signed: "
-  signed="$(kubectl get pipelineruns -n "$NAMESPACE" "$pipeline_name" -o jsonpath='{.metadata.annotations.chains\.tekton\.dev/signed}')"
-  retry_timer=0
-  polling_interval=2
-  until [ -n "$signed" ] || [ "$retry_timer" -ge 300 ]; do
-    echo -n "."
-    sleep $polling_interval
-    retry_timer=$((retry_timer + polling_interval))
-    signed="$(kubectl get pipelineruns -n "$NAMESPACE" "$pipeline_name" -o jsonpath='{.metadata.annotations.chains\.tekton\.dev/signed}')"
-  done
-  if [ "$signed" = "true" ]; then
-    echo "OK"
-  else
-    echo "Failed"
-    echo "[ERROR] Unsigned pipeline ($pipeline_name)" >&2
-    exit 1
-  fi
-
-  echo -n "  - Image signed: "
-  echo "Skip"
-  # signed="$(kubectl get -n "$NAMESPACE" imagestreamtags | grep -cE ":sha256-[0-9a-f]*\.att|:sha256-[0-9a-f]*\.sig" || true)"
-  # # No need to reset $retry_timer
-  # until [ "$signed" = "2" ] || [ "$retry_timer" -ge 30 ]; do
+  # echo -n "  - Pipeline signed: "
+  # signed="$(kubectl get pipelineruns -n "$NAMESPACE" "$pipeline_name" -o jsonpath='{.metadata.annotations.chains\.tekton\.dev/signed}')"
+  # retry_timer=0
+  # polling_interval=2
+  # until [ -n "$signed" ] || [ "$retry_timer" -ge 300 ]; do
   #   echo -n "."
   #   sleep $polling_interval
   #   retry_timer=$((retry_timer + polling_interval))
-  #   signed="$(kubectl get -n "$NAMESPACE" imagestreamtags | grep -cE ":sha256-[0-9a-f]*\.att|:sha256-[0-9a-f]*\.sig" || true)"
+  #   signed="$(kubectl get pipelineruns -n "$NAMESPACE" "$pipeline_name" -o jsonpath='{.metadata.annotations.chains\.tekton\.dev/signed}')"
   # done
-  # if [ "$signed" = "2" ]; then
+  # if [ "$signed" = "true" ]; then
   #   echo "OK"
   # else
   #   echo "Failed"
-  #   echo "[ERROR] Unsigned image" >&2
+  #   echo "[ERROR] Unsigned pipeline ($pipeline_name)" >&2
   #   exit 1
   # fi
 
-  echo -n "  - Public key: "
-  pipeline_name=$(kubectl create -f "$SCRIPT_DIR/manifests/test/tekton-chains/public-key.yaml" -n "$NAMESPACE" | cut -d' ' -f1)
-  wait_for_pipeline "$pipeline_name" "$NAMESPACE"
-  if [ "$(kubectl get "$pipeline_name" -n "$NAMESPACE" \
-    -o 'jsonpath={.status.conditions[0].reason}')" = "Succeeded" ]; then
-    echo "OK"
-  else
-    echo "Failed"
-    echo "[ERROR] Public key is not accessible" >&2
-    exit 1
-  fi
+  # echo -n "  - Image signed: "
+  # echo "Skip"
+  # # signed="$(kubectl get -n "$NAMESPACE" imagestreamtags | grep -cE ":sha256-[0-9a-f]*\.att|:sha256-[0-9a-f]*\.sig" || true)"
+  # # # No need to reset $retry_timer
+  # # until [ "$signed" = "2" ] || [ "$retry_timer" -ge 30 ]; do
+  # #   echo -n "."
+  # #   sleep $polling_interval
+  # #   retry_timer=$((retry_timer + polling_interval))
+  # #   signed="$(kubectl get -n "$NAMESPACE" imagestreamtags | grep -cE ":sha256-[0-9a-f]*\.att|:sha256-[0-9a-f]*\.sig" || true)"
+  # # done
+  # # if [ "$signed" = "2" ]; then
+  # #   echo "OK"
+  # # else
+  # #   echo "Failed"
+  # #   echo "[ERROR] Unsigned image" >&2
+  # #   exit 1
+  # # fi
 
-  # TODO: Reactivate on step 2/3 of the migration.
-  # This test is not critical until we ask EC to use the openshift-pipelines namespace.
-  # echo -n "  - Public key migration: "
-  # pipeline_name=$(kubectl create -f "$SCRIPT_DIR/manifests/test/tekton-chains/public-key-migration.yaml" -n "$NAMESPACE" | cut -d' ' -f1)
+  # echo -n "  - Public key: "
+  # pipeline_name=$(kubectl create -f "$SCRIPT_DIR/manifests/test/tekton-chains/public-key.yaml" -n "$NAMESPACE" | cut -d' ' -f1)
   # wait_for_pipeline "$pipeline_name" "$NAMESPACE"
   # if [ "$(kubectl get "$pipeline_name" -n "$NAMESPACE" \
   #   -o 'jsonpath={.status.conditions[0].reason}')" = "Succeeded" ]; then
@@ -241,19 +229,33 @@ test_chains() {
   #   exit 1
   # fi
 
-  echo -n "  - Metrics: "
-  prName="$(kubectl create -n "$NAMESPACE" -f "$SCRIPT_DIR/manifests/test/tekton-chains/tekton-chains-metrics.yaml" | awk '{print $1}')"
-  wait_for_pipeline "$prName" "$NAMESPACE"
-    if [ "$(kubectl get "$prName" -n "$NAMESPACE" \
-    -o 'jsonpath={.status.conditions[0].reason}')" = "Succeeded" ]; then
-    echo "OK"
-  else
-    echo "Failed"
-    echo "[ERROR] Tekton Chains metrics is not available/working" >&2
-    exit 1
-  fi
+  # # TODO: Reactivate on step 2/3 of the migration.
+  # # This test is not critical until we ask EC to use the openshift-pipelines namespace.
+  # # echo -n "  - Public key migration: "
+  # # pipeline_name=$(kubectl create -f "$SCRIPT_DIR/manifests/test/tekton-chains/public-key-migration.yaml" -n "$NAMESPACE" | cut -d' ' -f1)
+  # # wait_for_pipeline "$pipeline_name" "$NAMESPACE"
+  # # if [ "$(kubectl get "$pipeline_name" -n "$NAMESPACE" \
+  # #   -o 'jsonpath={.status.conditions[0].reason}')" = "Succeeded" ]; then
+  # #   echo "OK"
+  # # else
+  # #   echo "Failed"
+  # #   echo "[ERROR] Public key is not accessible" >&2
+  # #   exit 1
+  # # fi
 
-  echo
+  # echo -n "  - Metrics: "
+  # prName="$(kubectl create -n "$NAMESPACE" -f "$SCRIPT_DIR/manifests/test/tekton-chains/tekton-chains-metrics.yaml" | awk '{print $1}')"
+  # wait_for_pipeline "$prName" "$NAMESPACE"
+  #   if [ "$(kubectl get "$prName" -n "$NAMESPACE" \
+  #   -o 'jsonpath={.status.conditions[0].reason}')" = "Succeeded" ]; then
+  #   echo "OK"
+  # else
+  #   echo "Failed"
+  #   echo "[ERROR] Tekton Chains metrics is not available/working" >&2
+  #   exit 1
+  # fi
+
+  # echo
 }
 
 test_pipelines() {
