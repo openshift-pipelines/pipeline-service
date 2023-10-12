@@ -180,6 +180,7 @@ main() {
     "$PROJECT_DIR/developer/openshift/apps/$app.sh"
     echo
   done
+  check_CRDs
 }
 
 if [ "${BASH_SOURCE[0]}" == "$0" ]; then

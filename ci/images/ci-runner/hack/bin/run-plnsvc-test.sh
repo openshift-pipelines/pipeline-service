@@ -13,4 +13,6 @@ if kubectl -n default exec pod/ci-runner -- \
         # If the tests are successful, the cluster can be destroyed right away
         rm "$PWD/destroy-cluster.txt"
     fi
+else
+    exit 1
 fi
