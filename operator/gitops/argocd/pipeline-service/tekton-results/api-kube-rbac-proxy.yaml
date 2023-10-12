@@ -17,6 +17,8 @@ spec:
             - "--v=6"
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
             seccompProfile:
               type: RuntimeDefault
             capabilities:

@@ -56,3 +56,11 @@ spec:
             - name: ca-s3
               mountPath: /etc/ssl/certs/s3-cert.crt
               subPath: s3-cert.crt
+            - name: tmp-mc-volume
+              mountPath: /tmp
+          securityContext:
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+      volumes:
+        - name: tmp-mc-volume
+          emptyDir: {}
