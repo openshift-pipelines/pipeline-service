@@ -43,3 +43,5 @@ spec:
                 secretKeyRef:
                   key: endpoint
                   name: tekton-results-s3
+          securityContext:
+            readOnlyRootFilesystem: true
