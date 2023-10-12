@@ -227,7 +227,7 @@
             "uid": "${DS_PROMETHEUS-APPSTUDIO-DS}"
           },
           "editorMode": "code",
-          "expr": "(\n  (sum(pipelinerun_gap_between_taskruns_milliseconds_sum{status='succeded'})/1000 - sum(pipelinerun_gap_between_taskruns_milliseconds_sum{status='succeded'} offset 30m)/1000)\n  / \n  (sum(pipelinerun_gap_between_taskruns_milliseconds_count{status='succeded'}) - sum(pipelinerun_gap_between_taskruns_milliseconds_count offset{status='succeded'} 30m))\n) \n/ \n(\n  (sum(tekton_pipelines_controller_pipelinerun_duration_seconds_sum{status='success'}) - sum(tekton_pipelines_controller_pipelinerun_duration_seconds_sum{status='success'} offset 30m))\n  / \n  (sum(tekton_pipelines_controller_pipelinerun_duration_seconds_count{status='success'}) - sum(tekton_pipelines_controller_pipelinerun_duration_seconds_count{status='success'}offset 30m))\n)",
+          "expr": "(\n  (sum(pipelinerun_gap_between_taskruns_milliseconds_sum{status='succeded'})/1000 - sum(pipelinerun_gap_between_taskruns_milliseconds_sum{status='succeded'} offset 30m)/1000)\n  / \n  (sum(pipelinerun_gap_between_taskruns_milliseconds_count{status='succeded'}) - sum(pipelinerun_gap_between_taskruns_milliseconds_count{status='succeded'} offset 30m))\n) \n/ \n(\n  (sum(tekton_pipelines_controller_pipelinerun_duration_seconds_sum{status='success'}) - sum(tekton_pipelines_controller_pipelinerun_duration_seconds_sum{status='success'} offset 30m))\n  / \n  (sum(tekton_pipelines_controller_pipelinerun_duration_seconds_count{status='success'}) - sum(tekton_pipelines_controller_pipelinerun_duration_seconds_count{status='success'}offset 30m))\n)",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
