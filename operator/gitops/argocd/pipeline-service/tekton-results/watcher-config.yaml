@@ -20,5 +20,12 @@ spec:
               "-completed_run_grace_period",
               "10m",
             ]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 2Gi
           securityContext:
             readOnlyRootFilesystem: true
