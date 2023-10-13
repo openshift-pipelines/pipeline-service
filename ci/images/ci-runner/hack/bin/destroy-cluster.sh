@@ -42,8 +42,9 @@ if [[ -n "$CLUSTER_NAME"  ]]; then
     rosa login --token="$ROSA_TOKEN"
     setx_on
 
+    # Here we just trigger the deletion of the cluster, we won't wait for it to be completely deleted
     rosa delete cluster --region "$REGION" --cluster="$CLUSTER_NAME" -y
-    rosa logs uninstall --region "$REGION" --cluster="$CLUSTER_NAME" --watch
+
 else
     echo "No OCP cluster need to be destroyed."
 fi
