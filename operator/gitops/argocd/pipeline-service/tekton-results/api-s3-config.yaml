@@ -43,5 +43,12 @@ spec:
                 secretKeyRef:
                   key: endpoint
                   name: tekton-results-s3
+          resources:
+            requests:
+              cpu: 5m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 512Mi
           securityContext:
             readOnlyRootFilesystem: true
