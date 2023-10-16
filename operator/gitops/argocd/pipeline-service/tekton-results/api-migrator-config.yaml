@@ -34,5 +34,12 @@ spec:
                 secretKeyRef:
                   name: tekton-results-database
                   key: db.name
+          resources:
+            requests:
+              cpu: 5m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
           securityContext:
             readOnlyRootFilesystem: true
