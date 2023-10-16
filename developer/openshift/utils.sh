@@ -50,6 +50,7 @@ check_applications() {
     else
       printf ", OutOfSync\n"
       kubectl -n "$ns" describe "application/$app"
+      exit 1
     fi
   done
 }
@@ -78,6 +79,7 @@ check_subscriptions() {
     else
       printf ", NotUpdated\n"
       kubectl -n "$ns" describe "subscription/$sub"
+      exit 1
     fi
   done
 }
@@ -104,6 +106,9 @@ check_deployments() {
     # Check if the deployment is Available and Ready
     if kubectl wait --for=condition=Available=true "deployment/$deploy" -n "$ns" --timeout=200s >/dev/null; then
       printf ", Ready\n"
+      # for debugging purpose
+      echo "print out the pods status in namespace $ns"
+      kubectl get pods -n "$ns"
     else
       kubectl -n "$ns" describe "deployment/$deploy"
       kubectl -n "$ns" logs "deployment/$deploy"
