@@ -34,3 +34,5 @@ spec:
                 secretKeyRef:
                   name: tekton-results-database
                   key: db.name
+          securityContext:
+            readOnlyRootFilesystem: true
