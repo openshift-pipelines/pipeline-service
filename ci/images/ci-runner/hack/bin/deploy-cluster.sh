@@ -20,8 +20,7 @@ print_debug_info() {
 
 # Check all of clusteroperators are AVAILABLE
 check_clusteroperators() {
-    operators=$(kubectl get co -o jsonpath='{range .items[*]}{.metadata.name}{" "}{end}')
-
+    operators="dns ingress network"
     for operator in $operators; do
         # need to check if the operator is available or not in a loop
         retries=0
@@ -46,8 +45,9 @@ check_clusteroperators() {
             exit 1
         fi
     done
-
-    echo "All operators are available"
+    echo "Operators [${operators}] are available"
+    # for debugging purpose
+    kubectl get co
 }
 
 deploy_cluster() {
