@@ -10,6 +10,8 @@ metadata:
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
     argocd.argoproj.io/sync-wave: "0"
 spec:
+  targetNamespace: openshift-pipelines
+  profile: all
   params:
     - name: createRbacResource
       value: "false"
