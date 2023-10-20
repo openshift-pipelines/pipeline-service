@@ -1,5 +1,5 @@
 #@FROM registry.access.redhat.com/ubi9/ubi-minimal
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:73e786e5ec8b25e7628f760cecb1231f9692344afc0065e8d95b05e720928456
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:c8c7a06ce1c5fa23c1cbd7a0fd891eacd099bc232aa9985ddb183cfe98d1deaf
 LABEL build-date= \
     com.redhat.build-host= \
     description="This image provides the scripts to update the repository dependencies." \
