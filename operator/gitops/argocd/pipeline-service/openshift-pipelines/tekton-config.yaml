@@ -48,4 +48,11 @@ spec:
       kube-api-qps: 50
       kube-api-burst: 50
   pruner:
-    disabled: true
+    # Some resources have an ownerReference which prevents them from being deleted
+    # by tekton-results.
+    # Until this is fixed, the pruner will handle those resources.
+    # disabled: true
+    keep: 10
+    resources:
+      - pipelinerun
+    schedule: 0/2 * * * *
