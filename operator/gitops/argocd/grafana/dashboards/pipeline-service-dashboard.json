@@ -146,7 +146,7 @@
         {
           "editorMode": "code",
           "exemplar": true,
-          "expr": " (sum(pipelinerun_duration_scheduled_seconds_sum) - sum(pipelinerun_duration_scheduled_seconds_sum offset 30m)) / (sum(pipelinerun_duration_scheduled_seconds_count) - sum(pipelinerun_duration_scheduled_seconds_count offset 30m)) / (sum(tekton_pipelines_controller_pipelinerun_duration_seconds_sum{status='success'}) - sum(tekton_pipelines_controller_pipelinerun_duration_seconds_sum{status='success'} offset 30m)) / (sum(tekton_pipelines_controller_pipelinerun_duration_seconds_count{status='success'}) - sum(tekton_pipelines_controller_pipelinerun_duration_seconds_count{status='success'} offset 30m))",
+          "expr": "(sum(sum_over_time(pipelinerun_duration_scheduled_seconds_sum[30m])) / sum(sum_over_time(pipelinerun_duration_scheduled_seconds_count[30m]))) / (sum(sum_over_time(tekton_pipelines_controller_pipelinerun_duration_seconds_sum{status='success'}[30m])) / sum(sum_over_time(tekton_pipelines_controller_pipelinerun_duration_seconds_count{status='success'}[30m])))",
           "format": "table",
           "hide": false,
           "instant": false,
@@ -212,7 +212,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "(\n  (sum(pipelinerun_gap_between_taskruns_milliseconds_sum{status='succeded'})/1000 - sum(pipelinerun_gap_between_taskruns_milliseconds_sum{status='succeded'} offset 30m)/1000)\n  / \n  (sum(pipelinerun_gap_between_taskruns_milliseconds_count{status='succeded'})/1000 - sum(pipelinerun_gap_between_taskruns_milliseconds_count{status='succeded'} offset 30m)/1000)\n) \n/ \n(\n  (sum(tekton_pipelines_controller_pipelinerun_duration_seconds_sum{status='success'}) - sum(tekton_pipelines_controller_pipelinerun_duration_seconds_sum{status='success'} offset 30m))\n  / \n  (sum(tekton_pipelines_controller_pipelinerun_duration_seconds_count{status='success'}) - sum(tekton_pipelines_controller_pipelinerun_duration_seconds_count{status='success'}offset 30m))\n)",
+          "expr": "(sum(sum_over_time(pipelinerun_gap_between_taskruns_milliseconds_sum{status='succeded'}[30m])/1000) / sum(sum_over_time(pipelinerun_gap_between_taskruns_milliseconds_count{status='succeded'}[30m]))) / (sum(sum_over_time(tekton_pipelines_controller_pipelinerun_duration_seconds_sum{status='success'}[30m])) / sum(sum_over_time(tekton_pipelines_controller_pipelinerun_duration_seconds_count{status='success'}[30m])))",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
