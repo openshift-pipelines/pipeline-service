@@ -4,11 +4,13 @@ set -o nounset
 set -o pipefail
 
 SCRIPT_DIR="$(
-  cd "$(dirname "$0")" >/dev/null
-  pwd
+    cd "$(dirname "$0")" >/dev/null
+    pwd
 )"
 
-AWS_OIDC_CONFIG_ID="26mtb00runrs415ihu93vq2bl9rh3oue"
+AWS_OIDC_CONFIG_ID="273tbj71skqksgqafoe5aotsuc44blp4"
+OPERATOR_ROLES_PREFIX="plnsvc-ci-10-2023"
+SUBNET_IDS="subnet-001487732ebdd14f4,subnet-0718fb663f4b97f38,subnet-0fe426997da62662c"
 
 # shellcheck source=ci/images/ci-runner/hack/bin/utils.sh
 source "$SCRIPT_DIR/utils.sh"
@@ -38,7 +40,7 @@ check_clusteroperators() {
         # if the operator is still not available after 10 times, exit 1
         if [ "$retries" -eq "$max_retries" ]; then
             echo "Operator $operator is not available" >&2
-            # print the status of all cluster operators 
+            # print the status of all cluster operators
             kubectl get co
             # print the status of the failed cluster operator
             kubectl get co "$operator" -o yaml
@@ -59,9 +61,9 @@ deploy_cluster() {
     printf "Provision ROSA with HCP cluster...\n" | indent 2
     rosa create cluster --cluster-name "$CLUSTER_NAME" \
         --sts --mode=auto --oidc-config-id "$AWS_OIDC_CONFIG_ID" \
-        --operator-roles-prefix plnsvc-ci-09-2023 --region "$REGION" --version "$OCP_VERSION" \
+        --operator-roles-prefix "$OPERATOR_ROLES_PREFIX" --region "$REGION" --version "$OCP_VERSION" \
         --compute-machine-type m5.2xlarge \
-        --subnet-ids="subnet-001487732ebdd14f4,subnet-0718fb663f4b97f38,subnet-0fe426997da62662c" \
+        --subnet-ids="$SUBNET_IDS" \
         --hosted-cp -y
 
     printf "Track the progress of the cluster creation...\n" | indent 2
@@ -69,7 +71,7 @@ deploy_cluster() {
 
     printf "ROSA with HCP cluster is ready, create a cluster admin account for accessing the cluster\n" | indent 2
     admin_output="$(rosa create admin --region "$REGION" --cluster="$CLUSTER_NAME")"
- 
+
     # Get the admin account credentials and API server URL
     admin_user="$(echo "$admin_output" | grep -oP '(?<=--username ).*(?= --password)')"
     admin_pass="$(echo "$admin_output" | grep -oP '(?<=--password ).*')"
@@ -79,7 +81,7 @@ deploy_cluster() {
     max_retries=10
     retries=0
     export KUBECONFIG="$KUBECONFIG_DIR/config"
-    while ! oc login "$api_url" --username "$admin_user" --password "$admin_pass" > /dev/null 2>&1; do
+    while ! oc login "$api_url" --username "$admin_user" --password "$admin_pass" >/dev/null 2>&1; do
         if [ "$retries" -eq "$max_retries" ]; then
             echo "[ERROR] Failed to login the cluster." >&2
             print_debug_info
