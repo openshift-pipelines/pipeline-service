@@ -11,7 +11,9 @@ SCRIPT_DIR="$(
 AWS_OIDC_CONFIG_ID="273tbj71skqksgqafoe5aotsuc44blp4"
 OPERATOR_ROLES_PREFIX="plnsvc-ci-10-2023"
 SUBNET_IDS="subnet-001487732ebdd14f4,subnet-0718fb663f4b97f38,subnet-0fe426997da62662c"
-
+INSTALL_ROLE_ARN="arn:aws:iam::400884778152:role/plnsvc-ci-10-2023-HCP-ROSA-Installer-Role"
+SUPPORT_ROLE_ARN="arn:aws:iam::400884778152:role/plnsvc-ci-10-2023-HCP-ROSA-Support-Role"
+WORKER_ROLE_ARN="arn:aws:iam::400884778152:role/plnsvc-ci-10-2023-HCP-ROSA-Worker-Role"
 # shellcheck source=ci/images/ci-runner/hack/bin/utils.sh
 source "$SCRIPT_DIR/utils.sh"
 
@@ -62,6 +64,9 @@ deploy_cluster() {
     rosa create cluster --cluster-name "$CLUSTER_NAME" \
         --sts --mode=auto --oidc-config-id "$AWS_OIDC_CONFIG_ID" \
         --operator-roles-prefix "$OPERATOR_ROLES_PREFIX" --region "$REGION" --version "$OCP_VERSION" \
+        --role-arn "$INSTALL_ROLE_ARN" \
+        --support-role-arn "$SUPPORT_ROLE_ARN" \
+        --worker-iam-role "$WORKER_ROLE_ARN" \
         --compute-machine-type m5.2xlarge \
         --subnet-ids="$SUBNET_IDS" \
         --hosted-cp -y
