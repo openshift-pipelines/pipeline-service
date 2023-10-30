@@ -61,7 +61,7 @@ spec:
                   name: varlibcontainers
               workingDir: $(workspaces.workdir.path)/source
               script: |
-                developer/hack/build-images-buildah.sh
+                developer/hack/build-images-buildah.sh --delete
   workspaces:
     - name: shared-workspace
       volumeClaimTemplate:
