@@ -24,6 +24,9 @@ parse_args() {
   IMAGE_DIRS=()
   while [[ $# -gt 0 ]]; do
     case $1 in
+    --delete)
+      DELETE_IMAGE="1"
+      ;;
     -i | --image)
       shift
       if [ ! -d "$1" ]; then
@@ -65,15 +68,11 @@ init() {
   if [ -z "${IMAGE_DIRS[*]}" ]; then
     IMAGE_DIRS=("${DEFAULT_IMAGE_DIRS[@]}")
   fi
+  buildah="buildah --storage-driver=vfs"
 }
 
 build_image() {
-  echo "[$image_dir]"
   image_name=$(basename "$image_dir")
-  # for debugging: if image_name != "devenv", then skip
-  if [ "$image_name" != "devenv" ]; then
-    return
-  fi
   case "$image_name" in
   quay-upload|vulnerability-scan)
     context="$image_dir"
@@ -83,11 +82,17 @@ build_image() {
     ;;
   esac
 
-  buildah --storage-driver=vfs bud --format=oci \
+  $buildah build --format=oci \
     --log-level debug \
     --tls-verify=true --no-cache \
     -f "$image_dir/Dockerfile" --tag "$image_name:$TAG" "$context"
-  echo
+}
+
+delete_image() {
+  image_name="localhost/$(basename "$image_dir")"
+  if $buildah images "$image_name:$TAG"; then
+    $buildah rmi "$image_name:$TAG"
+  fi
 }
 
 main() {
@@ -97,7 +102,12 @@ main() {
   parse_args "$@"
   init
   for image_dir in "${IMAGE_DIRS[@]}"; do
+    echo "[$image_dir]"
     build_image
+    if [ -n "${DELETE_IMAGE:-}" ]; then
+      delete_image
+    fi
+    echo
   done
 }
 
