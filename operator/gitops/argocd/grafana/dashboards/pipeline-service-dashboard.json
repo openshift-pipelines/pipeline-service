@@ -146,7 +146,7 @@
         {
           "editorMode": "code",
           "exemplar": true,
-          "expr": "(sum(sum_over_time(pipelinerun_duration_scheduled_seconds_sum[30m])) / sum(sum_over_time(pipelinerun_duration_scheduled_seconds_count[30m]))) / (sum(sum_over_time(tekton_pipelines_controller_pipelinerun_duration_seconds_sum{status='success'}[30m])) / sum(sum_over_time(tekton_pipelines_controller_pipelinerun_duration_seconds_count{status='success'}[30m])))",
+          "expr": "(sum(sum_over_time(pipelinerun_duration_scheduled_seconds_sum{status='succeded'}[30m])) / sum(sum_over_time(pipelinerun_duration_scheduled_seconds_count{status='succeded'}[30m]))) / (sum(sum_over_time(tekton_pipelines_controller_pipelinerun_duration_seconds_sum{status='success'}[30m])) / sum(sum_over_time(tekton_pipelines_controller_pipelinerun_duration_seconds_count{status='success'}[30m])))",
           "format": "table",
           "hide": false,
           "instant": false,
