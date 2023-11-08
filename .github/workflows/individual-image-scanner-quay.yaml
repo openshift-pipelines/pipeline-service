@@ -30,7 +30,7 @@ jobs:
       static-checks-output: ${{ steps.static-checks-scan.outputs.VULNERABILITIES_EXIST }}
       vulnerability-scan-output: ${{ steps.vulnerability-scan.outputs.VULNERABILITIES_EXIST }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - uses: dorny/paths-filter@v2
         id: filter
@@ -132,7 +132,6 @@ jobs:
     needs: scans
     if: always()
     steps:
-
       - name: Check ci-runner results
         id: check-ci-runner-results
         if: always()
