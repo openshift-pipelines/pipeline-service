@@ -18,7 +18,7 @@ spec:
     name: test-rhtap-e2e
   params:
     - name: ocp_version
-      value: "4.12.36"
+      value: "4.12.41"
     - name: repo_url
       value: "{{ repo_url }}"
     - name: revision
