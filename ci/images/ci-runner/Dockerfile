@@ -8,7 +8,7 @@ RUN set -x \
         git-2.39.3 \
         findutils-1:4.8.0 \
         openssl-1:3.0.7 \
-        podman-2:4.4.1 \
+        podman-2:4.6.1 \
         procps-ng-3.3.17 \
         python3-pip-21.2.3 \
         rsync-3.2.3 \
