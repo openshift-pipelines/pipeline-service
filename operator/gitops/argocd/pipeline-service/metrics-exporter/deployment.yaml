@@ -20,6 +20,7 @@ spec:
       containers:
         - name: pipeline-metrics-exporter
           image: quay.io/redhat-appstudio/pipeline-service-exporter:placeholder
+          args: []
           ports:
             - containerPort: 9117
               name: metrics
