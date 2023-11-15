@@ -44,6 +44,9 @@ spec:
     enable-hub-resolver: true
     enable-tekton-oci-bundles: true
     performance:
+      disable-ha: false
+      buckets: 1
+      replicas: 1
       threads-per-controller: 32
       kube-api-qps: 50
       kube-api-burst: 50
