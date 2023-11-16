@@ -146,7 +146,7 @@
         {
           "editorMode": "code",
           "exemplar": true,
-          "expr": "(sum(sum_over_time(pipelinerun_duration_scheduled_seconds_sum{status='succeded'}[30m])) / sum(sum_over_time(pipelinerun_duration_scheduled_seconds_count{status='succeded'}[30m]))) / (sum(sum_over_time(tekton_pipelines_controller_pipelinerun_duration_seconds_sum{status='success'}[30m])) / sum(sum_over_time(tekton_pipelines_controller_pipelinerun_duration_seconds_count{status='success'}[30m])))",
+          "expr": "(sum(increase(pipelinerun_duration_scheduled_seconds_sum{status='succeded'}[30m])) / sum(increase(pipelinerun_duration_scheduled_seconds_count{status='succeded'}[30m]))) / (sum(increase(tekton_pipelines_controller_pipelinerun_duration_seconds_sum{status='success'}[30m])) / sum(increase(tekton_pipelines_controller_pipelinerun_duration_seconds_count{status='success'}[30m])))",
           "format": "table",
           "hide": false,
           "instant": false,
@@ -212,7 +212,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "(sum(sum_over_time(pipelinerun_gap_between_taskruns_milliseconds_sum{status='succeded'}[30m])/1000) / sum(sum_over_time(pipelinerun_gap_between_taskruns_milliseconds_count{status='succeded'}[30m]))) / (sum(sum_over_time(tekton_pipelines_controller_pipelinerun_duration_seconds_sum{status='success'}[30m])) / sum(sum_over_time(tekton_pipelines_controller_pipelinerun_duration_seconds_count{status='success'}[30m])))",
+          "expr": "(sum(increase(pipelinerun_gap_between_taskruns_milliseconds_sum{status='succeded'}[30m])/1000) / sum(increase(pipelinerun_gap_between_taskruns_milliseconds_count{status='succeded'}[30m]))) / (sum(increase(tekton_pipelines_controller_pipelinerun_duration_seconds_sum{status='success'}[30m])) / sum(increase(tekton_pipelines_controller_pipelinerun_duration_seconds_count{status='success'}[30m])))",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
