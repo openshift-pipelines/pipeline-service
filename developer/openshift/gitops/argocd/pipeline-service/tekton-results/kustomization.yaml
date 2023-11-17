@@ -7,3 +7,4 @@ resources:
 patches:
   - path: minio-create-bucket.yaml
   - path: minio-tls.yaml
+  - path: postgres.yaml

@@ -36,6 +36,7 @@ skip-check:
   # openshift scc / security addresses these check by mutating pod under the covers
   # with pods getting assigned the restricted scc unless explicitly allowed otherwise
   - CKV_K8S_20 # no allowPrivilegeEscalation
+  - CKV_K8S_21 # the default namespace should not be used
   - CKV_K8S_22 # read only FS
   - CKV_K8S_23 # admission of root containers
   - CKV_K8S_25 # we are not adding capabilities, running under restricted-scc

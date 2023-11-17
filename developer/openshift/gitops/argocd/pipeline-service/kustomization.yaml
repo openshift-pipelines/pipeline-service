@@ -8,6 +8,7 @@ resources:
 patches:
   - path: tekton-results/minio-create-bucket.yaml
   - path: tekton-results/minio-tls.yaml
+  - path: tekton-results/postgres.yaml
 
   # Skip applying the Tekton operands while the Tekton operator is being installed.
   # See more information about this option, here:

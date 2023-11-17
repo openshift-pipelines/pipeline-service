@@ -7,7 +7,7 @@ spec:
   params:
     - name: ocp_version
       description: ocp cluster version that you want to provision
-      default: "4.12.36"
+      default: "4.14.3"
     - name: region
       description: ocp cluster region where you want to provision
       default: "us-east-1"

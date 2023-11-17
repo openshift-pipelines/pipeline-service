@@ -2,7 +2,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  name: test-pipeline-service-deployment-ocp-412
+  name: test-pipeline-service-deployment-ocp-414
   annotations:
     pipelinesascode.tekton.dev/on-event: "[pull_request, push]"
     pipelinesascode.tekton.dev/on-target-branch: "[refs/heads/*]"
@@ -20,7 +20,7 @@ spec:
     name: test-pipeline-service-deployment
   params:
     - name: ocp_version
-      value: "4.12.36"
+      value: "4.14.3"
     - name: repo_url
       value: "{{ repo_url }}"
     - name: revision

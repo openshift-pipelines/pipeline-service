@@ -62,7 +62,7 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+      - CreateNamespace=false
       # workaround to make working both minio: newer and old 4.5.4
       - Validate=false
     retry:

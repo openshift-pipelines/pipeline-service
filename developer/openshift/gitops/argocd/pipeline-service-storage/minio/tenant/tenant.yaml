@@ -14,7 +14,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
 spec:
   exposeServices:
-    minio: true
+    minio: false
   features:
     bucketDNS: false
     domains: {}
