@@ -2,11 +2,11 @@
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  name: test-pipeline-service-deployment-ocp-413
+  name: test-pipeline-service-upgrade-ocp-414
   annotations:
     pipelinesascode.tekton.dev/on-event: "[pull_request, push]"
     pipelinesascode.tekton.dev/on-target-branch: "[refs/heads/*]"
-    pipelinesascode.tekton.dev/pipeline: "[.tekton/pipeline/test-pipeline-service-deployment.yaml]"
+    pipelinesascode.tekton.dev/pipeline: "[.tekton/pipeline/test-pipeline-service-upgrade.yaml]"
     pipelinesascode.tekton.dev/task: "[.tekton/tasks/setup-ci-runner-container.yaml]"
     pipelinesascode.tekton.dev/task-1: "[.tekton/tasks/deploy-cluster.yaml]"
     pipelinesascode.tekton.dev/task-2: "[.tekton/tasks/destroy-cluster.yaml]"
@@ -17,10 +17,8 @@ metadata:
     pipelinesascode.tekton.dev/max-keep-runs: "5"
 spec:
   pipelineRef:
-    name: test-pipeline-service-deployment
+    name: test-pipeline-service-upgrade
   params:
-    - name: ocp_version
-      value: "4.13.13"
     - name: repo_url
       value: "{{ repo_url }}"
     - name: revision
