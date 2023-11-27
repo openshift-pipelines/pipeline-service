@@ -19,7 +19,7 @@ spec:
               "-auth_mode",
               "token",
               "-completed_run_grace_period",
-              "10m",
+              "-1", # anything less than 0 means completed PipelineRuns will be pruned immediately.
             ]
           securityContext:
             readOnlyRootFilesystem: true
