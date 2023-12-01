@@ -3,7 +3,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tekton-results-watcher
-  namespace: tekton-pipelines
 spec:
   template:
     spec:

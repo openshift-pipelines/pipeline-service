@@ -27,7 +27,6 @@ configMapGenerator:
     files:
       - config.env
     name: api-config
-    namespace: tekton-pipelines
     options:
       disableNameSuffixHash: true
 
