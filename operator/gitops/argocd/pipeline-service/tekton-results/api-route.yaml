@@ -3,7 +3,6 @@ kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
   name: tekton-results
-  namespace: tekton-results
   labels:
     app.kubernetes.io/part-of: tekton-results
   annotations:

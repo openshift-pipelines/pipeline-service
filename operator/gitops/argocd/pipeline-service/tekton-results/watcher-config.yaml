@@ -4,7 +4,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tekton-results-watcher
-  namespace: tekton-pipelines
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 spec:

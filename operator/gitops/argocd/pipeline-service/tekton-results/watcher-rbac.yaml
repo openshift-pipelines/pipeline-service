@@ -25,7 +25,6 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: watcher
-    namespace: tekton-pipelines
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
