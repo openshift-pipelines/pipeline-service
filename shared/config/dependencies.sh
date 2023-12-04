@@ -3,9 +3,9 @@
 # add '# Freeze' after the export.
 # E.g.:
 #       export FOOBAR_VERSION="1.2.3"  # Freeze
-export ARGOCD_VERSION="v2.9.2"
+export ARGOCD_VERSION="v2.9.3"
 export BITWARDEN_VERSION="v2023.10.0"
-export CHECKOV_VERSION="3.1.19"
+export CHECKOV_VERSION="3.1.20"
 export GO_VERSION="1.21.4"
 export HADOLINT_VERSION="v2.12.0"
 export JQ_VERSION="1.7"
@@ -16,4 +16,4 @@ export SHELLCHECK_VERSION="v0.9.0"
 export TEKTONCD_CLI_VERSION="v0.33.0"
 export TERRAFORM_VERSION="1.6.5"
 export YAMLLINT_VERSION="1.33.0"
-export YQ_VERSION="v4.40.3"
+export YQ_VERSION="v4.40.4"
