@@ -140,6 +140,12 @@ spec:
         - input: "$(tasks.deploy-cluster.status)"
           operator: notin
           values: ["None", "Failed"]
+        - input: "$(tasks.setup-ci-runner-container.status)"
+          operator: notin
+          values: ["None", "Failed"]
+        - input: "$(tasks.deploy-pipeline-service-baseline.status)"
+          operator: notin
+          values: ["None", "Failed"]
       params:
         - name: cluster-name
           value: "$(tasks.generate-cluster-name.results.cluster-name)"

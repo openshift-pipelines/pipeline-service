@@ -164,7 +164,7 @@ cluster_setup() {
   echo "- Enabling HTTP2 for ingress:"
   oc annotate ingresses.config/cluster \
     ingress.operator.openshift.io/default-enable-http2=true \
-    --overwrite=true \
+    --overwrite=true --v=7 \
   | indent 2
 }
 
