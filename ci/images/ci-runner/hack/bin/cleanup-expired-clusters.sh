@@ -29,7 +29,7 @@ destroy_expired_clusters() {
 
     echo "[$(date +"%Y/%m/%d %H:%M:%S")] Cluster count: ${#clusters[@]}"
     for cluster in "${clusters[@]}"; do
-        if [[ "${EXCLUDE_CLUSTER[*]}" =~ $cluster ]]; then
+        if [[ "$cluster" =~ ^debug- || "${EXCLUDE_CLUSTER[*]}" =~ $cluster ]]; then
             continue
         fi
 
