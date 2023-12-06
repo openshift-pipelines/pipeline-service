@@ -16,5 +16,5 @@ spec:
         set -o nounset
         set -o pipefail
         set -x
-        CLUSTER_NAME="ci-$( openssl rand -hex 5 )"
+        CLUSTER_NAME="debug-$( openssl rand -hex 4 )"
         echo -n "$CLUSTER_NAME" | tee $(results.cluster-name.path)
