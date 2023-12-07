@@ -69,6 +69,7 @@ deploy_cluster() {
         --worker-iam-role "$WORKER_ROLE_ARN" \
         --compute-machine-type m5.2xlarge \
         --subnet-ids="$SUBNET_IDS" \
+        --billing-account "$AWS_ACCOUNT_ID" \
         --hosted-cp -y
 
     printf "Track the progress of the cluster creation...\n" | indent 2

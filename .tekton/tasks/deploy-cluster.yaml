@@ -43,6 +43,11 @@ spec:
             secretKeyRef:
               name: plnsvc-ci-secret
               key: "PLNSVC_AWS_KEY"
+        - name: AWS_ACCOUNT_ID
+          valueFrom:
+            secretKeyRef:
+              name: plnsvc-ci-secret
+              key: "PLNSVC_AWS_ACCOUNT_ID"
       workingDir: "$(workspaces.workdir.path)/source"
       command:
         - ci/images/ci-runner/hack/bin/deploy-cluster.sh
