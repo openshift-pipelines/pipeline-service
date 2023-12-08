@@ -22,7 +22,7 @@
 
 | **Component**                | **Version**                             | **Purpose** | **Comments** |
 |------------------------------|-----------------------------------------|-------------|--------------|
-| OpenShift Pipelines Operator | openshift-pipelines-operator-rh.v1.12.0 |             |              |
+| OpenShift Pipelines Operator | openshift-pipelines-operator-rh.v1.13.0 |             |              |
 | OpenShift GitOps Operator    | openshift-gitops-operator.v1.5.10       |             |              |
 
 ### **Tools**
