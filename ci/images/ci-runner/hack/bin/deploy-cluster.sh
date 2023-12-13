@@ -54,6 +54,16 @@ check_clusteroperators() {
     kubectl get co
 }
 
+get_hcp_full_version() {
+    rosa_output=$(rosa list version --channel-group stable --region "$REGION" --hosted-cp -o json)
+    raw_id=$(echo "$rosa_output" | jq -r '.[0].raw_id' | grep "$OCP_VERSION")
+    HCP_FULL_VERSION="$raw_id"
+    if [ -z "$HCP_FULL_VERSION" ]; then
+        echo "Failed to get the HCP full version of $OCP_VERSION" >&2
+        exit 1
+    fi
+}
+
 deploy_cluster() {
     printf "Log in to your Red Hat account...\n" | indent 2
     setx_off
@@ -61,9 +71,10 @@ deploy_cluster() {
     setx_on
 
     printf "Provision ROSA with HCP cluster...\n" | indent 2
+    get_hcp_full_version
     rosa create cluster --cluster-name "$CLUSTER_NAME" \
         --sts --mode=auto --oidc-config-id "$AWS_OIDC_CONFIG_ID" \
-        --operator-roles-prefix "$OPERATOR_ROLES_PREFIX" --region "$REGION" --version "$OCP_VERSION" \
+        --operator-roles-prefix "$OPERATOR_ROLES_PREFIX" --region "$REGION" --version "$HCP_FULL_VERSION" \
         --role-arn "$INSTALL_ROLE_ARN" \
         --support-role-arn "$SUPPORT_ROLE_ARN" \
         --worker-iam-role "$WORKER_ROLE_ARN" \
