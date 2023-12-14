@@ -10,8 +10,11 @@ MANIFEST_DIR=$(
 )
 kubectl -n default apply -k "$MANIFEST_DIR/sidecar"
 
-kubectl -n default wait pod/ci-runner --for=condition=Ready --timeout=90s
-kubectl -n default describe pod/ci-runner
+if ! kubectl -n default wait pod/ci-runner --for=condition=Ready --timeout=180s; then
+    echo "ci-runner is not ready" >&2
+    kubectl -n default describe pod/ci-runner >&2
+    exit 1
+fi
 
 echo
 echo "KUBECONFIG:"
