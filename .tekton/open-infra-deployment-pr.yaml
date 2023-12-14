@@ -42,7 +42,7 @@ spec:
           - name: REVISION
             value: $(params.revision)
           - name: SCRIPT_IMAGE
-            value: "http://quay.io/devtools_gitops/test_image:4.0.5"
+            value: quay.io/devtools_gitops/test_image:4.0.5
           - name: SCRIPT
             value: $(params.infra-deployment-update-script)
         taskRef:
