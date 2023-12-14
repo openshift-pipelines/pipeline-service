@@ -4,6 +4,7 @@
 set -o errexit
 set -o nounset
 set -o pipefail
+set -x
 
 usage() {
   echo "
@@ -87,7 +88,11 @@ setup_test() {
 }
 
 wait_for_pipeline() {
-  kubectl wait --for=condition=succeeded "$1" -n "$2" --timeout 300s >"$DEBUG_OUTPUT"
+  if ! kubectl wait --for=condition=succeeded "$1" -n "$2" --timeout 300s >"$DEBUG_OUTPUT"; then
+    echo "[ERROR] Pipeline failed to complete successful" >&2
+    kubectl get pipelineruns "$1" -n "$2" >"$DEBUG_OUTPUT"
+    exit 1
+  fi
 }
 
 check_pod_security() {

@@ -51,6 +51,7 @@ spec:
         name: setup-ci-runner-container
       runAfter:
         - "deploy-cluster"
+      retries: 2
       params:
         - name: target_branch
           value: $(params.target_branch)
