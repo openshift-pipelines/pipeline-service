@@ -6,6 +6,7 @@ metadata:
   namespace: openshift-pipelines
   annotations:
     argocd.argoproj.io/sync-wave: "0"
+    ignore-check.kube-linter.io/dangling-service: This service is not dangling, it exposes metric for an OSP deployment
   labels:
     app.kubernetes.io/part-of: tekton-chains
     app.kubernetes.io/component: metrics
