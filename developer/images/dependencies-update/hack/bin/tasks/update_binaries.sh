@@ -30,20 +30,20 @@ run_task() {
     echo "Update binaries" >"$COMMIT_MSG"
     echo >>"$COMMIT_MSG"
     mapfile -t BINARIES < <(
-        grep --extended-regexp "^ *[^#]* *[A-Z]*_VERSION=" "$DEPENDENCIES" \
-            | sed "s:export *\(.*\)_VERSION=.*:\1:" \
-            | tr "[:upper:]" "[:lower:]" \
-            | sort
+        grep --extended-regexp "^ *[^#]* *[A-Z]*_VERSION=" "$DEPENDENCIES" |
+            sed "s:export *\(.*\)_VERSION=.*:\1:" |
+            tr "[:upper:]" "[:lower:]" |
+            sort
     )
     for BINARY in "${BINARIES[@]}"; do
         update_binary
     done
     if [ "$(git diff shared/config/dependencies.sh | wc -l)" != "0" ]; then
-        git diff shared/config/dependencies.sh \
-            | grep "^+export" \
-            | sed -e "s:^+export:-:" -e "s:_VERSION=: to :" \
-            | tr -d \" \
-            | tr "[:upper:]" "[:lower:]" >>"$COMMIT_MSG"
+        git diff shared/config/dependencies.sh |
+            grep "^+export" |
+            sed -e "s:^+export:-:" -e "s:_VERSION=: to :" |
+            tr -d \" |
+            tr "[:upper:]" "[:lower:]" >>"$COMMIT_MSG"
     fi
 }
 
@@ -76,9 +76,9 @@ get_checkov_version() {
 get_go_version() {
     URL="https://go.dev/VERSION?m=text"
     VERSION=$(
-        curl --location --silent "$URL" \
-            | grep "^go" \
-            | sed "s:^go::"
+        curl --location --silent "$URL" |
+            grep "^go" |
+            sed "s:^go::"
     )
 }
 
@@ -98,15 +98,20 @@ get_kubectl_version() {
 get_oc_version() {
     URL="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/"
     VERSION=$(
-        curl --location --silent "$URL" \
-        | grep -E ">openshift-client-linux-[0-9]" \
-        | sed "s:.*\([0-9]\+\.[0-9]\+\.[0-9]\+\).*:\1:"
+        curl --location --silent "$URL" |
+            grep -E ">openshift-client-linux-[0-9]" |
+            sed "s:.*\([0-9]\+\.[0-9]\+\.[0-9]\+\).*:\1:"
     )
 }
 
 get_rosa_version() {
-    get_github_release "https://github.com/openshift/rosa"
-    VERSION=$(echo "$VERSION" | sed "s:^v::")
+    VERSION=$(
+        curl https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/rosa/ |
+            grep ' href="[0-9]' |
+            sed 's:.* href="\([0-9]\+.[0-9]\+.[0-9]\+\).*:\1:' |
+            sort --version-sort |
+            tail -1
+    )
 }
 
 get_shellcheck_version() {
@@ -120,10 +125,10 @@ get_tektoncd_cli_version() {
 get_terraform_version() {
     URL="https://api.github.com/repos/hashicorp/terraform/releases/latest"
     VERSION=$(
-        curl --location --silent "$URL" \
-            | grep '"tag_name":' \
-            | sed -E 's/.*"([^"]+)".*/\1/' \
-            | sed "s:^v::"
+        curl --location --silent "$URL" |
+            grep '"tag_name":' |
+            sed -E 's/.*"([^"]+)".*/\1/' |
+            sed "s:^v::"
     )
 }
 
@@ -139,13 +144,13 @@ get_github_release() {
     URL="$1"
     PREFIX="${2:-}"
     VERSION=$(
-        git ls-remote --tags "$URL" \
-            | grep -E "$PREFIX" \
-            | sed "s:^.*refs/tags/$PREFIX::" \
-            | grep -E "[0-9]+\.[0-9]+" \
-            | grep -vE "[0-9][-_]*alpha|[0-9][-_]*beta|[0-9][-_]*pre|[0-9][-_]*rc|\^\{\}" \
-            | sort -V \
-            | tail -1
+        git ls-remote --tags "$URL" |
+            grep -E "$PREFIX" |
+            sed "s:^.*refs/tags/$PREFIX::" |
+            grep -E "[0-9]+\.[0-9]+" |
+            grep -vE "[0-9][-_]*alpha|[0-9][-_]*beta|[0-9][-_]*pre|[0-9][-_]*rc|\^\{\}" |
+            sort -V |
+            tail -1
     )
 }
 
