@@ -10,7 +10,7 @@ resources:
 images:
   - name: quay.io/redhat-appstudio/pipeline-service-exporter
     newName: quay.io/redhat-appstudio/pipeline-service-exporter
-    newTag: 8f321cb4da5a2f939199e2bc12924c15de32d5ac
+    newTag: 42a1938a18bf5b999241fafbf0d57a1c7d19e0f2
 
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
