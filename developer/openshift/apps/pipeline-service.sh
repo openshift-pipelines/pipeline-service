@@ -30,6 +30,7 @@ configure_argocd_apps(){
 setup_tekton_results() {
   echo -n "- Tekton Results: "
   get_tekton_results_credentials
+  generate_tekton_results_db_ssl_cert
   patch_tekton_results_manifests
   echo "OK"
 }
@@ -56,6 +57,38 @@ EOF
   TEKTON_RESULTS_S3_PASSWORD="$(yq ".s3_password" "$tekton_results_credentials")"
 }
 
+generate_tekton_results_db_ssl_cert(){
+  TEKTON_RESULTS_DB_SSL="$WORK_DIR/certificates/tekton-results"
+  mkdir -p "$TEKTON_RESULTS_DB_SSL"
+  openssl req -newkey rsa:4096 -nodes -text \
+    -keyout "$TEKTON_RESULTS_DB_SSL/root.key" \
+    -out "$TEKTON_RESULTS_DB_SSL/root.csr" \
+    -subj "/CN=postgres-postgresql.tekton-results.svc.cluster.local" \
+    -addext "subjectAltName=DNS:postgres-postgresql.tekton-results.svc.cluster.local" \
+    > /dev/null 2>&1
+  chmod og-rwx "$TEKTON_RESULTS_DB_SSL/root.key"
+  openssl x509 -req -days 7 -text \
+    -signkey "$TEKTON_RESULTS_DB_SSL/root.key" \
+    -in "$TEKTON_RESULTS_DB_SSL/root.csr" \
+    -extfile "/etc/ssl/openssl.cnf" \
+    -extensions v3_ca \
+    -out "$TEKTON_RESULTS_DB_SSL/ca.crt" \
+    > /dev/null 2>&1
+  openssl req -new -nodes -text \
+    -out "$TEKTON_RESULTS_DB_SSL/root.csr" \
+    -keyout "$TEKTON_RESULTS_DB_SSL/tls.key" \
+    -subj "/CN=postgres-postgresql.tekton-results.svc.cluster.local" \
+    -addext "subjectAltName=DNS:postgres-postgresql.tekton-results.svc.cluster.local" \
+    > /dev/null 2>&1
+  chmod og-rwx "$TEKTON_RESULTS_DB_SSL/tls.key"
+  openssl x509 -req -text -days 7 -CAcreateserial \
+    -in "$TEKTON_RESULTS_DB_SSL/root.csr" \
+    -CA "$TEKTON_RESULTS_DB_SSL/ca.crt" \
+    -CAkey "$TEKTON_RESULTS_DB_SSL/root.key" \
+    -out "$TEKTON_RESULTS_DB_SSL/tls.crt" \
+    > /dev/null 2>&1
+}
+
 patch_tekton_results_manifests(){
   yq --inplace "
     .data.[\"db.password\"]=\"$(echo -n "$TEKTON_RESULTS_DATABASE_PASSWORD" | base64)\",
@@ -75,7 +108,17 @@ EOF
   yq --inplace "
     .data.[\"config.env\"]=\"$string_data\"
   " "$WORK_DIR/environment/compute/tekton-results/tekton-results-minio-config.yaml"
+  yq --inplace "
+    .data.[\"ca.crt\"]=\"$(base64 "$TEKTON_RESULTS_DB_SSL/ca.crt")\" |
+    .data.[\"tls.crt\"]=\"$(base64 "$TEKTON_RESULTS_DB_SSL/tls.crt")\" |
+    .data.[\"tls.key\"]=\"$(base64 "$TEKTON_RESULTS_DB_SSL/tls.key")\"
+  " "$WORK_DIR/environment/compute/tekton-results/tekton-results-postgresql-tls-secret.yaml"
+  yq --inplace "
+  .data.[\"tekton-results-db-ca.pem\"]=\"$(cat "$TEKTON_RESULTS_DB_SSL/tls.crt" "$TEKTON_RESULTS_DB_SSL/ca.crt")\"
+  " "$WORK_DIR/environment/compute/tekton-results/rds-db-cert-configmap.yaml"
 }
+
+
 
 deploy_application() {
   echo "- Deploy application:"

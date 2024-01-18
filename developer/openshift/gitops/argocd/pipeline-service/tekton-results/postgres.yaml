@@ -13,4 +13,4 @@ spec:
         - name: api
           env:
             - name: DB_SSLMODE
-              value: "disable"
+              value: "verify-ca"
