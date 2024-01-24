@@ -1,0 +1,36 @@
+---
+name: update-osp-nightly
+run-name: Check for OSP nightly and create a PR
+on: workflow_dispatch
+permissions: {}  # drop all permissions; the default triggers codecov failure
+jobs:
+  update-osp-nightly:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update CatalogSource
+        run: |
+          tag="v4.14-candidate"
+          inspected=$(skopeo inspect docker://quay.io/openshift-pipeline/openshift-pipelines-pipelines-operator-bundle-container-index:$tag)
+          created=$(echo "$inspected" | jq -r '.Created')
+          echo "DEBUG: Found tag $tag created: $created"
+          digest=$(echo "$inspected" | jq -r '.Digest')
+          echo "DEBUG: Tag digest: $digest"
+          sed -i -E "s/sha256:[0-9a-f]{64}/${digest}/g" operator/gitops/argocd/pipeline-service/openshift-pipelines/osp-nightly-catalog-source.yaml
+      - name: Enable CatalogSource  # Could be removed once we switch to nightly builds
+        run: yq -i '.resources += "osp-nightly-catalog-source.yaml"' operator/gitops/argocd/pipeline-service/openshift-pipelines/kustomization.yaml
+      - name: Update Subscription  # Could be removed once we switch to nightly builds
+        run: yq -i '.spec.channel = "latest" | .spec.source = "custom-operators"' operator/gitops/argocd/pipeline-service/openshift-pipelines/openshift-operator.yaml
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: "[new-osp-nightly-build] automated change"
+          title: "[DO-NOT-MERGE] Automated change to update OSP nightly"
+          body: |
+            Automated change by [update-osp-nightly]
+
+            The change is only intended to test the nightly build in the CI.
+            Do not merge!
