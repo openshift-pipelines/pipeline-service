@@ -1,6 +1,6 @@
 ---
 # Based on: https://github.com/redhat-appstudio/build-definitions/blob/main/task/update-infra-deployments/0.1/update-infra-deployments.yaml
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   labels:
