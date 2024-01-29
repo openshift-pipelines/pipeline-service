@@ -8,6 +8,7 @@ spec:
     - name: repo_url
     - name: revision
     - name: target_branch
+    - name: pr_title
   timeouts:
     finally: "0h30m0s"
   workspaces:
@@ -110,6 +111,10 @@ spec:
     - name: downgrade-pipeline-service
       taskRef:
         name: deploy-pipeline-service
+      when:
+        - input: "$(params.pr_title)"
+          operator: notin
+          values: ["[DO-NOT-MERGE] Automated change to update OSP nightly"]
       runAfter:
         - "test-upgrade"
       workspaces:
@@ -125,6 +130,10 @@ spec:
     - name: test-downgrade
       taskRef:
         name: test-pipeline-service
+      when:
+        - input: "$(params.pr_title)"
+          operator: notin
+          values: ["[DO-NOT-MERGE] Automated change to update OSP nightly"]
       runAfter:
         - "downgrade-pipeline-service"
       params:

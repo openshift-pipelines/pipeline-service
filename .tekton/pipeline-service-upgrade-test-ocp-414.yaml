@@ -25,6 +25,8 @@ spec:
       value: "{{ revision }}"
     - name: target_branch
       value: "{{ target_branch }}"
+    - name: pr_title
+      value: "{{ body.pull_request.title }}"
   timeouts:
     pipeline: "1h30m0s"
   workspaces:
