@@ -1,10 +1,9 @@
 ---
 kind: PipelineRun
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 metadata:
   generateName: tekton-chains-metrics-
 spec:
-  serviceAccountName: chains-test
   pipelineSpec:
     tasks:
       - name: chains-metrics-curl
@@ -21,3 +20,5 @@ spec:
                    exit 1
                 fi
                 echo "SUCCESS: tekton chains metrics is available/working"
+  taskRunTemplate:
+    serviceAccountName: chains-test

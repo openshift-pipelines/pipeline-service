@@ -1,10 +1,9 @@
 ---
 kind: PipelineRun
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 metadata:
   generateName: metrics-curl-test-
 spec:
-  serviceAccountName: appstudio-pipeline
   pipelineSpec:
     tasks:
       - name: metrics-curl
@@ -23,3 +22,5 @@ spec:
                 fi
                 echo "SUCCESS: got pipelinerun_duration stats:"
                 echo $stats
+  taskRunTemplate:
+    serviceAccountName: appstudio-pipeline
