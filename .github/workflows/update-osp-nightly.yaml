@@ -28,6 +28,7 @@ jobs:
         uses: peter-evans/create-pull-request@v5
         with:
           commit-message: "[new-osp-nightly-build] automated change"
+          # the title is used as conditional for some pipeline tasks, update accordingly
           title: "[DO-NOT-MERGE] Automated change to update OSP nightly"
           body: |
             Automated change by [update-osp-nightly]
