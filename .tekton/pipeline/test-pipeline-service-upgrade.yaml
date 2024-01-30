@@ -9,100 +9,46 @@ spec:
     - name: revision
     - name: target_branch
     - name: pr_title
+    - name: source_branch
   timeouts:
     finally: "0h30m0s"
   workspaces:
     - name: shared-workspace
   tasks:
-    - name: clone-pipeline-service-repository
-      taskRef:
-        name: git-clone
-      workspaces:
-        - name: output
-          workspace: shared-workspace
+    - name: print-pr-title-param
       params:
-        - name: url
-          value: $(params.repo_url)
-        - name: revision
-          value: $(params.revision)
-        - name: subdirectory
-          value: source
-    - name: generate-cluster-name
-      taskRef:
-        name: generate-cluster-name
-    - name: deploy-cluster
-      taskRef:
-        name: deploy-cluster
-      runAfter:
-        - "generate-cluster-name"
-        - "clone-pipeline-service-repository"
-      params:
-        - name: cluster-name
-          value: "$(tasks.generate-cluster-name.results.cluster-name)"
-        - name: target_branch
-          value: $(params.target_branch)
-      workspaces:
-        - name: workdir
-          workspace: shared-workspace
-    - name: setup-ci-runner-container
-      taskRef:
-        name: setup-ci-runner-container
-      runAfter:
-        - "deploy-cluster"
-      retries: 2
-      params:
-        - name: target_branch
-          value: $(params.target_branch)
-      workspaces:
-        - name: workdir
-          workspace: shared-workspace
-    - name: downgrade-pipeline-service
-      taskRef:
-        name: deploy-pipeline-service
+        - name: pr_title
+          value: $(params.pr_title)
+      taskSpec:
+        steps:
+          - name: print-pr-title
+            image: alpine
+            script: |
+              #!/bin/sh
+              echo "=========================="
+              echo "$(params.repo_url)"
+              echo "=========================="
+              echo "$(params.pr_title)"
+              echo "=========================="
+              echo "$(params.revision)"
+              echo "=========================="
+              echo {{ body.pull_request.title }}
+              echo "=========================="
+              echo "$(params.source_branch)"
+              echo "=========================="
+    - name: should-be-skipped
+      taskSpec:
+        steps:
+          - name: print-something
+            image: alpine
+            script: |
+              #!/bin/sh
+              echo "=========================="
+              echo "this should not be printed"
+              echo "=========================="
       when:
-        - input: "$(params.pr_title)"
+        - input: "$(params.source_branch)"
           operator: notin
-          values: ["[DO-NOT-MERGE] Automated change to update OSP nightly"]
+          values: ["fix-nightly-skip-downgrade"]
       runAfter:
-        - "setup-ci-runner-container"
-      workspaces:
-        - name: workdir
-          workspace: shared-workspace
-      params:
-        - name: repo_url
-          value: $(params.repo_url)
-        - name: target_branch
-          value: $(params.target_branch)
-        - name: test_branch
-          value: $(params.target_branch)
-    - name: test-downgrade
-      taskRef:
-        name: test-pipeline-service
-      when:
-        - input: "$(params.pr_title)"
-          operator: notin
-          values: ["[DO-NOT-MERGE] Automated change to update OSP nightly"]
-      runAfter:
-        - "downgrade-pipeline-service"
-      params:
-        - name: target_branch
-          value: $(params.target_branch)
-      workspaces:
-        - name: workdir
-          workspace: shared-workspace
-  finally:
-    - name: destroy-cluster
-      taskRef:
-        name: destroy-cluster
-      when:
-        - input: "$(tasks.deploy-cluster.status)"
-          operator: notin
-          values: ["None", "Failed"]
-      params:
-        - name: cluster-name
-          value: "$(tasks.generate-cluster-name.results.cluster-name)"
-        - name: target_branch
-          value: $(params.target_branch)
-      workspaces:
-        - name: workdir
-          workspace: shared-workspace
+        - "print-pr-title-param"

@@ -27,6 +27,8 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
+          # the branch name is used by another job to open infra-deployments PR
+          branch: ci-update-osp-nightly
           commit-message: "[new-osp-nightly-build] automated change"
           # the title is used as conditional for some pipeline tasks, update accordingly
           title: "[DO-NOT-MERGE] Automated change to update OSP nightly"
