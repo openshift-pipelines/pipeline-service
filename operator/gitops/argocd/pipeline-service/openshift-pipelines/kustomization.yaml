@@ -14,3 +14,4 @@ resources:
   - chains-observability-service.yaml
   - chains-public-key-viewer.yaml
   - chains-secrets-config.yaml
+  - namespace.yaml
