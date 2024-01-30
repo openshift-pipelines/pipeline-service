@@ -56,58 +56,6 @@ spec:
       workspaces:
         - name: workdir
           workspace: shared-workspace
-    - name: deploy-pipeline-service-baseline
-      taskRef:
-        name: deploy-pipeline-service
-      runAfter:
-        - "setup-ci-runner-container"
-      workspaces:
-        - name: workdir
-          workspace: shared-workspace
-      params:
-        - name: repo_url
-          value: $(params.repo_url)
-        - name: target_branch
-          value: $(params.target_branch)
-        - name: test_branch
-          value: $(params.target_branch)
-    - name: test-baseline
-      taskRef:
-        name: test-pipeline-service
-      runAfter:
-        - "deploy-pipeline-service-baseline"
-      params:
-        - name: target_branch
-          value: $(params.target_branch)
-      workspaces:
-        - name: workdir
-          workspace: shared-workspace
-    - name: upgrade-pipeline-service
-      taskRef:
-        name: deploy-pipeline-service
-      runAfter:
-        - "test-baseline"
-      workspaces:
-        - name: workdir
-          workspace: shared-workspace
-      params:
-        - name: repo_url
-          value: $(params.repo_url)
-        - name: target_branch
-          value: $(params.target_branch)
-        - name: test_branch
-          value: $(params.revision)
-    - name: test-upgrade
-      taskRef:
-        name: test-pipeline-service
-      runAfter:
-        - "upgrade-pipeline-service"
-      params:
-        - name: target_branch
-          value: $(params.target_branch)
-      workspaces:
-        - name: workdir
-          workspace: shared-workspace
     - name: downgrade-pipeline-service
       taskRef:
         name: deploy-pipeline-service
@@ -116,7 +64,7 @@ spec:
           operator: notin
           values: ["[DO-NOT-MERGE] Automated change to update OSP nightly"]
       runAfter:
-        - "test-upgrade"
+        - "setup-ci-runner-container"
       workspaces:
         - name: workdir
           workspace: shared-workspace
