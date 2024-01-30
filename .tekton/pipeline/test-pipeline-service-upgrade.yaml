@@ -14,6 +14,25 @@ spec:
   workspaces:
     - name: shared-workspace
   tasks:
+    - name: print-pr-title-param
+      params:
+        - name: pr_title
+          value: $(params.pr_title)
+      taskSpec:
+        steps:
+          - name: print-pr-title
+            image: alpine
+            script: |
+              #!/bin/sh
+              echo "=========================="
+              echo "$(params.repo_url)"
+              echo "=========================="
+              echo "$(params.pr_title)"
+              echo "=========================="
+              echo "$(params.revision)"
+              echo "=========================="
+              echo {{ body.pull_request.title }}
+              echo "=========================="
     - name: clone-pipeline-service-repository
       taskRef:
         name: git-clone
