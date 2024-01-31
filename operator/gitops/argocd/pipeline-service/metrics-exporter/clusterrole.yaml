@@ -19,7 +19,7 @@ rules:
 
   - apiGroups: ["tekton.dev"]
     resources: ["pipelineruns", "taskruns"]
-    verbs: ["get", "list", "watch"]
+    verbs: ["get", "list", "watch", "patch"]
 
   - nonResourceURLs:
       - "/metrics"
