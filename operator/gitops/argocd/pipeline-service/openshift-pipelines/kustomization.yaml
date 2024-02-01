@@ -15,3 +15,4 @@ resources:
   - chains-public-key-viewer.yaml
   - chains-secrets-config.yaml
   - osp-nightly-catalog-source.yaml
+  - namespace.yaml
