@@ -35,3 +35,4 @@ jobs:
 
             The change is only intended to test the nightly build in the CI.
             Do not merge!
+          branch: update-osp-nightly
