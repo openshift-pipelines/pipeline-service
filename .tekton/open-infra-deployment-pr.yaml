@@ -4,7 +4,7 @@ kind: PipelineRun
 metadata:
   name: open-infra-deployment-pr
   annotations:
-    pipelinesascode.tekton.dev/on-event: "pull_request"
+    pipelinesascode.tekton.dev/on-event: "[pull_request,push]"
     pipelinesascode.tekton.dev/on-target-branch: "test-nightly-skip-downgrade"
     pipelinesascode.tekton.dev/max-keep-runs: "5"
 spec:
