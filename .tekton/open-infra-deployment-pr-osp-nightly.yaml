@@ -1,0 +1,67 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: open-infra-deployment-pr-osp-nightly
+  annotations:
+    pipelinesascode.tekton.dev/on-event: "push"
+    pipelinesascode.tekton.dev/on-target-branch: "ci-update-osp-nightly"
+    pipelinesascode.tekton.dev/max-keep-runs: "5"
+spec:
+  params:
+    - name: git-url
+      # We override the repo name as it's used as title for the automated PR.
+      # While testing nightlies we want two lanes of PRs, the regular ones and the OSP nightlies.
+      value: https://github.com/openshift-pipelines/pipeline-service-test-osp-nightly
+    - name: revision
+      value: "{{ revision }}"
+    - name: infra-deployment-update-script
+      value: |
+        sed -i -E 's/[0-9a-f]{40}/{{ revision }}/g' components/pipeline-service/development/kustomization.yaml
+        sed -i -E 's/[0-9a-f]{40}/{{ revision }}/g' components/pipeline-service/staging/base/kustomization.yaml
+        sed -i -E 's/[0-9a-f]{40}/{{ revision }}/g' components/monitoring/grafana/base/dashboards/pipeline-service/kustomization.yaml
+    - name: slack-webhook-notification-team
+      value: pipeline
+  pipelineSpec:
+    params:
+      - description: "Source Repository URL"
+        name: git-url
+        type: string
+      - description: "Revision of the Source Repository"
+        name: revision
+        type: string
+      - default: ""
+        name: infra-deployment-update-script
+      - default: ""
+        name: slack-webhook-notification-team
+    tasks:
+      - name: update-infra-repo
+        params:
+          - name: ORIGIN_REPO
+            value: $(params.git-url)
+          - name: REVISION
+            value: $(params.revision)
+          - name: SCRIPT_IMAGE
+            value: quay.io/devtools_gitops/test_image:4.0.5
+          - name: SCRIPT
+            value: $(params.infra-deployment-update-script)
+        taskRef:
+          bundle: quay.io/redhat-appstudio-tekton-catalog/task-update-infra-deployments:0.1
+          name: update-infra-deployments
+    finally:
+      - name: send-slack-webhook-notification
+        when:
+          - input: $(params.slack-webhook-notification-team)
+            operator: notin
+            values: [""]
+          - input: $(tasks.status)
+            operator: in
+            values: ["Failed"]
+        params:
+          - name: message
+            value: Tekton pipelineRun $(context.pipelineRun.name) failed
+          - name: key-name
+            value: $(params.slack-webhook-notification-team)
+        taskRef:
+          bundle: quay.io/redhat-appstudio-tekton-catalog/task-slack-webhook-notification:0.1
+          name: slack-webhook-notification
