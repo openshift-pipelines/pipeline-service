@@ -1,7 +1,10 @@
 ---
 name: update-osp-nightly
 run-name: Check for OSP nightly and create a PR
-on: workflow_dispatch
+on:
+  schedule:
+    - cron: '10 1 * * *'
+  workflow_dispatch:
 permissions: {}  # drop all permissions; the default triggers codecov failure
 jobs:
   update-osp-nightly:
