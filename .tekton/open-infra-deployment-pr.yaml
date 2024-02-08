@@ -47,6 +47,7 @@ spec:
           - name: SCRIPT
             value: $(params.infra-deployment-update-script)
         taskRef:
+          resolver: bundles
           bundle: quay.io/redhat-appstudio-tekton-catalog/task-update-infra-deployments:0.1
           name: update-infra-deployments
     finally:
@@ -64,5 +65,6 @@ spec:
           - name: key-name
             value: $(params.slack-webhook-notification-team)
         taskRef:
+          resolver: bundles
           bundle: quay.io/redhat-appstudio-tekton-catalog/task-slack-webhook-notification:0.1
           name: slack-webhook-notification
