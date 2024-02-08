@@ -92,7 +92,7 @@ parse_args() {
         break
         ;;
       n | N | "")
-        exit 0
+        exit 1
         ;;
       esac
     done
@@ -164,8 +164,8 @@ cluster_setup() {
   echo "- Enabling HTTP2 for ingress:"
   oc annotate ingresses.config/cluster \
     ingress.operator.openshift.io/default-enable-http2=true \
-    --overwrite=true \
-  | indent 2
+    --overwrite=true |
+    indent 2
 }
 
 main() {

@@ -4,7 +4,6 @@
 set -o errexit
 set -o nounset
 set -o pipefail
-set -x
 
 usage() {
   echo "
@@ -102,7 +101,7 @@ check_pod_security() {
       echo "   - Skip: $pod is exempt"
       continue
     fi
-    scc="$(kubectl get "$pod" -o jsonpath='{.metadata.annotations.openshift\.io/scc}' -n "$1"  --ignore-not-found)"
+    scc="$(kubectl get "$pod" -o jsonpath='{.metadata.annotations.openshift\.io/scc}' -n "$1" --ignore-not-found)"
     if [ -z "$scc" ]; then
       echo "   - Skip: $pod could not be inspected (most like the pod terminated quickly)"
       continue
@@ -120,23 +119,23 @@ check_host_network() {
   mapfile -t pods < <(kubectl get pod -o name -n "$1")
   for pod in "${pods[@]}"; do
     # got to '|| true' or the script exits with the rc 1 that grep returns if nothing found
-    hostipc="$(kubectl get "$pod" -o yaml -n "$1"  --ignore-not-found | grep "hostIPC" || true )"
+    hostipc="$(kubectl get "$pod" -o yaml -n "$1" --ignore-not-found | grep "hostIPC" || true)"
     if [ -z "$hostipc" ]; then
       echo "   - OK hostIPC settings for $pod"
     else
-       echo "Failed, hostIPC's are "
-       echo "$hostipc"
-       echo "[ERROR] Unexpected $pod hostIPC settings" >&2
-       securityErrorFound="yes"
+      echo "Failed, hostIPC's are "
+      echo "$hostipc"
+      echo "[ERROR] Unexpected $pod hostIPC settings" >&2
+      securityErrorFound="yes"
     fi
-    hostpid="$(kubectl get "$pod" -o yaml -n "$1"  --ignore-not-found | grep "hostPID" || true )"
+    hostpid="$(kubectl get "$pod" -o yaml -n "$1" --ignore-not-found | grep "hostPID" || true)"
     if [ -z "$hostpid" ]; then
       echo "   - OK hostPID settings for $pod"
     else
-       echo "Failed, hostPID's are "
-       echo "$hostpid"
-       echo "[ERROR] Unexpected $pod hostPID settings" >&2
-       securityErrorFound="yes"
+      echo "Failed, hostPID's are "
+      echo "$hostpid"
+      echo "[ERROR] Unexpected $pod hostPID settings" >&2
+      securityErrorFound="yes"
     fi
   done
 }
@@ -249,7 +248,7 @@ test_chains() {
   echo -n "  - Metrics: "
   prName="$(kubectl create -n "$NAMESPACE" -f "$SCRIPT_DIR/manifests/test/tekton-chains/tekton-chains-metrics.yaml" | awk '{print $1}')"
   wait_for_pipeline "$prName" "$NAMESPACE"
-    if [ "$(kubectl get "$prName" -n "$NAMESPACE" \
+  if [ "$(kubectl get "$prName" -n "$NAMESPACE" \
     -o 'jsonpath={.status.conditions[0].reason}')" = "Succeeded" ]; then
     echo "OK"
   else
@@ -348,7 +347,7 @@ test_results() {
     QUERY_RESULT=$("${QUERY_CMD[@]}" 2>/dev/null)
     wait
 
-    # we are not interested in the content of the logs or records so just checking if the query result contains certain string (uid/type) 
+    # we are not interested in the content of the logs or records so just checking if the query result contains certain string (uid/type)
     if [[ $QUERY_RESULT == *"$RESULT_UID/$1"* ]]; then
       echo "OK"
     else
@@ -365,16 +364,16 @@ test_results() {
       QUERY_CMD[6]="${QUERY_URL}"
       LOGS_RESULT=$("${QUERY_CMD[@]}" 2>/dev/null)
 
-      if ! echo "$LOGS_RESULT" | grep -qF "PipelineRun name from params:" ; then
-          echo "[ERROR] Unable to retrieve logs output."
-          printf "[ERROR] Log record: %s \n" "${LOGS_RESULT}"
-          exit 1
+      if ! echo "$LOGS_RESULT" | grep -qF "PipelineRun name from params:"; then
+        echo "[ERROR] Unable to retrieve logs output."
+        printf "[ERROR] Log record: %s \n" "${LOGS_RESULT}"
+        exit 1
       fi
     fi
   }
 
   echo
-  # test both "records" and "logs" endpoints 
+  # test both "records" and "logs" endpoints
   sleep 10
   fetch_results_using_rest "records"
   fetch_results_using_rest "logs"
