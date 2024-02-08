@@ -19,6 +19,14 @@ spec:
     openshift:
       pipelinesAsCode:
         enable: true
+        options:
+          deployments:
+            pipelines-as-code-watcher:
+              spec:
+                replicas: 1
+            pipelines-as-code-webhook:
+              spec:
+                replicas: 1
   chain:
     # Configure TaskRun attestation.
     # RHTAP does not leverage the TaskRun attestations.
@@ -33,6 +41,11 @@ spec:
     artifacts.pipelinerun.format: "in-toto"
     artifacts.pipelinerun.storage: "oci"
 
+    options:
+      deployments:
+        tekton-chains-controller:
+          spec:
+            replicas: 1
     # Rekor integration is disabled for now. It is planned to be re-introduced in the future.
     transparency.enabled: "false"
   pipeline:
@@ -49,7 +62,7 @@ spec:
         tekton-operator-proxy-webhook:
           spec:
             replicas: 1
-        tekton-pipelines-webhook:
+        tekton-pipelines-remote-resolvers:
           spec:
             replicas: 1
     performance:
