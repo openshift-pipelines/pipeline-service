@@ -41,11 +41,6 @@ spec:
     artifacts.pipelinerun.format: "in-toto"
     artifacts.pipelinerun.storage: "oci"
 
-    options:
-      deployments:
-        tekton-chains-controller:
-          spec:
-            replicas: 1
     # Rekor integration is disabled for now. It is planned to be re-introduced in the future.
     transparency.enabled: "false"
   pipeline:
