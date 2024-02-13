@@ -353,6 +353,15 @@ test_results() {
     else
       echo "Failed"
       echo "[ERROR] Unable to retrieve $1 for $RESULT_UID from pipeline run $pipeline_name" >&2
+      echo "[ERROR] query result is $QUERY_RESULT" >&2
+      echo "[ERROR] api rbac logs:" >&2
+      kubectl logs deployment/tekton-results-api -c kube-rbac-proxy >&2
+      echo "[ERROR] api api logs:" >&2
+      kubectl logs deployment/tekton-results-api -c api >&2
+      echo "[ERROR] watcher rbac logs:" >&2
+      kubectl logs deployment/tekton-results-watcher -c kube-rbac-proxy >&2
+      echo "[ERROR] watcher watcher logs:" >&2
+      kubectl logs deployment/tekton-results-watcher -c watcher >&2
       exit 1
     fi
 
@@ -367,6 +376,14 @@ test_results() {
       if ! echo "$LOGS_RESULT" | grep -qF "PipelineRun name from params:"; then
         echo "[ERROR] Unable to retrieve logs output."
         printf "[ERROR] Log record: %s \n" "${LOGS_RESULT}"
+        echo "[ERROR] api rbac logs:" >&2
+        kubectl logs deployment/tekton-results-api -c kube-rbac-proxy >&2
+        echo "[ERROR] api api logs:" >&2
+        kubectl logs deployment/tekton-results-api -c api >&2
+        echo "[ERROR] watcher rbac logs:" >&2
+        kubectl logs deployment/tekton-results-watcher -c kube-rbac-proxy >&2
+        echo "[ERROR] watcher watcher logs:" >&2
+        kubectl logs deployment/tekton-results-watcher -c watcher >&2
         exit 1
       fi
     fi
