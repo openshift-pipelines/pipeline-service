@@ -18,9 +18,9 @@ spec:
         sed -i -E 's/[0-9a-f]{40}/{{ revision }}/g' components/pipeline-service/development/kustomization.yaml
         sed -i -E 's/[0-9a-f]{40}/{{ revision }}/g' components/pipeline-service/staging/base/kustomization.yaml
         sed -i -E 's/[0-9a-f]{40}/{{ revision }}/g' components/monitoring/grafana/base/dashboards/pipeline-service/kustomization.yaml
-        oc kustomize build components/pipeline-service/staging/stone-stg-m01/resources/ > components/pipeline-service/staging/stone-stg-m01/deploy.yaml
-        oc kustomize build components/pipeline-service/staging/stone-stg-rh01/resources/ > components/pipeline-service/staging/stone-stg-rh01/deploy.yaml
-        oc kustomize build components/pipeline-service/staging/stone-stage-p01/resources/ > components/pipeline-service/staging/stone-stage-p01/deploy.yaml
+        oc kustomize components/pipeline-service/staging/stone-stg-m01/resources/ > components/pipeline-service/staging/stone-stg-m01/deploy.yaml
+        oc kustomize components/pipeline-service/staging/stone-stg-rh01/resources/ > components/pipeline-service/staging/stone-stg-rh01/deploy.yaml
+        oc kustomize components/pipeline-service/staging/stone-stage-p01/resources/ > components/pipeline-service/staging/stone-stage-p01/deploy.yaml
     - name: slack-webhook-notification-team
       value: pipeline
   pipelineSpec:
