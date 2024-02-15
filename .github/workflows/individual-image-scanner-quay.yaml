@@ -25,7 +25,6 @@ jobs:
       ci-runner-output: ${{ steps.ci-runner-scan.outputs.VULNERABILITIES_EXIST }}
       dependencies-update-output: ${{ steps.dependencies-update-scan.outputs.VULNERABILITIES_EXIST }}
       e2e-test-runner-output: ${{ steps.e2e-test-runner-scan.outputs.VULNERABILITIES_EXIST }}
-      devenv-output: ${{ steps.devenv-scan.outputs.VULNERABILITIES_EXIST }}
       quay-upload-output: ${{ steps.quay-upload-scan.outputs.VULNERABILITIES_EXIST }}
       static-checks-output: ${{ steps.static-checks-scan.outputs.VULNERABILITIES_EXIST }}
       vulnerability-scan-output: ${{ steps.vulnerability-scan.outputs.VULNERABILITIES_EXIST }}
@@ -42,9 +41,6 @@ jobs:
             dependencies-update:
               - '.github/workflows/build-push-images.yaml'
               - 'developer/images/dependencies/**'
-              - 'shared/**'
-            devenv:
-              - 'developer/images/devenv/**'
               - 'shared/**'
             e2e-test-runner:
               - 'ci/images/e2e-test-runner/**'
@@ -76,16 +72,6 @@ jobs:
           echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
         env:
           IMAGE_NAME: dependencies-update
-
-      - name: devenv scan
-        continue-on-error: true
-        id: devenv-scan
-        if: steps.filter.outputs.devenv == 'true'
-        run: |
-          ./ci/images/vulnerability-scan/scan-image.sh | tee /tmp/clair-scan.log
-          echo "VULNERABILITIES_EXIST=$(tail -1 /tmp/clair-scan.log)" >> $GITHUB_OUTPUT
-        env:
-          IMAGE_NAME: devenv
 
       - name: quay-upload scan
         continue-on-error: true
@@ -153,19 +139,6 @@ jobs:
           res=${res:=0}
           if [[ $res != 0 ]]; then
             echo "Vulnerabilities found with dependencies-update image. Please check scans job for more details."
-            exit 1
-          else
-            echo "No vulnerabilities found"
-          fi
-
-      - name: Check devenv results
-        id: check-devenv-results
-        if: always()
-        run: |
-          res=${{ needs.scans.outputs.devenv-output }}
-          res=${res:=0}
-          if [[ $res != 0 ]]; then
-            echo "Vulnerabilities found with devenv image. Please check scans job for more details."
             exit 1
           else
             echo "No vulnerabilities found"
