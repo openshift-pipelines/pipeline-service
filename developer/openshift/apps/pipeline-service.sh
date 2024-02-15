@@ -17,10 +17,10 @@ setup_work_dir() {
   setup_tekton_results | indent
 }
 
-configure_argocd_apps(){
+configure_argocd_apps() {
   echo -n "- Updating source repository to '${GIT_URL}/tree/$GIT_REF': "
   # Patch the url/branch to target the expected repository/branch
-  yq --inplace ".resources[1] = \"$GIT_URL/developer/openshift/gitops/argocd?ref=$GIT_REF\"" "$manifests_dir/kustomization.yaml"
+  yq --inplace ".resources[0] = \"$GIT_URL/developer/openshift/gitops/argocd?ref=$GIT_REF\"" "$manifests_dir/kustomization.yaml"
   yq ".patches[] | .path" "$manifests_dir/kustomization.yaml" | while read -r patch; do
     yq --inplace ".spec.source.repoURL = \"$GIT_URL\", .spec.source.targetRevision = \"$GIT_REF\"" "$manifests_dir/$patch"
   done
@@ -42,7 +42,7 @@ get_tekton_results_credentials() {
     TEKTON_RESULTS_DATABASE_PASSWORD="$(yq ".tekton_results_db.password // \"$(openssl rand -base64 20)\"" "$CONFIG")"
     TEKTON_RESULTS_S3_USER="$(yq '.tekton_results_s3.user // "minio"' "$CONFIG")"
     TEKTON_RESULTS_S3_PASSWORD="$(yq ".tekton_results_s3.password // \"$(openssl rand -base64 20)\"" "$CONFIG")"
-    cat << EOF > "$tekton_results_credentials"
+    cat <<EOF >"$tekton_results_credentials"
 ---
 db_password: $TEKTON_RESULTS_DATABASE_PASSWORD
 db_user: $TEKTON_RESULTS_DATABASE_USER
@@ -56,7 +56,7 @@ EOF
   TEKTON_RESULTS_S3_PASSWORD="$(yq ".s3_password" "$tekton_results_credentials")"
 }
 
-patch_tekton_results_manifests(){
+patch_tekton_results_manifests() {
   yq --inplace "
     .data.[\"db.password\"]=\"$(echo -n "$TEKTON_RESULTS_DATABASE_PASSWORD" | base64)\",
     .data.[\"db.user\"]=\"$(echo -n "$TEKTON_RESULTS_DATABASE_USER" | base64)\"
@@ -65,7 +65,8 @@ patch_tekton_results_manifests(){
     .data.aws_access_key_id=\"$(echo -n "$TEKTON_RESULTS_S3_USER" | base64)\",
     .data.aws_secret_access_key=\"$(echo -n "$TEKTON_RESULTS_S3_PASSWORD" | base64)\"
   " "$WORK_DIR/environment/compute/tekton-results/tekton-results-s3-secret.yaml"
-  string_data="$(cat <<EOF | base64
+  string_data="$(
+    cat <<EOF | base64
 export MINIO_ROOT_USER="$TEKTON_RESULTS_S3_USER"
 export MINIO_ROOT_PASSWORD="$TEKTON_RESULTS_S3_PASSWORD"
 export MINIO_STORAGE_CLASS_STANDARD="EC:2"
