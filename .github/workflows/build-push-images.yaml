@@ -30,10 +30,6 @@ jobs:
               - '.github/workflows/build-push-images.yaml'
               - 'developer/images/dependencies/**'
               - 'shared/**'
-            devenv:
-              - '.github/workflows/build-push-images.yaml'
-              - 'developer/images/devenv/**'
-              - 'shared/**'
             e2e-test-runner:
               - '.github/workflows/build-push-images.yaml'
               - 'ci/images/e2e-test-runner/**'
@@ -151,42 +147,6 @@ jobs:
         if: steps.filter.outputs.dependencies-update != 'true'
         env:
           image: dependencies-update
-          registry: quay.io/redhat-pipeline-service
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_TOKEN }}
-        run: |
-          ./ci/images/quay-upload/image-upload.sh --debug
-
-      # Build and push devenv image, tagged with the branch name and the commit SHA.
-      - name: Build devenv Image
-        id: build-image-devenv
-        if: steps.filter.outputs.devenv == 'true'
-        uses: redhat-actions/buildah-build@v2
-        with:
-          image: devenv
-          context: .
-          tags: latest ${{ steps.vars.outputs.sha_short }} ${{ github.ref_name }}
-          containerfiles: |
-            ./developer/images/devenv/Dockerfile
-      - name: Push to quay.io
-        id: push-to-quay-devenv
-        if: steps.filter.outputs.devenv == 'true'
-        uses: redhat-actions/push-to-registry@v2
-        with:
-          image: ${{ steps.build-image-devenv.outputs.image }}
-          tags: ${{ steps.build-image-devenv.outputs.tags }} ${{ github.ref_name }}
-          registry: quay.io/redhat-pipeline-service
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_TOKEN }}
-      - name: Print image url
-        if: steps.filter.outputs.devenv == 'true'
-        run: |
-          echo "Image pushed to ${{ steps.push-to-quay-devenv.outputs.registry-paths }}"
-      - name: Tag latest commit ID to quay.io
-        id: tag-commit-quay-devenv
-        if: steps.filter.outputs.devenv != 'true'
-        env:
-          image: devenv
           registry: quay.io/redhat-pipeline-service
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
