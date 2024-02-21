@@ -89,7 +89,7 @@ setup_test() {
 wait_for_pipeline() {
   if ! kubectl wait --for=condition=succeeded "$1" -n "$2" --timeout 300s >"$DEBUG_OUTPUT"; then
     echo "[ERROR] Pipeline failed to complete successful" >&2
-    kubectl get "$1" -n "$2" >"$DEBUG_OUTPUT"
+    kubectl get pipelineruns "$1" -n "$2" >"$DEBUG_OUTPUT"
     exit 1
   fi
 }
@@ -160,6 +160,11 @@ test_chains() {
     echo "[ERROR] Secret does not exist" >&2
     exit 1
   fi
+  if [ "$(kubectl get secret signing-secrets -n openshift-pipelines -o jsonpath='{.immutable}')" != "true" ]; then
+    echo "Failed"
+    echo "[ERROR] Secret is not immutable" >&2
+    exit 1
+  fi
   echo "OK"
 
   # Trigger the pipeline
@@ -225,6 +230,20 @@ test_chains() {
     echo "[ERROR] Public key is not accessible" >&2
     exit 1
   fi
+
+  # TODO: Reactivate on step 2/3 of the migration.
+  # This test is not critical until we ask EC to use the openshift-pipelines namespace.
+  # echo -n "  - Public key migration: "
+  # pipeline_name=$(kubectl create -f "$SCRIPT_DIR/manifests/test/tekton-chains/public-key-migration.yaml" -n "$NAMESPACE" | cut -d' ' -f1)
+  # wait_for_pipeline "$pipeline_name" "$NAMESPACE"
+  # if [ "$(kubectl get "$pipeline_name" -n "$NAMESPACE" \
+  #   -o 'jsonpath={.status.conditions[0].reason}')" = "Succeeded" ]; then
+  #   echo "OK"
+  # else
+  #   echo "Failed"
+  #   echo "[ERROR] Public key is not accessible" >&2
+  #   exit 1
+  # fi
 
   echo -n "  - Metrics: "
   prName="$(kubectl create -n "$NAMESPACE" -f "$SCRIPT_DIR/manifests/test/tekton-chains/tekton-chains-metrics.yaml" | awk '{print $1}')"

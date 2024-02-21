@@ -9,9 +9,9 @@ resources:
   - tekton-config.yaml
   - config-logging.yaml
   - chains-service-monitor.yaml
-  - public-key-secret.yaml
   - bugfix-pac-gitauth-secrets.yaml
   # Manually add ConfigMap and Service until PLNSRVCE-1359 is fixed
   - chains-observability-service.yaml
   - chains-public-key-viewer.yaml
+  - chains-secrets-config.yaml
   - namespace.yaml
