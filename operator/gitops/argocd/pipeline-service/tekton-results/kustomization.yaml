@@ -3,7 +3,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: tekton-results
 resources:
-  - https://github.com/openshift-pipelines/tektoncd-results.git/config/overlays/base-only/?ref=1c5b3054ffb52f172fda31587d7dfd88a9724c8f
+  - https://github.com/openshift-pipelines/tektoncd-results.git/config/overlays/base-only/?ref=a602fb3e858f6a3195374d2175053db7e5db9f77
   - namespace.yaml
   - api-route.yaml
   - watcher-logging-rbac.yaml
@@ -13,13 +13,13 @@ resources:
 images:
   - name: ko://github.com/tektoncd/results/cmd/api
     newName: quay.io/redhat-appstudio/tekton-results-api
-    newTag: 1c5b3054ffb52f172fda31587d7dfd88a9724c8f
+    newTag: a602fb3e858f6a3195374d2175053db7e5db9f77
   - name: ko://github.com/tektoncd/results/cmd/watcher
     newName: quay.io/redhat-appstudio/tekton-results-watcher
-    newTag: 1c5b3054ffb52f172fda31587d7dfd88a9724c8f
+    newTag: a602fb3e858f6a3195374d2175053db7e5db9f77
   - name: ko://github.com/tektoncd/results/tools/migrator
     newName: quay.io/redhat-appstudio/tekton-results-migrator
-    newTag: 1c5b3054ffb52f172fda31587d7dfd88a9724c8f
+    newTag: a602fb3e858f6a3195374d2175053db7e5db9f77
 
 # generate a new configmap with updated values (logs api, db ssl mode) and replace the default one
 configMapGenerator:
