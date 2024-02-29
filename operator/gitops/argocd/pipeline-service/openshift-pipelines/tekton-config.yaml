@@ -56,10 +56,68 @@ spec:
       deployments:
         tekton-operator-proxy-webhook:
           spec:
-            replicas: 1
+            template:
+              spec:
+                containers:
+                  - name: proxy
+                    resources:
+                      requests:
+                        cpu: 100m
+                        memory: 100Mi
+                      limits:
+                        cpu: 500m
+                        memory: 500Mi
+        tekton-pipelines-webhook:
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: webhook
+                    resources:
+                      requests:
+                        cpu: 200m
+                        memory: 200Mi
+                      limits:
+                        cpu: '1'
+                        memory: 1Gi
         tekton-pipelines-remote-resolvers:
           spec:
             replicas: 1
+      horizontalPodAutoscalers:
+        tekton-pipelines-webhook:
+          spec:
+            maxReplicas: 6
+            minReplicas: 2
+            metrics:
+              - resource:
+                  name: cpu
+                  target:
+                    averageUtilization: 100
+                    type: Utilization
+                type: Resource
+              - resource:
+                  name: memory
+                  target:
+                    averageUtilization: 100
+                    type: Utilization
+                type: Resource
+        tekton-operator-proxy-webhook:
+          spec:
+            maxReplicas: 6
+            minReplicas: 2
+            metrics:
+              - resource:
+                  name: cpu
+                  target:
+                    averageUtilization: 100
+                    type: Utilization
+                type: Resource
+              - resource:
+                  name: memory
+                  target:
+                    averageUtilization: 100
+                    type: Utilization
+                type: Resource
     performance:
       disable-ha: false
       buckets: 1

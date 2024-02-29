@@ -44,8 +44,8 @@ spec:
                   name: tekton-results-s3
           resources:
             requests:
-              cpu: 5m
-              memory: 128Mi
+              cpu: 100m
+              memory: 512Mi
             limits:
               cpu: 100m
               memory: 512Mi

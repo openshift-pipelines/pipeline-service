@@ -38,11 +38,13 @@ spec:
               "-check_owner=false",
               "-completed_run_grace_period",
               "10m",
+              "-threadiness",
+              "32",
             ]
           resources:
             requests:
-              cpu: 100m
-              memory: 64Mi
+              cpu: 250m
+              memory: 2Gi
             limits:
               cpu: 250m
               memory: 2Gi
