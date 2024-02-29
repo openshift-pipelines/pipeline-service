@@ -18,7 +18,6 @@ parse_args() {
   mapfile -t DEFAULT_IMAGE_DIRS < <(
     find "$PROJECT_DIR" -type f -name Dockerfile -exec dirname {} \; |
       sed "s:$PROJECT_DIR/::" |
-      grep --invert-match --extended-regexp "/developer/exploration/|.devcontainer" |
       sort
   )
   IMAGE_DIRS=()
