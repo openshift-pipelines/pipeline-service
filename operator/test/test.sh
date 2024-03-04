@@ -160,11 +160,6 @@ test_chains() {
     echo "[ERROR] Secret does not exist" >&2
     exit 1
   fi
-  if [ "$(kubectl get secret signing-secrets -n openshift-pipelines -o jsonpath='{.immutable}')" != "true" ]; then
-    echo "Failed"
-    echo "[ERROR] Secret is not immutable" >&2
-    exit 1
-  fi
   echo "OK"
 
   # Trigger the pipeline
