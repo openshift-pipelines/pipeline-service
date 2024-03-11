@@ -56,7 +56,7 @@ check_clusteroperators() {
 
 get_hcp_full_version() {
     rosa_output=$(rosa list version --channel-group stable --region "$REGION" --hosted-cp -o json)
-    raw_id=$(echo "$rosa_output" | jq -r '.[0].raw_id' | grep "$OCP_VERSION")
+    raw_id=$(echo "$rosa_output" | jq -r "[.[].raw_id | select(startswith(\"$OCP_VERSION\"))] | max")
     HCP_FULL_VERSION="$raw_id"
     if [ -z "$HCP_FULL_VERSION" ]; then
         echo "Failed to get the HCP full version of $OCP_VERSION" >&2
