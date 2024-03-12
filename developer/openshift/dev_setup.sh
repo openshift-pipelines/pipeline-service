@@ -149,12 +149,24 @@ init() {
 }
 
 check_cluster_role() {
+  oc whoami
+  kubectl auth can-i '*' '*' --all-namespaces
+  oc auth can-i '*' '*' --all-namespaces
   if [ "$(kubectl auth can-i '*' '*' --all-namespaces)" != "yes" ]; then
     echo
     echo "[ERROR] User '$(oc whoami)' does not have the required 'cluster-admin' role." >&2
     echo "Log into the cluster with a user with the required privileges (e.g. kubeadmin) and retry."
     exit 1
   fi
+  oc auth can-i 'annotate' 'ingresses.config'
+  oc adm policy who-can 'annotate' 'ingresses.config'
+  if [ "$(oc auth can-i 'annotate' 'ingresses.config')" != "yes" ]; then
+    echo
+    echo "[ERROR] User '$(oc whoami)' does not have the required 'cluster-admin' role." >&2
+    echo "Log into the cluster with a user with the required privileges (e.g. kubeadmin) and retry."
+    exit 1
+  fi
+
 }
 
 cluster_setup() {
