@@ -379,6 +379,7 @@ test_results() {
         kubectl logs deployment/tekton-results-watcher -c kube-rbac-proxy -n tekton-results >&2
         echo "[ERROR] watcher watcher logs:" >&2
         kubectl logs deployment/tekton-results-watcher -c watcher -n tekton-results >&2
+        oc get pods -n tekton-results
         exit 1
       fi
     fi
