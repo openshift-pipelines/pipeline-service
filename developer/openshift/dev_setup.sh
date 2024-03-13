@@ -157,23 +157,11 @@ check_cluster_role() {
   fi
 }
 
-cluster_setup() {
-  echo "[cluster-setup]"
-
-  # By default HTTP2 is not enabled in test openshift clusters
-  echo "- Enabling HTTP2 for ingress:"
-  oc annotate ingresses.config/cluster \
-    ingress.operator.openshift.io/default-enable-http2=true \
-    --overwrite=true |
-    indent 2
-}
-
 main() {
   parse_args "$@"
   precheck_binary "curl" "argocd" "kubectl" "yq" "oc"
   init
   check_cluster_role
-  cluster_setup
   echo
   yq eval '.apps | .[] // []' "$CONFIG" | while read -r app; do
     echo "[$app]"
