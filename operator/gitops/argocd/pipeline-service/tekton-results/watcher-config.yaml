@@ -38,8 +38,6 @@ spec:
               "-check_owner=false",
               "-completed_run_grace_period",
               "10m",
-              "-threadiness",
-              "32",
             ]
           resources:
             requests:
