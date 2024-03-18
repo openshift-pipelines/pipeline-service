@@ -1,0 +1,44 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tekton-results-api
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: migrator
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: tekton-results-database
+                  key: db.user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: tekton-results-database
+                  key: db.password
+            - name: DB_HOST
+              value:
+              valueFrom:
+                secretKeyRef:
+                  name: tekton-results-database
+                  key: db.host
+            - name: DB_NAME
+              value:
+              valueFrom:
+                secretKeyRef:
+                  name: tekton-results-database
+                  key: db.name
+          resources:
+            requests:
+              cpu: 5m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+          securityContext:
+            readOnlyRootFilesystem: true
