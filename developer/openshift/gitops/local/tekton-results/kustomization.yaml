@@ -6,5 +6,3 @@ resources:
   - tekton-results-db-secret.yaml
   - tekton-results-s3-secret.yaml
   - tekton-results-minio-config.yaml
-  - rds-db-cert-configmap.yaml
-  - tekton-results-postgresql-tls-secret.yaml
