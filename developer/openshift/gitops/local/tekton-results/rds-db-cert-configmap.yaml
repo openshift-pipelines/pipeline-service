@@ -1,0 +1,10 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rds-root-crt
+  namespace: tekton-results
+data:
+  # contents of the public certificate should be inserted here
+  # the name of the key must be same as provided in the tekton results .env config
+  tekton-results-db-ca.pem:

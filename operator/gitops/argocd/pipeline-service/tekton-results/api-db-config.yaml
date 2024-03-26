@@ -33,3 +33,11 @@ spec:
                 secretKeyRef:
                   name: tekton-results-database
                   key: db.name
+          volumeMounts:
+            - name: db-tls-ca
+              mountPath: /etc/tls/db
+              readOnly: true
+      volumes:
+        - name: db-tls-ca
+          configMap:
+            name: rds-root-crt
