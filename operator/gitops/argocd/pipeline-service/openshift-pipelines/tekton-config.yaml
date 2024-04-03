@@ -43,6 +43,9 @@ spec:
 
     # Rekor integration is disabled for now. It is planned to be re-introduced in the future.
     transparency.enabled: "false"
+
+    # Configure deep inspection
+    artifacts.pipelinerun.enable-deep-inspection: "true"
   trigger:
     options:
       configMaps:
