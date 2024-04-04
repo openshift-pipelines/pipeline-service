@@ -89,7 +89,15 @@ setup_test() {
 wait_for_pipeline() {
   if ! kubectl wait --for=condition=succeeded "$1" -n "$2" --timeout 300s >"$DEBUG_OUTPUT"; then
     echo "[ERROR] Pipeline failed to complete successful" >&2
-    kubectl get pipelineruns "$1" -n "$2" >"$DEBUG_OUTPUT"
+    kubectl get "$1" -n "$2" >"$DEBUG_OUTPUT"
+    # just in case we are not running with debug on
+    echo "$DEBUG_OUTPUT"
+    prefix="pipelineruns/"
+    string_to_prune="$1"
+    tkn_param=${string_to_prune#"$prefix"}
+    tkn pr logs "$tkn_param" -n "$2" >> "$DEBUG_OUTPUT"
+    # just in case we are not running with debug on
+    echo "$DEBUG_OUTPUT"
     exit 1
   fi
 }
