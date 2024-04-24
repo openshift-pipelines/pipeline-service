@@ -3811,6 +3811,129 @@
       "id": 79,
       "panels": [
         {
+          "description": "Tekton Chains work queue depth",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "fixedColor": "green",
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "noValue": "No Data",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "none"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 3,
+            "x": 0,
+            "y": 67
+          },
+          "id": 476,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "text": {},
+            "textMode": "auto"
+          },
+          "pluginVersion": "9.5.17",
+          "targets": [
+            {
+              "editorMode": "code",
+              "exemplar": true,
+              "expr": "sum(watcher_workqueue_depth{container='tekton-chains-controller',app='tekton-chains-controller'})",
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "Queue Depth",
+              "range": true,
+              "refId": "work queue depth"
+            }
+          ],
+          "title": "Tekton Chains Work Queue Depth",
+          "type": "stat"
+        },
+        {
+          "description": "Reconcile latency 99%-tile - \nLatency of reconcile operations.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "fixedColor": "green",
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "noValue": "No Data",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "ms"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 4,
+            "x": 3,
+            "y": 67
+          },
+          "id": 477,
+          "interval": "15s",
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "text": {},
+            "textMode": "auto"
+          },
+          "pluginVersion": "9.5.17",
+          "targets": [
+            {
+              "editorMode": "code",
+              "exemplar": true,
+              "expr": "histogram_quantile(0.99, sum(rate(watcher_reconcile_latency_bucket{job=\"tekton-chains\"}[30m])) by (le) ) / 1000",
+              "interval": "",
+              "intervalFactor": 4,
+              "legendFormat": "Latency",
+              "range": true,
+              "refId": "reconcile latency"
+            }
+          ],
+          "title": "Tekton Chains Reconcile Latency",
+          "type": "stat"
+        },
+        {
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -3851,7 +3974,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -3866,7 +3990,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 18
+            "y": 73
           },
           "id": 81,
           "options": {
@@ -3934,7 +4058,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -3949,7 +4074,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 18
+            "y": 67
           },
           "id": 83,
           "options": {
