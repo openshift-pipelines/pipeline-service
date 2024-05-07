@@ -1,11 +1,11 @@
 #@FROM registry.access.redhat.com/ubi9/ubi-minimal
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:bc552efb4966aaa44b02532be3168ac1ff18e2af299d0fe89502a1d9fabafbc5
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:2636170dc55a0931d013014a72ae26c0c2521d4b61a28354b3e2e5369fa335a3
 RUN set -x \
     && mkdir ~/.kube \
     && mkdir -p /tmp/image-build \
     && microdnf install -y \
         httpd-tools \
-        git-2.39.3 \
+        git-2.43.0 \
         make-1:4.3 \
         openssl-1:3.0.7 \
         tar-2:1.34 \
