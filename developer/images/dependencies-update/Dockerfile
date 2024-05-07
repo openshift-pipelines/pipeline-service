@@ -1,5 +1,5 @@
 #@FROM registry.access.redhat.com/ubi9/ubi-minimal
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:bc552efb4966aaa44b02532be3168ac1ff18e2af299d0fe89502a1d9fabafbc5
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:2636170dc55a0931d013014a72ae26c0c2521d4b61a28354b3e2e5369fa335a3
 LABEL build-date= \
     com.redhat.build-host= \
     description="This image provides the scripts to update the repository dependencies." \
@@ -20,9 +20,9 @@ RUN mkdir /workspace && chmod 777 /workspace && chown 65532:65532 /workspace
 ENV HOME /tmp/home
 RUN mkdir $HOME && chmod 777 $HOME && chown 65532:65532 $HOME
 RUN microdnf install -y \
-      findutils-4.8.0 \
-      git-2.39.3 \
-      skopeo-2:1.13.3 \
+      findutils-1:4.8.0 \
+      git-2.43.0 \
+      skopeo-2:1.14.3 \
     && microdnf clean all
 
 COPY shared /tmp/image-build/shared
