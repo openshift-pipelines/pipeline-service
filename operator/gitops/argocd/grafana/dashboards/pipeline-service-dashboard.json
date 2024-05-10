@@ -2597,17 +2597,21 @@
           "fieldConfig": {
             "defaults": {
               "color": {
-                "mode": "continuous-RdYlGr"
+                "mode": "thresholds"
               },
               "mappings": [],
               "max": 1,
               "min": 0,
               "noValue": "No Data",
               "thresholds": {
-                "mode": "percentage",
+                "mode": "absolute",
                 "steps": [
                   {
                     "color": "green"
+                  },
+                  {
+                    "color": "red",
+                    "value": 94
                   }
                 ]
               },
@@ -2622,7 +2626,6 @@
             "y": 17
           },
           "id": 62,
-          "interval": "15s",
           "options": {
             "colorMode": "value",
             "graphMode": "area",
@@ -2630,7 +2633,7 @@
             "orientation": "auto",
             "reduceOptions": {
               "calcs": [
-                "mean"
+                "lastNotNull"
               ],
               "fields": "",
               "values": false
@@ -2642,10 +2645,12 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "1 - ((sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code=~\"Internal|Unavailable|Unknown|Unimplemented\"}[$__rate_interval]))) / sum(rate(grpc_server_started_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval])))\n",
+              "expr": "1 - sum(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code=~\"Internal|Unavailable|Unknown|Unimplemented|Canceled|Unauthenticated|ResourceExhausted|PermissionDenied|OutOfRange|InvalidArgument|FailedPrecondition|DeadlineExceeded|DataLoss|Aborted\"}) / sum(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"})",
+              "format": "table",
+              "hide": false,
+              "instant": false,
               "interval": "",
-              "intervalFactor": 4,
-              "legendFormat": "Success Rate",
+              "legendFormat": "",
               "refId": "request success rate"
             }
           ],
