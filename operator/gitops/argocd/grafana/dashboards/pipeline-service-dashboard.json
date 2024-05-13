@@ -2645,7 +2645,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "1 - sum(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code=~\"Internal|Unavailable|Unknown|Unimplemented|Canceled|Unauthenticated|ResourceExhausted|PermissionDenied|OutOfRange|InvalidArgument|FailedPrecondition|DeadlineExceeded|DataLoss|Aborted\"}) / sum(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"})",
+              "expr": "1 - sum(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code=~\"Internal|Unavailable|Unknown|Unimplemented|Canceled|Unauthenticated|ResourceExhausted|PermissionDenied|OutOfRange|InvalidArgument|FailedPrecondition|DeadlineExceeded|DataLoss|Aborted\"}) / (sum(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}) - sum(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code=~\"NotFound\"}))",
               "format": "table",
               "hide": false,
               "instant": false,
