@@ -19,10 +19,10 @@ spec:
       value: |
         sed -i -E 's/[0-9a-f]{40}/{{ revision }}/g' components/pipeline-service/development/kustomization.yaml
         # just pin the watcher image, which is the second image ref
-        yq -e -i '.images[1].newTag = "bae7851ff584423503af324200f52cd28ca99116"' components/pipeline-service/development/kustomization.yaml
+        sed -i -E '/name: quay.io\/redhat-appstudio\/tekton-results-watcher/{n;s/newTag: {{ revision }}/newTag: bae7851ff584423503af324200f52cd28ca99116/}' components/pipeline-service/development/kustomization.yaml
         sed -i -E 's/[0-9a-f]{40}/{{ revision }}/g' components/pipeline-service/staging/base/kustomization.yaml
         # just pin the watcher image, which is the second image ref
-        yq -e -i '.images[1].newTag = "bae7851ff584423503af324200f52cd28ca99116"' components/pipeline-service/staging/base/kustomization.yaml
+        sed -i -E '/name: quay.io\/redhat-appstudio\/tekton-results-watcher/{n;s/newTag: {{ revision }}/newTag: bae7851ff584423503af324200f52cd28ca99116/}'  components/pipeline-service/staging/base/kustomization.yaml
         sed -i -E 's/[0-9a-f]{40}/{{ revision }}/g' components/monitoring/grafana/base/dashboards/pipeline-service/kustomization.yaml
     - name: slack-webhook-notification-team
       value: pipeline
