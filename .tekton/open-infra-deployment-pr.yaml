@@ -15,6 +15,21 @@ spec:
       value: "{{ revision }}"
     - name: infra-deployment-update-script
       value: |
+        echo "before yq path updates"
+        echo "$PATH"
+        BIN_DIR="/usr/local/bin"
+        TMPDIR=$(mktemp -d)
+        TMPBIN="$TMPDIR/bin"
+        mkdir -p "$TMPBIN"
+        PATH="$TMPBIN:$PATH"
+        echo "after path updates"
+        echo "$PATH"
+        CURL_OPTS=("--fail" "--location" "--silent" "--show-error")
+        curl "${CURL_OPTS[@]}" -o "$TMPBIN/yq" "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+        chmod +x "$TMPBIN"/*
+        mv "$TMPBIN"/* "$BIN_DIR"
+        rm -rf "$TMPDIR"
+        yq --version
         sed -i -E 's/[0-9a-f]{40}/{{ revision }}/g' components/pipeline-service/development/kustomization.yaml
         # just pin the watcher image, which is the second image ref
         yq -e -i '.images[1].newTag = "bae7851ff584423503af324200f52cd28ca99116"' components/pipeline-service/development/kustomization.yaml
