@@ -18,8 +18,6 @@ spec:
     - name: infra-deployment-update-script
       value: |
         sed -i -E 's/[0-9a-f]{40}/{{ revision }}/g' components/pipeline-service/development/kustomization.yaml
-        sed -i -E 's/[0-9a-f]{40}/{{ revision }}/g' components/pipeline-service/staging/base/kustomization.yaml
-        sed -i -E 's/[0-9a-f]{40}/{{ revision }}/g' components/monitoring/grafana/base/dashboards/pipeline-service/kustomization.yaml
     - name: slack-webhook-notification-team
       value: pipeline
   pipelineSpec:
