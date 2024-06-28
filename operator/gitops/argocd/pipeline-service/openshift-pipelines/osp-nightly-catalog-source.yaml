@@ -8,7 +8,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
 spec:
   sourceType: grpc
-  image: quay.io/openshift-pipeline/openshift-pipelines-pipelines-operator-bundle-container-index@sha256:99d1e1ba1c24d950db7147e26041193304247ed92e88788023b58eb787282a9a
+  image: quay.io/openshift-pipeline/openshift-pipelines-pipelines-operator-bundle-container-index@sha256:e13d489153410a8548bff216ac2f6063c4ac96501efe72994d2af85f1ed7bc02
   displayName: custom-operators
   updateStrategy:
     registryPoll:
