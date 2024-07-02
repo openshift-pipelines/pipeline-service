@@ -21,7 +21,7 @@ ENV HOME /tmp/home
 RUN mkdir $HOME && chmod 777 $HOME && chown 65532:65532 $HOME
 RUN microdnf install -y \
       findutils-1:4.8.0 \
-      git-2.43.0 \
+      git-2.43.5 \
       skopeo-2:1.14.3 \
     && microdnf clean all
 

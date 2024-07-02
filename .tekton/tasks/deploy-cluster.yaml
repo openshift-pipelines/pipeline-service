@@ -10,7 +10,7 @@ spec:
       default: "4.14"
     - name: region
       description: ocp cluster region where you want to provision
-      default: "us-east-1"
+      default: "ca-central-1"
     - name: cluster-name
     - name: target_branch
   workspaces:
