@@ -5,7 +5,7 @@ RUN set -x \
     && mkdir -p /tmp/image-build \
     && microdnf install -y \
         gettext-0.21 \
-        git-2.43.0 \
+        git-2.43.5 \
         findutils-1:4.8.0 \
         openssl-1:3.0.7 \
         podman-4:4.9.4 \
