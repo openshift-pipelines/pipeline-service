@@ -21,7 +21,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "9.1.6"
+      "version": "10.4.3"
     },
     {
       "type": "panel",
@@ -87,6 +87,7 @@
         "y": 0
       },
       "id": 93,
+      "panels": [],
       "repeat": "datasource",
       "title": "Alerts",
       "type": "row"
@@ -138,10 +139,12 @@
           "fields": "",
           "values": false
         },
+        "showPercentChange": false,
         "text": {},
-        "textMode": "auto"
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.1.6",
+      "pluginVersion": "10.4.3",
       "targets": [
         {
           "editorMode": "code",
@@ -206,9 +209,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.1.6",
+      "pluginVersion": "10.4.3",
       "targets": [
         {
           "editorMode": "code",
@@ -219,6 +224,198 @@
         }
       ],
       "title": "Tekton Execution Overhead",
+      "type": "stat"
+    },
+    {
+      "description": "The number of times the pipelines controller has restarted",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "noValue": "No data",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 4,
+        "x": 8,
+        "y": 1
+      },
+      "id": 480,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.4.3",
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "sum(increase(kube_pod_container_status_restarts_total{namespace=\"openshift-pipelines\", pod=~\"tekton-pipelines-controller-.*\"}[30m]))",
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Pipieline Controller Restarts",
+      "type": "stat"
+    },
+    {
+      "description": "Number of PipelineRuns outside of Kubernetes Throttling where the Tekton Controller has yet to attempt to process its correctly defined Task specifications for multiple scan iterations.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "noValue": "No data",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 30
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 4,
+        "x": 12,
+        "y": 1
+      },
+      "id": 481,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.4.3",
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "sum(increase(pipelinerun_kickoff_not_attempted_count[30m]))",
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Pipeline Controller Kickoff After Kubernetes scheduling checks pass",
+      "type": "stat"
+    },
+    {
+      "description": "Number of TaskRuns outside of Kubernetes Throttling where the Tekton Controller has yet to attempt to create its underlying Pod, or the TaskRun is still in Pending state for multiple scan iterations",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "noValue": "No data",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 30
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 4,
+        "x": 16,
+        "y": 1
+      },
+      "id": 482,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.4.3",
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "sum(increase(taskrun_pod_create_not_attempted_or_pending_count[30m]))",
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "TaskRun Controller kickoff after Kubernetes scheduling checks pass",
       "type": "stat"
     },
     {
@@ -1064,7 +1261,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 30
+            "y": 22
           },
           "hiddenSeries": false,
           "id": 77,
@@ -1190,7 +1387,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 38
+            "y": 30
           },
           "id": 39,
           "options": {
@@ -1676,7 +1873,7 @@
             "y": 30
           },
           "hiddenSeries": false,
-          "id": 77,
+          "id": 478,
           "legend": {
             "avg": false,
             "current": false,
@@ -1755,7 +1952,7 @@
             "y": 14
           },
           "hiddenSeries": false,
-          "id": 76,
+          "id": 479,
           "legend": {
             "avg": false,
             "current": false,
@@ -3979,8 +4176,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -4063,8 +4259,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
