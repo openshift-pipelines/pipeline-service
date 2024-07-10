@@ -1013,7 +1013,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "tekton_pipelines_controller_running_pipelineruns_count{prometheus=\"openshift-user-workload-monitoring/user-workload\"}",
+              "expr": "tekton_pipelines_controller_running_pipelineruns_count",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
@@ -1071,7 +1071,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "tekton_pipelines_controller_running_taskruns_count{prometheus=\"openshift-user-workload-monitoring/user-workload\"}",
+              "expr": "tekton_pipelines_controller_running_taskruns_count",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
@@ -1407,7 +1407,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "rate(tekton_pipelines_controller_client_results{prometheus=\"openshift-user-workload-monitoring/user-workload\"}[1h])*3600",
+              "expr": "rate(tekton_pipelines_controller_client_results[1h])*3600",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
@@ -2239,7 +2239,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "sum by (event_type) (rate(pac_watcher_pipelines_as_code_pipelinerun_count{prometheus=\"openshift-user-workload-monitoring/user-workload\"}[1h]))*3600",
+              "expr": "sum by (event_type) (rate(pac_watcher_pipelines_as_code_pipelinerun_count[1h]))*3600",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
@@ -2320,7 +2320,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "avg(pac_watcher_workqueue_depth)",
+              "expr": "avg(pac_watcher_workqueue_unfinished_work_seconds_count)",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
@@ -2401,7 +2401,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "rate(pac_watcher_client_results{prometheus=\"openshift-user-workload-monitoring/user-workload\"}[1h])*3600",
+              "expr": "rate(pac_watcher_client_results[1h])*3600",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
@@ -2960,7 +2960,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "sum(rate(grpc_server_started_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval]))",
+              "expr": "sum(rate(grpc_server_started_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}[10m]))",
               "interval": "",
               "intervalFactor": 4,
               "legendFormat": "Request Rate",
@@ -3019,7 +3019,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "histogram_quantile(0.99, sum(rate(grpc_server_handling_seconds_bucket{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval])) by (le) )",
+              "expr": "histogram_quantile(0.99, sum(rate(grpc_server_handling_seconds_bucket{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}[10m])) by (le) )",
               "interval": "",
               "intervalFactor": 4,
               "legendFormat": "Latency",
@@ -3078,7 +3078,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "histogram_quantile(0.99, sum(rate(watcher_reconcile_latency_bucket{job=\"tekton-results-watcher\"}[$__rate_interval])) by (le) )",
+              "expr": "histogram_quantile(0.99, sum(rate(watcher_reconcile_latency_bucket{job=\"tekton-results-watcher\"}[10m])) by (le) )",
               "interval": "",
               "intervalFactor": 4,
               "legendFormat": "Latency",
@@ -3164,7 +3164,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"tekton-results-api-.*\", namespace=\"tekton-results\", container=\"\"}[$__rate_interval]))",
+              "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"tekton-results-api-.*\", namespace=\"tekton-results\", container=\"\"}[10m]))",
               "instant": false,
               "interval": "",
               "intervalFactor": 4,
@@ -3173,7 +3173,7 @@
             },
             {
               "exemplar": true,
-              "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"tekton-results-watcher-.*\", namespace=\"tekton-results\", container=\"\"}[$__rate_interval]))",
+              "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"tekton-results-watcher-.*\", namespace=\"tekton-results\", container=\"\"}[10m]))",
               "hide": false,
               "interval": "",
               "intervalFactor": 4,
@@ -3362,7 +3362,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval])) by (grpc_method)",
+              "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}[10m])) by (grpc_method)",
               "interval": "",
               "intervalFactor": 4,
               "legendFormat": "{{grpc_method}}",
@@ -3459,7 +3459,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "sum(increase(grpc_server_handling_seconds_bucket{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}[$__rate_interval])) by (le)",
+              "expr": "sum(increase(grpc_server_handling_seconds_bucket{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\"}[10m])) by (le)",
               "interval": "",
               "intervalFactor": 4,
               "legendFormat": "{{le}}",
@@ -3582,7 +3582,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[$__rate_interval])) by (grpc_method)",
+              "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[10m])) by (grpc_method)",
               "interval": "",
               "intervalFactor": 4,
               "legendFormat": "RPC: {{grpc_method}}",
@@ -3590,7 +3590,7 @@
             },
             {
               "exemplar": true,
-              "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code=~\"Internal|Unavailable|Unknown|Unimplemented\"}[$__rate_interval])) by (grpc_code) / ignoring(grpc_code) group_left sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[$__rate_interval]))",
+              "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code=~\"Internal|Unavailable|Unknown|Unimplemented\"}[10m])) by (grpc_code) / ignoring(grpc_code) group_left sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[10m]))",
               "hide": false,
               "interval": "",
               "intervalFactor": 4,
@@ -3700,7 +3700,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[$__rate_interval])) by (grpc_method)",
+              "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[10m])) by (grpc_method)",
               "interval": "",
               "intervalFactor": 4,
               "legendFormat": "RPC: {{grpc_method}}",
@@ -3708,7 +3708,7 @@
             },
             {
               "exemplar": true,
-              "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!~\"Internal|Unavailable|Unknown|Unimplemented\"}[$__rate_interval])) by (grpc_code) / ignoring(grpc_code) group_left sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[$__rate_interval]))",
+              "expr": "sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!~\"Internal|Unavailable|Unknown|Unimplemented\"}[10m])) by (grpc_code) / ignoring(grpc_code) group_left sum(rate(grpc_server_handled_total{job=\"tekton-results-api\", grpc_service=~\"tekton.results.v1alpha2.*\", grpc_code!=\"OK\"}[10m]))",
               "hide": false,
               "interval": "",
               "intervalFactor": 4,
@@ -3826,7 +3826,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "sum(rate(watcher_reconcile_count{job=\"tekton-results-watcher\"}[$__rate_interval])) by (success)",
+              "expr": "sum(rate(watcher_reconcile_count{job=\"tekton-results-watcher\"}[10m])) by (success)",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 4,
@@ -3968,7 +3968,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "sum(rate(watcher_workqueue_queue_latency_seconds_count{job=\"tekton-results-watcher\"}[$__rate_interval]))",
+              "expr": "sum(rate(watcher_workqueue_queue_latency_seconds_count{job=\"tekton-results-watcher\"}[10m]))",
               "hide": false,
               "interval": "",
               "intervalFactor": 4,
@@ -3977,7 +3977,7 @@
             },
             {
               "exemplar": true,
-              "expr": "sum(rate(watcher_reconcile_latency_count{job=\"tekton-results-watcher\"}[$__rate_interval]))",
+              "expr": "sum(rate(watcher_reconcile_latency_count{job=\"tekton-results-watcher\"}[10m]))",
               "hide": false,
               "interval": "",
               "intervalFactor": 4,
