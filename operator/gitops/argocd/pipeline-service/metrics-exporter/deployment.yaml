@@ -19,7 +19,7 @@ spec:
       serviceAccountName: pipeline-service-exporter
       containers:
         - name: pipeline-metrics-exporter
-          image: quay.io/redhat-appstudio/pipeline-service-exporter:placeholder
+          image: quay.io/konflux-ci/pipeline-service-exporter:placeholder
           args:
             [
               "-pprof-address",
