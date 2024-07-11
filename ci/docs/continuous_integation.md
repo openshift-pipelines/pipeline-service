@@ -1,6 +1,6 @@
 # Continuous integration tests
 
-After installing the GitHub Application, Pipelines as Code triggers the PipelineRuns in [.tekton](../../.tekton) which execute the test tasks for each PR on the `prd-rh01` cluster, in the `tekton-ci` namespace, before merging it.
+After installing the GitHub Application, Pipelines as Code triggers the PipelineRuns in [.tekton](../../.tekton) which execute the test tasks for each PR on the `prd-rh01` cluster, in the `konflux-ci` namespace, before merging it.
 
 All the functional tests run on a ROSA HCP cluster that is automatically provisionned during the pipeline execution.
 
