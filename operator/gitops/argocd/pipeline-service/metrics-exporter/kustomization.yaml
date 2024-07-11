@@ -8,8 +8,8 @@ resources:
   - servicemonitor.yaml
 
 images:
-  - name: quay.io/redhat-appstudio/pipeline-service-exporter
-    newName: quay.io/redhat-appstudio/pipeline-service-exporter
+  - name: quay.io/konflux-ci/pipeline-service-exporter
+    newName: quay.io/konflux-ci/pipeline-service-exporter
     newTag: c18a1079e58315454fb3ddf2ea9dc3c5cd4dc954
 
 apiVersion: kustomize.config.k8s.io/v1beta1
