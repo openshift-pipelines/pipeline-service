@@ -87,6 +87,14 @@ spec:
     options:
       disabled: false
       configMaps:
+        config-observability:
+          data:
+            metrics.count.enable-reason: 'false'
+            metrics.pipelinerun.duration-type: histogram
+            metrics.pipelinerun.level: pipeline
+            metrics.taskrun.duration-type: histogram
+            metrics.taskrun.level: task
+            profiling.enable: "true"
         config-logging:
           data:
             loglevel.controller: info
