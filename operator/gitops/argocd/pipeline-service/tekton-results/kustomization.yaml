@@ -12,10 +12,10 @@ resources:
 
 images:
   - name: ko://github.com/tektoncd/results/cmd/api
-    newName: quay.io/redhat-appstudio/tekton-results-api
+    newName: quay.io/konflux-ci/tekton-results-api
     newTag: e35af9274c0df84386b73aae8df0ad496ad175df
   - name: ko://github.com/tektoncd/results/cmd/watcher
-    newName: quay.io/redhat-appstudio/tekton-results-watcher
+    newName: quay.io/konflux-ci/tekton-results-watcher
     newTag: e35af9274c0df84386b73aae8df0ad496ad175df
 
 # generate a new configmap with updated values (logs api, db ssl mode) and replace the default one
