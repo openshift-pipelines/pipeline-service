@@ -8,12 +8,12 @@ SCRIPT_DIR="$(
     pwd
 )"
 
-AWS_OIDC_CONFIG_ID="2c8kdm2m2r8hlgdq4md7ps5g4csuecjl"
-OPERATOR_ROLES_PREFIX="plnsvc"
-SUBNET_IDS="subnet-028942fe6e2de3c82,subnet-098b75cd7032940ae"
-INSTALL_ROLE_ARN="arn:aws:iam::400884778152:role/plnsvc-HCP-ROSA-Installer-Role"
-SUPPORT_ROLE_ARN="arn:aws:iam::400884778152:role/plnsvc-HCP-ROSA-Support-Role"
-WORKER_ROLE_ARN="arn:aws:iam::400884778152:role/plnsvc-HCP-ROSA-Worker-Role"
+AWS_OIDC_CONFIG_ID="273tbj71skqksgqafoe5aotsuc44blp4"
+OPERATOR_ROLES_PREFIX="plnsvc-ci-10-2023"
+SUBNET_IDS="subnet-001487732ebdd14f4,subnet-0718fb663f4b97f38,subnet-0fe426997da62662c"
+INSTALL_ROLE_ARN="arn:aws:iam::400884778152:role/plnsvc-ci-10-2023-HCP-ROSA-Installer-Role"
+SUPPORT_ROLE_ARN="arn:aws:iam::400884778152:role/plnsvc-ci-10-2023-HCP-ROSA-Support-Role"
+WORKER_ROLE_ARN="arn:aws:iam::400884778152:role/plnsvc-ci-10-2023-HCP-ROSA-Worker-Role"
 # shellcheck source=ci/images/ci-runner/hack/bin/utils.sh
 source "$SCRIPT_DIR/utils.sh"
 
