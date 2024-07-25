@@ -190,13 +190,12 @@ spec:
       kube-api-qps: 50
       kube-api-burst: 50
   pruner:
-      # The load on prod-rh01 is to the point now where tekton-results
-      # can fall too far behind.  Until the watcher's log storage is rewritten
-      # etc with SRVKP-4347 or if we risk adding more processing power (threads,qps,burst)
-      # to the mem leak version of the watcher, we need the OSP pruner as a backup.
-      # a bit of an adjustment, we will prune once an hour now per https://crontab.guru/every-1-hour
-      # to line up with typical timeout settings.
-      keep: 10
-      resources:
-        - pipelinerun
-      schedule: 0 * * * *
+    # The load on prod-rh01 is to the point now where tekton-results
+    # can fall too far behind.  Until the watcher's log storage is rewritten
+    # etc with SRVKP-4347 or if we risk adding more processing power (threads,qps,burst)
+    # to the mem leak version of the watcher, we need the OSP pruner as a backup.
+    disable: false
+    keep-since: 60
+    resources:
+      - pipelinerun
+    schedule: "*/10 * * * *"
