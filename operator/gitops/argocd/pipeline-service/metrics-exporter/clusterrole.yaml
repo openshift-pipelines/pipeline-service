@@ -17,8 +17,8 @@ rules:
     verbs:
       - get
 
-  - apiGroups: ["tekton.dev"]
-    resources: ["pipelineruns", "taskruns"]
+  - apiGroups: ["tekton.dev", "resolution.tekton.dev"]
+    resources: ["pipelineruns", "taskruns", "resolutionrequests"]
     verbs: ["get", "list", "watch", "patch"]
 
   - nonResourceURLs:
