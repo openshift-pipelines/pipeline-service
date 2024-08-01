@@ -10,7 +10,7 @@ resources:
 images:
   - name: quay.io/konflux-ci/pipeline-service-exporter
     newName: quay.io/konflux-ci/pipeline-service-exporter
-    newTag: 95fe19bf616c628e6e8f30487113b61861569a6e
+    newTag: 9d2439c8a77d2ce0527cc5aea3fc6561b7671b48
 
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
