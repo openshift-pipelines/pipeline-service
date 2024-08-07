@@ -81,7 +81,10 @@ init() {
 setup_test() {
   echo "[Setup]"
   echo -n "  - Namespace configuration: "
-  kubectl apply -k "$SCRIPT_DIR/manifests/setup/pipeline-service" >"$DEBUG_OUTPUT"
+  if ! timeout 300s bash -c "while ! kubectl apply -k \"$SCRIPT_DIR/manifests/setup/pipeline-service\" >\"$DEBUG_OUTPUT\" 2>&1; do printf '.'; sleep 3; done"; then
+      echo "Setup test is not ready" >&2
+      exit 1
+  fi
   echo "OK"
   echo
 }
