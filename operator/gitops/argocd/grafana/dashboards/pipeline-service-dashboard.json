@@ -1548,6 +1548,74 @@
           "type": "bargauge"
         },
         {
+          "description": "Taskrun throttled by Kubernetes quota",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "max": 1,
+              "min": 0,
+              "noValue": "No data",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 4.9941
+                  }
+                ]
+              },
+              "unit": "none"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 9,
+            "w": 4,
+            "x": 8,
+            "y": 1
+          },
+          "id": 480,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "10.4.3",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "5e3910fe-76b9-43ad-a8b9-660974885fa8"
+              },
+              "editorMode": "code",
+              "expr": "sum(increase(tekton_pipelines_controller_running_taskruns_throttled_by_quota[2m]))",
+              "legendFormat": "__auto",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Taskrun throttled by kubernetes quota",
+          "type": "stat"
+        },
+        {
           "description": "Average duration of the pods ultimately launched from PipelineRuns, using a descending sort and grouped by namespace.",
           "fieldConfig": {
             "defaults": {
