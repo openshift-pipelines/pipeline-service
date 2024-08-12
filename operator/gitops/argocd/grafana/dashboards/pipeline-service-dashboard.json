@@ -227,7 +227,7 @@
       "type": "stat"
     },
     {
-      "description": "The number of times any of the pipelines controllers hav restarted",
+      "description": "The number of times any of the tekton controllers have restarted",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -281,7 +281,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(increase(kube_pod_container_status_restarts_total{namespace=\"openshift-pipelines\", pod=~\"tekton-.*\"}[2m]))",
+          "expr": "sum(increase(kube_pod_container_status_restarts_total{namespace=\"openshift-pipelines\", pod=~\"tekton-.*\"}[$__range]))",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -416,6 +416,68 @@
         }
       ],
       "title": "TaskRun Controller kickoff after Kubernetes scheduling checks pass",
+      "type": "stat"
+    },
+    {
+      "description": "The number of validated ResolutionRequests not yet processed by the Resolver Controller.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "noValue": "No data",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 30
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 4,
+        "x": 0,
+        "y": 2
+      },
+      "id": 483,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.4.3",
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "sum(increase(pending_resolutionrequest_count[$__range]))",
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Deadlocked ResolutionRequests",
       "type": "stat"
     },
     {
