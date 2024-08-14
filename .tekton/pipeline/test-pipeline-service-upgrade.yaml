@@ -147,9 +147,9 @@ spec:
       taskRef:
         name: destroy-cluster
       when:
-        - input: "$(tasks.deploy-cluster.status)"
-          operator: notin
-          values: ["None", "Failed"]
+        - input: "$(tasks.test-baseline.status)"
+          operator: in
+          values: ["Succeeded"]
       params:
         - name: cluster-name
           value: "$(tasks.generate-cluster-name.results.cluster-name)"
