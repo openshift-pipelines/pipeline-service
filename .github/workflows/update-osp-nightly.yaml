@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Update CatalogSource
         run: |
-          tag="v4.14-candidate"
+          tag="v4.14-v5.0-candidate"
           inspected=$(skopeo inspect docker://quay.io/openshift-pipeline/openshift-pipelines-pipelines-operator-bundle-container-index:$tag)
           created=$(echo "$inspected" | jq -r '.Created')
           echo "DEBUG: Found tag $tag created: $created"
