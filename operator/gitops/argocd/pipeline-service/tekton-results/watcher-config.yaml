@@ -38,6 +38,7 @@ spec:
               "-check_owner=false",
               "-completed_run_grace_period",
               "10m",
+              "-logs_api=true"
             ]
           resources:
             requests:
