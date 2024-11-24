@@ -3,7 +3,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: tekton-results
 resources:
-  - https://github.com/openshift-pipelines/tektoncd-results.git/config/overlays/base-only/?ref=e35af9274c0df84386b73aae8df0ad496ad175df
+  - https://github.com/openshift-pipelines/tektoncd-results.git/config/overlays/base-only/?ref=b4017a355cafd589c3ae9a31f3d869e21a4b77fe
   - namespace.yaml
   - api-route.yaml
   - watcher-logging-rbac.yaml
@@ -13,10 +13,13 @@ resources:
 images:
   - name: ko://github.com/tektoncd/results/cmd/api
     newName: quay.io/konflux-ci/tekton-results-api
-    newTag: e35af9274c0df84386b73aae8df0ad496ad175df
+    newTag: b4017a355cafd589c3ae9a31f3d869e21a4b77fe
   - name: ko://github.com/tektoncd/results/cmd/watcher
     newName: quay.io/konflux-ci/tekton-results-watcher
-    newTag: e35af9274c0df84386b73aae8df0ad496ad175df
+    newTag: b4017a355cafd589c3ae9a31f3d869e21a4b77fe
+  - name: ko://github.com/tektoncd/results/cmd/retention-policy-agent
+    newName: quay.io/konflux-ci/tekton-results-retention-policy-agent
+    newTag: b4017a355cafd589c3ae9a31f3d869e21a4b77fe
 
 # generate a new configmap with updated values (logs api, db ssl mode) and replace the default one
 configMapGenerator:
@@ -51,3 +54,9 @@ patches:
       kind: Service
       name: tekton-results-api-service
       labelSelector: "app.kubernetes.io/name=tekton-results-api"
+  - path: retention-policy-agent-deployment.yaml
+    target:
+      kind: Deployment
+      group: apps
+      version: v1
+      name: tekton-results-retention-policy-agent
